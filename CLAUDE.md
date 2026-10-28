@@ -9,7 +9,7 @@ Cran is a native mobile app (Expo) for tracking calories and macros during a lea
 3. Keep [`docs/STATUS.md`](docs/STATUS.md) up to date (current sprint, finished stories, decisions). Add an ADR in [`docs/adr/`](docs/adr/) for any technical decision that departs from the spec.
 4. If an ambiguity changes the data model, the API or the UX: ask before coding. For an inconsequential detail: choose, and note it in `STATUS.md`.
 5. **Production VPS**: never run a command that modifies the server, Dokploy or a database without Johan's explicit approval. Read-only access is allowed.
-6. **Git**: Conventional Commits, in English. No mention of Claude in commits or PRs (no `Co-Authored-By`, no "Generated with" signature).
+6. **Git**: `main` is protected (pull request and green "Lint, typecheck, test" check required, no force-push). Conventional Commits, in English. No mention of Claude in commits or PRs (no `Co-Authored-By`, no "Generated with" signature).
 
 ## Conventions
 

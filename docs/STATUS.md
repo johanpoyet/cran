@@ -20,6 +20,8 @@ Petites décisions prises sans changer le modèle de données, l'API ou l'UX. Le
 - **2026-10-28 · ESLint** : `strictTypeChecked` + `stylisticTypeChecked` de typescript-eslint, `simple-import-sort` pour le tri des imports, `eslint-config-prettier` pour éviter les conflits.
 - **2026-10-28 · Prettier** n'est pas appliqué à `docs/SPEC.md` (gardé tel que fourni) ni à `docs/design/`.
 - **2026-10-28 · Formatage français** : `Intl.NumberFormat('fr-FR')`, qui utilise une espace fine insécable (U+202F) comme séparateur de milliers ; l'unité est séparée par une espace insécable (U+00A0).
+- **2026-10-28 · CI** : un seul job « Lint, typecheck, test » (une seule installation pnpm), qui lance aussi `format:check`. Postgres 16 en service container, exposé aux tests via `DATABASE_URL` (déclarée dans `turbo.json` pour passer le mode strict des variables d'environnement de Turborepo). La CI tourne sur les PR et sur `main`.
+- **2026-10-28 · Dépôt public et protection de `main`** : dépôt passé en public par Johan (protection de branche gratuite sur un dépôt public). Le ruleset « Protect main » impose de passer par une PR, exige le check « Lint, typecheck, test » et interdit le force-push et la suppression, sans contournement. Vérifié avec la PR #3 (erreur de type volontaire → CI rouge, PR `BLOCKED`, fermée sans merge).
 
 ## Rétros
 
