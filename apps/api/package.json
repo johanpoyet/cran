@@ -1,0 +1,19 @@
+{
+  "name": "@cran/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc"
+  },
+  "dependencies": {
+    "@cran/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@cran/config": "workspace:*",
+    "@types/node": "22.20.5",
+    "eslint": "10.13.0",
+    "typescript": "6.0.3"
+  }
+}
