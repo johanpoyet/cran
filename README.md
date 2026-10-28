@@ -1,5 +1,7 @@
 # Cran
 
+[![CI](https://github.com/johanpoyet/cran/actions/workflows/ci.yml/badge.svg)](https://github.com/johanpoyet/cran/actions/workflows/ci.yml)
+
 Ta prise de masse, un cran après l'autre.
 
 Cran is a native mobile app for tracking calories and macros during a lean bulk, with a target that adjusts every week from your real weight trend. Local-first Expo app, self-hosted Hono API, shared TypeScript business rules.

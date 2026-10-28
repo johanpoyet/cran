@@ -9,7 +9,8 @@
     },
     "test": {
       "dependsOn": ["^typecheck"],
-      "outputs": []
+      "outputs": [],
+      "env": ["DATABASE_URL"]
     }
   }
 }
