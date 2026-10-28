@@ -56,3 +56,70 @@ jobs:
       - run: pnpm typecheck
 
       - run: pnpm test
+
+  api-image:
+    name: API Docker image
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: cran
+          POSTGRES_PASSWORD: cran
+          POSTGRES_DB: cran
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U cran -d cran"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: docker/setup-buildx-action@v4
+
+      - name: Build image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: apps/api/Dockerfile
+          load: true
+          tags: cran-api:ci
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,scope=api,mode=max
+
+      - name: Start container (migrations + server)
+        run: |
+          docker run -d --name api --network host \
+            -e DATABASE_URL=postgres://cran:cran@localhost:5432/cran \
+            -e APP_VERSION=ci \
+            cran-api:ci
+
+      - name: Wait for a healthy container
+        run: |
+          for i in $(seq 1 30); do
+            status=$(docker inspect -f '{{.State.Health.Status}}' api 2>/dev/null || echo missing)
+            echo "attempt $i: $status"
+            if [ "$status" = healthy ]; then exit 0; fi
+            if [ "$(docker inspect -f '{{.State.Running}}' api)" != true ]; then break; fi
+            sleep 2
+          done
+          docker logs api
+          exit 1
+
+      - name: Check /health reports the database as up
+        run: |
+          body=$(curl -sf http://localhost:3000/health)
+          echo "$body"
+          echo "$body" | jq -e '.status == "ok" and .database.status == "up" and .version == "ci"'
+
+      - name: Check the container runs as a non-root user
+        run: test "$(docker exec api id -u)" != 0
+
+      - name: Container logs
+        if: always()
+        run: docker logs api || true
