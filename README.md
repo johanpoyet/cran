@@ -18,6 +18,16 @@ pnpm install
 pnpm lint && pnpm typecheck && pnpm test
 ```
 
+### API
+
+```sh
+cp apps/api/.env.example apps/api/.env   # point DATABASE_URL to a Postgres 16
+pnpm --filter @cran/api db:migrate
+pnpm --filter @cran/api dev              # http://localhost:3000/health, /docs
+```
+
+Tests that need Postgres run when `DATABASE_URL` is set (always in CI). The production image is built from the repository root with `docker build -f apps/api/Dockerfile .`.
+
 ## Structure
 
 | Path              | Content                                              |
