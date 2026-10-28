@@ -2,13 +2,13 @@
 
 ## Sprint en cours : S0 — Fondations
 
-| Story                    | État     | PR             |
-| ------------------------ | -------- | -------------- |
-| S0-1 Monorepo            | fait     | #1             |
-| S0-2 CI                  | en revue | `feat/S0-2-ci` |
-| S0-3 API squelette       | à faire  |                |
-| S0-4 Déploiement staging | à faire  |                |
-| S0-5 App squelette       | à faire  |                |
+| Story                    | État     | PR                       |
+| ------------------------ | -------- | ------------------------ |
+| S0-1 Monorepo            | fait     | #1                       |
+| S0-2 CI                  | fait     | #2                       |
+| S0-3 API squelette       | en revue | `feat/S0-3-api-skeleton` |
+| S0-4 Déploiement staging | à faire  |                          |
+| S0-5 App squelette       | à faire  |                          |
 
 ## Décisions
 
@@ -22,6 +22,15 @@ Petites décisions prises sans changer le modèle de données, l'API ou l'UX. Le
 - **2026-10-28 · Formatage français** : `Intl.NumberFormat('fr-FR')`, qui utilise une espace fine insécable (U+202F) comme séparateur de milliers ; l'unité est séparée par une espace insécable (U+00A0).
 - **2026-10-28 · CI** : un seul job « Lint, typecheck, test » (une seule installation pnpm), qui lance aussi `format:check`. Postgres 16 en service container, exposé aux tests via `DATABASE_URL` (déclarée dans `turbo.json` pour passer le mode strict des variables d'environnement de Turborepo). La CI tourne sur les PR et sur `main`.
 - **2026-10-28 · Dépôt public et protection de `main`** : dépôt passé en public par Johan (protection de branche gratuite sur un dépôt public). Le ruleset « Protect main » impose de passer par une PR, exige le check « Lint, typecheck, test » et interdit le force-push et la suppression, sans contournement. Vérifié avec la PR #3 (erreur de type volontaire → CI rouge, PR `BLOCKED`, fermée sans merge).
+- **2026-10-28 · API : structure** : `createApp(deps)` reçoit ses dépendances (logger, version, ping de la base) pour être testée sans serveur ni base ; `src/index.ts` assemble le tout. Les tests qui demandent un vrai Postgres sont sautés si `DATABASE_URL` est absente (en local sans Docker) et tournent toujours en CI.
+- **2026-10-28 · API : format d'erreur** : toutes les erreurs ont la forme `{ error: { code, message, details? } }` (`not_found`, `validation_error`, `payload_too_large`, `internal_error`…).
+- **2026-10-28 · API : `/health`** : 200 `{ status: "ok", version, uptimeSeconds, database: { status: "up", latencyMs } }`, ou 503 avec `status: "degraded"` si la base ne répond pas en 2 s. Le `HEALTHCHECK` Docker ne vérifie que la vivacité (toute réponse HTTP suffit) : une base en panne ne doit pas faire redémarrer le conteneur en boucle ; c'est Uptime Kuma qui alerte sur le 503.
+- **2026-10-28 · API : sécurité de base** : `secureHeaders`, corps limité à 1 Mo (413), identifiant de requête. Le rate limiting arrive avec l'auth (S1-2).
+- **2026-10-28 · API : logs** : une ligne pino par requête avec méthode, chemin, statut, durée et `requestId` ; jamais la query string ni le corps.
+- **2026-10-28 · Sentry 11** : l'option `sendDefaultPii` citée par la spec n'existe plus ; remplacée par `dataCollection`, réglée au plus strict (pas d'utilisateur, cookies, corps, query string, données SQL ni variables locales ; en-têtes limités à `content-type`, `user-agent`, `x-request-id`). Sentry n'est actif que si `SENTRY_DSN` est défini.
+- **2026-10-28 · Migrations** : journal Drizzle vide (`apps/api/drizzle`) tant qu'il n'y a pas de table ; la première migration arrivera avec Better Auth (S1-2). Le conteneur lance `migrate.js` puis le serveur.
+- **2026-10-28 · Image Docker** : bundle tsdown (les paquets `@cran/*` sont inclus, donc `@cran/shared` est une dépendance de dev de l'API) + `pnpm deploy --prod` pour les `node_modules` de production. Un job CI construit l'image, la lance contre Postgres et vérifie `/health` et l'utilisateur non root.
+- **2026-10-28 · pnpm** : les scripts de build sont bloqués par défaut ; seul `esbuild` est autorisé (`allowBuilds`). On respecte la politique d'âge minimal des versions : tsdown 0.23.1 plutôt que 0.23.3, publiée la veille.
 
 ## Rétros
 
