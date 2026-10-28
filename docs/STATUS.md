@@ -2,13 +2,13 @@
 
 ## Sprint en cours : S0 — Fondations
 
-| Story                    | État     | PR                       |
-| ------------------------ | -------- | ------------------------ |
-| S0-1 Monorepo            | fait     | #1                       |
-| S0-2 CI                  | fait     | #2                       |
-| S0-3 API squelette       | en revue | `feat/S0-3-api-skeleton` |
-| S0-4 Déploiement staging | à faire  |                          |
-| S0-5 App squelette       | à faire  |                          |
+| Story                    | État                                    | PR                         |
+| ------------------------ | --------------------------------------- | -------------------------- |
+| S0-1 Monorepo            | fait                                    | #1                         |
+| S0-2 CI                  | fait                                    | #2                         |
+| S0-3 API squelette       | fait                                    | #4                         |
+| S0-4 Déploiement staging | en revue (checklist Dokploy à exécuter) | `feat/S0-4-staging-deploy` |
+| S0-5 App squelette       | à faire                                 |                            |
 
 ## Décisions
 
@@ -31,6 +31,8 @@ Petites décisions prises sans changer le modèle de données, l'API ou l'UX. Le
 - **2026-10-28 · Migrations** : journal Drizzle vide (`apps/api/drizzle`) tant qu'il n'y a pas de table ; la première migration arrivera avec Better Auth (S1-2). Le conteneur lance `migrate.js` puis le serveur.
 - **2026-10-28 · Image Docker** : bundle tsdown (les paquets `@cran/*` sont inclus, donc `@cran/shared` est une dépendance de dev de l'API) + `pnpm deploy --prod` pour les `node_modules` de production. Un job CI construit l'image, la lance contre Postgres et vérifie `/health` et l'utilisateur non root.
 - **2026-10-28 · pnpm** : les scripts de build sont bloqués par défaut ; seul `esbuild` est autorisé (`allowBuilds`). On respecte la politique d'âge minimal des versions : tsdown 0.23.1 plutôt que 0.23.3, publiée la veille.
+- **2026-10-28 · Déploiement staging** : workflow `deploy-staging.yml` sur push `main` filtré par chemins (API, `shared`, `config`, dépendances) : un merge qui ne touche que la doc ou l'app mobile ne redéploie pas l'API. Tags GHCR `main` et SHA complet ; le SHA est inscrit dans l'image et renvoyé par `/health`, ce qui permet au workflow d'attendre que la nouvelle version réponde réellement en staging. Sans le secret `DOKPLOY_STAGING_WEBHOOK_URL`, l'image est poussée et le déploiement sauté avec un avertissement (nécessaire pour la toute première image).
+- **2026-10-28 · Mémoire Node** : `NODE_OPTIONS=--max-old-space-size=128` en staging pour rester sous la limite de 192 Mo du conteneur (à ajuster pour la prod, 256 Mo).
 
 ## Rétros
 
