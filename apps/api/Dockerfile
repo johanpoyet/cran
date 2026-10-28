@@ -17,8 +17,11 @@ RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
     pnpm --filter @cran/api deploy --prod /out
 
 FROM node:22-alpine AS runtime
+# Commit SHA set by CI; reported by /health to check which build is deployed.
+ARG APP_VERSION=dev
 ENV NODE_ENV=production \
-    PORT=3000
+    PORT=3000 \
+    APP_VERSION=$APP_VERSION
 WORKDIR /app
 
 COPY --from=build --chown=node:node /out/package.json ./package.json
