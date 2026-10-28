@@ -2,13 +2,13 @@
 
 ## Sprint en cours : S0 — Fondations
 
-| Story                    | État     | PR                   |
-| ------------------------ | -------- | -------------------- |
-| S0-1 Monorepo            | en revue | `feat/S0-1-monorepo` |
-| S0-2 CI                  | à faire  |                      |
-| S0-3 API squelette       | à faire  |                      |
-| S0-4 Déploiement staging | à faire  |                      |
-| S0-5 App squelette       | à faire  |                      |
+| Story                    | État     | PR             |
+| ------------------------ | -------- | -------------- |
+| S0-1 Monorepo            | fait     | #1             |
+| S0-2 CI                  | en revue | `feat/S0-2-ci` |
+| S0-3 API squelette       | à faire  |                |
+| S0-4 Déploiement staging | à faire  |                |
+| S0-5 App squelette       | à faire  |                |
 
 ## Décisions
 
