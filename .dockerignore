@@ -1,0 +1,14 @@
+**/node_modules
+**/dist
+**/coverage
+**/.turbo
+**/.env
+**/.env.*
+.git
+.github
+.husky
+docs
+*.md
+# The mobile app is not needed, but its manifest is part of the lockfile.
+apps/mobile/*
+!apps/mobile/package.json
