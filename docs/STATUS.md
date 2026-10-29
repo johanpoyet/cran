@@ -2,13 +2,13 @@
 
 ## Sprint en cours : S0 — Fondations
 
-| Story                    | État                                    | PR                         |
-| ------------------------ | --------------------------------------- | -------------------------- |
-| S0-1 Monorepo            | fait                                    | #1                         |
-| S0-2 CI                  | fait                                    | #2                         |
-| S0-3 API squelette       | fait                                    | #4                         |
-| S0-4 Déploiement staging | en revue (checklist Dokploy à exécuter) | `feat/S0-4-staging-deploy` |
-| S0-5 App squelette       | à faire                                 |                            |
+| Story                    | État                                                   | PR  |
+| ------------------------ | ------------------------------------------------------ | --- |
+| S0-1 Monorepo            | fait                                                   | #1  |
+| S0-2 CI                  | fait                                                   | #2  |
+| S0-3 API squelette       | fait                                                   | #4  |
+| S0-4 Déploiement staging | staging en ligne ; preuve finale au prochain merge API | #5  |
+| S0-5 App squelette       | à faire                                                |     |
 
 ## Décisions
 
@@ -33,6 +33,8 @@ Petites décisions prises sans changer le modèle de données, l'API ou l'UX. Le
 - **2026-10-28 · pnpm** : les scripts de build sont bloqués par défaut ; seul `esbuild` est autorisé (`allowBuilds`). On respecte la politique d'âge minimal des versions : tsdown 0.23.1 plutôt que 0.23.3, publiée la veille.
 - **2026-10-28 · Déploiement staging** : workflow `deploy-staging.yml` sur push `main` filtré par chemins (API, `shared`, `config`, dépendances) : un merge qui ne touche que la doc ou l'app mobile ne redéploie pas l'API. Tags GHCR `main` et SHA complet ; le SHA est inscrit dans l'image et renvoyé par `/health`, ce qui permet au workflow d'attendre que la nouvelle version réponde réellement en staging. Sans le secret `DOKPLOY_STAGING_WEBHOOK_URL`, l'image est poussée et le déploiement sauté avec un avertissement (nécessaire pour la toute première image).
 - **2026-10-28 · Mémoire Node** : `NODE_OPTIONS=--max-old-space-size=128` en staging pour rester sous la limite de 192 Mo du conteneur (à ajuster pour la prod, 256 Mo).
+- **2026-10-29 · nginx devant Traefik** : sur le VPS, un nginx hôte occupe les ports 80/443 et termine le TLS (certificats certbot) ; Traefik n'est joignable qu'en local sur `127.0.0.1:8080`. Le domaine `api-staging.cran.johanpoyet.fr` a donc un bloc nginx qui renvoie vers Traefik, et le domaine Dokploy est en HTTP seul. Mis en place avec l'accord de Johan, documenté dans `docs/runbook.md`. Même schéma à prévoir pour `api.cran.johanpoyet.fr` en S9-3.
+- **2026-10-29 · Staging en ligne** : `https://api-staging.cran.johanpoyet.fr/health` renvoie `status: ok` et `database: up` (critère de S0-3 vérifié). Le webhook Dokploy redéploie bien le conteneur (`uptimeSeconds` remis à zéro par le workflow lancé à la main). Il reste à constater le redéploiement automatique sur un vrai merge touchant l'API.
 
 ## Rétros
 
