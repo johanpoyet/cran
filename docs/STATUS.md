@@ -2,13 +2,13 @@
 
 ## Sprint en cours : S0 — Fondations
 
-| Story                    | État                                                   | PR                       |
-| ------------------------ | ------------------------------------------------------ | ------------------------ |
-| S0-1 Monorepo            | fait                                                   | #1                       |
-| S0-2 CI                  | fait                                                   | #2                       |
-| S0-3 API squelette       | fait                                                   | #4                       |
-| S0-4 Déploiement staging | staging en ligne ; preuve finale au prochain merge API | #5                       |
-| S0-5 App squelette       | en revue (build `preview` à installer)                 | `feat/S0-5-app-skeleton` |
+| Story                    | État                                                     | PR  |
+| ------------------------ | -------------------------------------------------------- | --- |
+| S0-1 Monorepo            | fait                                                     | #1  |
+| S0-2 CI                  | fait                                                     | #2  |
+| S0-3 API squelette       | fait                                                     | #4  |
+| S0-4 Déploiement staging | staging en ligne ; preuve finale au prochain merge API   | #5  |
+| S0-5 App squelette       | build `preview` installé sur l'iPhone de Johan, en revue | #8  |
 
 ## Décisions
 
@@ -48,6 +48,7 @@ Petites décisions prises sans changer le modèle de données, l'API ou l'UX. Le
 - **2026-10-30 · App : icônes de l'app** : `pnpm --filter @cran/mobile icons` génère l'icône adaptative Android (logo blanc dans la zone de sécurité, fond `#3554F5`) et l'image de démarrage depuis `docs/design/logo/app-icon.svg` ; l'icône iOS est l'export 1024 px des maquettes. Écran de démarrage bleu avec le logo blanc, comme l'icône.
 - **2026-10-30 · App : tests** : Jest (`jest-expo`) et React Native Testing Library 14, dont `render` et `fireEvent` sont asynchrones. `lucide-react-native` est résolu vers sa version CommonJS dans Jest (son entrée `react-native` est un `.mjs` non transformé).
 - **2026-10-30 · pnpm** : `@sentry/cli`, `@parcel/watcher` et `unrs-resolver` sans script d'installation (binaires fournis par des dépendances optionnelles). Versions publiées depuis moins d'un jour refusées par pnpm : `i18next` 26.5.11 et `lucide-react-native` 1.63.0 plutôt que les toutes dernières.
+- **2026-10-30 · Build `preview` sur iPhone** : iPhone de Johan enregistré par son UDID (saisie manuelle dans `eas device:create`, ce qui évite le délai de sécurité d'iOS pour installer un profil hors d'un lieu habituel). Build EAS `preview` installé : l'écran « Ta journée » et la barre flottante s'affichent comme sur la maquette (critère de S0-5 vérifié).
 
 ## Rétros
 
