@@ -34,5 +34,50 @@
   },
   "common": {
     "comingSoon": "Bientôt"
+  },
+  "auth": {
+    "appName": "Cran",
+    "wordmark": "cran",
+    "tagline": "Ta prise de masse, un cran après l'autre.",
+    "features": {
+      "quickAdd": "Un aliment ajouté en 3 taps",
+      "scan": "Scan des codes-barres",
+      "adaptive": "Un objectif qui s'ajuste chaque semaine"
+    },
+    "apple": "Continuer avec Apple",
+    "google": "Continuer avec Google",
+    "email": "Continuer avec un email",
+    "legal": {
+      "before": "En continuant, tu acceptes les ",
+      "terms": "conditions d'utilisation",
+      "between": " et la ",
+      "privacy": "politique de confidentialité",
+      "after": "."
+    },
+    "emailForm": {
+      "title": "Continuer avec un email",
+      "signInSubtitle": "Connecte-toi à ton compte Cran.",
+      "signUpSubtitle": "Crée ton compte Cran.",
+      "email": "Email",
+      "password": "Mot de passe",
+      "passwordHint": "8 caractères minimum",
+      "signIn": "Se connecter",
+      "signUp": "Créer mon compte",
+      "toSignUp": "Pas encore de compte ? Créer un compte",
+      "toSignIn": "Déjà un compte ? Se connecter",
+      "back": "Retour"
+    },
+    "errors": {
+      "invalidCredentials": "Email ou mot de passe incorrect.",
+      "emailTaken": "Un compte existe déjà avec cet email. Connecte-toi.",
+      "invalidEmail": "Cette adresse email n'est pas valide.",
+      "passwordTooShort": "Le mot de passe doit faire au moins 8 caractères.",
+      "passwordTooLong": "Le mot de passe doit faire au plus 128 caractères.",
+      "tooManyAttempts": "Trop de tentatives. Réessaie dans une minute.",
+      "network": "Impossible de joindre Cran. Vérifie ta connexion.",
+      "providerFailed": "La connexion n'a pas abouti. Réessaie.",
+      "unknown": "Une erreur est survenue. Réessaie."
+    },
+    "signOut": "Se déconnecter"
   }
 }

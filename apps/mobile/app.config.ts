@@ -3,6 +3,20 @@ import type { ConfigContext, ExpoConfig } from 'expo/config';
 // Expo project @johanpoyet/cran, created by `eas init`. Not a secret.
 const EAS_PROJECT_ID = '8bef77cd-d6f5-4647-a2b3-8074f397a69b';
 
+// Google Sign-In on iOS returns to the app through the reversed iOS client id. The plugin is only
+// added once the client ids are set (eas.json), so builds work before the Google console is ready.
+const googleIosClientId = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID;
+const googleSignIn: NonNullable<ExpoConfig['plugins']> = googleIosClientId
+  ? [
+      [
+        '@react-native-google-signin/google-signin',
+        {
+          iosUrlScheme: `com.googleusercontent.apps.${googleIosClientId.replace('.apps.googleusercontent.com', '')}`,
+        },
+      ],
+    ]
+  : [];
+
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: 'Cran',
@@ -16,6 +30,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ios: {
     bundleIdentifier: 'fr.johanpoyet.cran',
     supportsTablet: false,
+    usesAppleSignIn: true,
     config: { usesNonExemptEncryption: false },
   },
   android: {
@@ -29,6 +44,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     'expo-router',
     'expo-font',
     'expo-localization',
+    'expo-secure-store',
+    'expo-web-browser',
+    'expo-apple-authentication',
+    ...googleSignIn,
     [
       'expo-splash-screen',
       {
