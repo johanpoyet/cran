@@ -73,11 +73,13 @@ Si le secret n'est pas défini, l'image est quand même poussée et le déploiem
   DATABASE_URL=<Internal Connection URL de cran-db-staging>
   LOG_LEVEL=info
   NODE_OPTIONS=--max-old-space-size=128
+  BETTER_AUTH_URL=https://api-staging.cran.johanpoyet.fr
+  BETTER_AUTH_SECRET=<openssl rand -base64 32, propre à cet environnement>
   SENTRY_DSN=
   SENTRY_ENVIRONMENT=staging
   ```
 
-  Ne pas définir `APP_VERSION` ni `PORT` : l'image les fournit (`PORT=3000`).
+  Ne pas définir `APP_VERSION` ni `PORT` : l'image les fournit (`PORT=3000`). Sans `BETTER_AUTH_SECRET` (32 caractères minimum), le conteneur refuse de démarrer. Les variables `APPLE_*` et `GOOGLE_*` s'ajoutent quand les consoles Apple et Google sont configurées.
 
 - [ ] Advanced → Resources : **Memory Limit 192 Mo** (`201326592` octets).
 - [ ] Domains → Add Domain : hôte `api-staging.cran.johanpoyet.fr`, chemin `/`, **port du conteneur 3000**, **HTTPS désactivé** (voir « Chemin d'une requête »).

@@ -1,7 +1,22 @@
-import { describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
-import { MAX_BODY_BYTES } from './app';
-import { buildTestApp } from './test-utils';
+import { type AppDeps, MAX_BODY_BYTES } from './app';
+import { buildTestApp as buildApp } from './test/app';
+import { createTestDatabase, type TestDatabase } from './test/database';
+
+let database: TestDatabase;
+
+beforeAll(async () => {
+  database = await createTestDatabase();
+});
+
+afterAll(async () => {
+  await database.close();
+});
+
+function buildTestApp(overrides: Partial<Omit<AppDeps, 'auth'>> = {}) {
+  return buildApp({ db: database.db, ...overrides }).app;
+}
 
 describe('GET /health', () => {
   it('returns 200 when the database answers', async () => {

@@ -2,13 +2,13 @@
 
 ## Sprint en cours : S1 — Compte, profil, onboarding
 
-| Story                               | État     | PR                               |
-| ----------------------------------- | -------- | -------------------------------- |
-| S1-1 Calculs initiaux dans `shared` | en revue | `feat/S1-1-initial-calculations` |
-| S1-2 Auth API                       | à faire  |                                  |
-| S1-3 Auth app                       | à faire  |                                  |
-| S1-4 Profil                         | à faire  |                                  |
-| S1-5 Onboarding                     | à faire  |                                  |
+| Story                               | État     | PR                   |
+| ----------------------------------- | -------- | -------------------- |
+| S1-1 Calculs initiaux dans `shared` | fait     | #10                  |
+| S1-2 Auth API                       | en revue | `feat/S1-2-auth-api` |
+| S1-3 Auth app                       | à faire  |                      |
+| S1-4 Profil                         | à faire  |                      |
+| S1-5 Onboarding                     | à faire  |                      |
 
 ## Sprints terminés
 
@@ -70,6 +70,13 @@ Petites décisions prises sans changer le modèle de données, l'API ou l'UX. Le
 - **2026-10-30 · Calculs : âge** : le profil ne stocke que l'année de naissance ; l'âge est l'âge atteint dans l'année civile en cours (2026 − 2005 = 21 ans, comme dans la maquette « Onboarding 2 »).
 - **2026-10-30 · Calculs : entrées invalides** : poids, taille, âge, cible ou ratios nuls, négatifs ou non finis lèvent une `RangeError`, plutôt que de produire une cible `NaN` silencieuse. Une cible trop basse pour couvrir protéines et lipides est aussi refusée.
 - **2026-10-30 · Couverture** : `pnpm test` de `shared` lance Vitest avec couverture v8 et seuils bloquants : 100 % sur `src/calc/**`, 80 % sur le paquet. Le badge de couverture du README viendra quand l'API aura aussi ses seuils.
+- **2026-10-30 · Auth : emails** : sur décision de Johan, pas de vérification d'adresse ni de « mot de passe oublié » en S1-2 (il faudrait un fournisseur d'envoi d'emails). Le « mot de passe oublié » sera ajouté avant la publication ; Apple et Google restent les voies principales.
+- **2026-10-30 · Auth : tables** : `user`, `session`, `account`, `verification` dans `apps/api/src/db/schema/auth.ts` (serveur seulement, donc pas dans `shared`), colonnes en snake_case, identifiants UUID générés par Postgres (`gen_random_uuid()`, `generateId: 'uuid'`). Index unique sur (`provider_id`, `account_id`). Première migration : `0000_auth.sql`.
+- **2026-10-30 · Auth : sessions** : 30 jours, prolongées au plus une fois par jour pendant l'utilisation (`updateAge`). Mots de passe de 8 à 128 caractères, connexion automatique après inscription. L'app enverra le cookie de session gardé dans SecureStore (plugin Expo de Better Auth, schéma `cran://` en origine de confiance).
+- **2026-10-30 · Auth : fournisseurs** : Apple et Google ne sont activés que si leurs identifiants sont définis (`APPLE_CLIENT_ID`/`APPLE_CLIENT_SECRET`, `GOOGLE_CLIENT_IDS`/`GOOGLE_CLIENT_SECRET`). Pour Apple, le bundle id `fr.johanpoyet.cran` sert à valider les jetons de la connexion native. La création des identifiants dans les consoles Apple et Google se fera avec S1-3.
+- **2026-10-30 · Auth : rate limiting** : celui de Better Auth, en mémoire (une seule instance) : 5 connexions, 3 inscriptions et 10 connexions sociales par minute et par IP ; 100 requêtes par minute sur le reste de `/api/auth`. L'IP vient de `X-Real-IP`, que nginx remplit avec l'adresse du client et que Traefik conserve (il fait confiance aux en-têtes venant de `127.0.0.1` et des réseaux Docker) ; le premier élément de `X-Forwarded-For` pourrait être falsifié par le client. Le rate limiting par utilisateur des routes `/v1` viendra avec ces routes.
+- **2026-10-30 · Auth : routes `/v1`** : un middleware exige une session valide sur tout `/v1/*` (401 avec le format d'erreur commun) et expose l'utilisateur aux handlers.
+- **2026-10-30 · Tests API : PGlite en local** : les tests utilisent le Postgres de `DATABASE_URL` quand il est défini (CI, migrations jouées une fois dans le setup global), sinon PGlite (Postgres en WebAssembly, en mémoire, dépendance de dev uniquement). Les tests d'auth tournent ainsi sur la machine de Johan sans Docker ni Postgres.
 
 ## Rétros
 

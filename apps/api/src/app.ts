@@ -6,20 +6,23 @@ import { HTTPException } from 'hono/http-exception';
 import { requestId } from 'hono/request-id';
 import { secureHeaders } from 'hono/secure-headers';
 
+import type { Auth } from './auth';
 import { errorBody } from './errors';
 import type { Logger } from './logger';
+import { requireSession, type SessionVariables } from './middleware/session';
 import { healthRoutes } from './routes/health';
 
 export const MAX_BODY_BYTES = 1024 * 1024;
 
 export interface AppDeps {
   logger: Logger;
+  auth: Auth;
   version: string;
   pingDatabase: () => Promise<void>;
   databaseTimeoutMs?: number;
 }
 
-export function createApp({ logger, version, pingDatabase, databaseTimeoutMs }: AppDeps) {
+export function createApp({ logger, auth, version, pingDatabase, databaseTimeoutMs }: AppDeps) {
   const app = new OpenAPIHono({
     // Zod validation failures share the common error shape.
     defaultHook: (result, c) => {
@@ -62,6 +65,14 @@ export function createApp({ logger, version, pingDatabase, databaseTimeoutMs }: 
     '/',
     healthRoutes({ version, pingDatabase, ...(databaseTimeoutMs ? { databaseTimeoutMs } : {}) }),
   );
+
+  // Better Auth: sign-up, sign-in (email, Apple, Google), sessions, sign-out.
+  app.on(['GET', 'POST'], '/api/auth/*', (c) => auth.handler(c.req.raw));
+
+  // Every /v1 route requires a session (spec section 5).
+  const v1 = new OpenAPIHono<{ Variables: SessionVariables }>();
+  v1.use(requireSession(auth));
+  app.route('/v1', v1);
 
   app.doc31('/openapi.json', {
     openapi: '3.1.0',

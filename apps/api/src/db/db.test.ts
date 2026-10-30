@@ -1,14 +1,12 @@
-import { fileURLToPath } from 'node:url';
-
 import { afterAll, describe, expect, it } from 'vitest';
 
-import { buildTestApp } from '../test-utils';
+import { buildTestApp } from '../test/app';
+import { migrationsFolder } from '../test/database';
 import { createDatabase } from './client';
 import { runMigrations } from './migrate';
 
-// Needs a real Postgres: provided by the CI service container, optional locally.
+// postgres.js client and migrator against a real Postgres: CI service container, optional locally.
 const databaseUrl = process.env.DATABASE_URL;
-const migrationsFolder = fileURLToPath(new URL('../../drizzle', import.meta.url));
 
 describe.skipIf(!databaseUrl)('with a real Postgres', () => {
   const url = databaseUrl ?? '';
@@ -28,7 +26,8 @@ describe.skipIf(!databaseUrl)('with a real Postgres', () => {
   });
 
   it('reports the database as up on /health', async () => {
-    const res = await buildTestApp({ pingDatabase: database.ping }).request('/health');
+    const { app } = buildTestApp({ db: database.db, pingDatabase: database.ping });
+    const res = await app.request('/health');
 
     expect(res.status).toBe(200);
     expect(await res.json()).toMatchObject({ database: { status: 'up' } });
@@ -36,7 +35,8 @@ describe.skipIf(!databaseUrl)('with a real Postgres', () => {
 
   it('reports the database as down when it is unreachable', async () => {
     const unreachable = createDatabase('postgres://cran:cran@127.0.0.1:1/none', { max: 1 });
-    const res = await buildTestApp({ pingDatabase: unreachable.ping }).request('/health');
+    const { app } = buildTestApp({ db: database.db, pingDatabase: unreachable.ping });
+    const res = await app.request('/health');
     await unreachable.close();
 
     expect(res.status).toBe(503);
