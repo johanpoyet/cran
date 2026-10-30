@@ -11,13 +11,7 @@ const DAY = 60 * 60 * 24;
 
 export type AuthEnv = Pick<
   Env,
-  | 'BETTER_AUTH_URL'
-  | 'BETTER_AUTH_SECRET'
-  | 'APPLE_CLIENT_ID'
-  | 'APPLE_CLIENT_SECRET'
-  | 'APPLE_APP_BUNDLE_IDENTIFIER'
-  | 'GOOGLE_CLIENT_IDS'
-  | 'GOOGLE_CLIENT_SECRET'
+  'BETTER_AUTH_URL' | 'BETTER_AUTH_SECRET' | 'APPLE_APP_BUNDLE_IDENTIFIER' | 'GOOGLE_CLIENT_IDS'
 >;
 
 export interface AuthDeps {
@@ -28,21 +22,19 @@ export interface AuthDeps {
   rateLimit?: boolean;
 }
 
-// Social providers are only enabled once their credentials exist (Apple and Google consoles).
+// The app signs in natively (Sign in with Apple, Google Sign-In) and sends the provider's id token:
+// Better Auth only checks its signature and audience, so no client secret is needed. Google is
+// enabled once its client ids exist.
 export function socialProviders(env: AuthEnv): BetterAuthOptions['socialProviders'] {
-  const providers: NonNullable<BetterAuthOptions['socialProviders']> = {};
-  if (env.APPLE_CLIENT_ID && env.APPLE_CLIENT_SECRET) {
-    providers.apple = {
-      clientId: env.APPLE_CLIENT_ID,
-      clientSecret: env.APPLE_CLIENT_SECRET,
-      // Native Sign in with Apple id tokens are issued for the app bundle id.
+  const providers: NonNullable<BetterAuthOptions['socialProviders']> = {
+    apple: {
+      clientId: env.APPLE_APP_BUNDLE_IDENTIFIER,
       appBundleIdentifier: env.APPLE_APP_BUNDLE_IDENTIFIER,
-    };
-  }
-  if (env.GOOGLE_CLIENT_IDS && env.GOOGLE_CLIENT_SECRET) {
+    },
+  };
+  if (env.GOOGLE_CLIENT_IDS) {
     providers.google = {
       clientId: env.GOOGLE_CLIENT_IDS.split(',').map((id) => id.trim()),
-      clientSecret: env.GOOGLE_CLIENT_SECRET,
     };
   }
   return providers;
@@ -69,8 +61,8 @@ export function createAuth({ db, env, logger, rateLimit }: AuthDeps) {
       expiresIn: 30 * DAY,
       updateAge: DAY,
     },
-    // The app's deep-link scheme, plus Apple's form_post callback for the web flow.
-    trustedOrigins: ['cran://', 'https://appleid.apple.com'],
+    // The app's deep-link scheme, sent by the Expo client as its origin.
+    trustedOrigins: ['cran://'],
     plugins: [expo()],
     rateLimit: {
       ...(rateLimit === undefined ? {} : { enabled: rateLimit }),

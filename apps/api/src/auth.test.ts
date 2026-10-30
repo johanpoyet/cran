@@ -231,32 +231,38 @@ describe('rate limiting', () => {
 });
 
 describe('social providers', () => {
-  it('are disabled until their credentials are configured', async () => {
+  it('reject an Apple id token that is not signed by Apple', async () => {
     const { app } = buildTestApp({ db: database.db });
     const res = await post(app, '/api/auth/sign-in/social', {
       provider: 'apple',
-      idToken: { token: 'fake' },
+      idToken: { token: 'not-a-jwt' },
     });
 
-    expect(res.status).toBeGreaterThanOrEqual(400);
-    expect(res.status).toBeLessThan(500);
+    expect(res.status).toBe(401);
   });
 
-  it('enable Apple with the bundle id for native id tokens once configured', () => {
-    const providers = socialProviders({
-      ...testAuthEnv,
-      APPLE_CLIENT_ID: 'fr.johanpoyet.cran.signin',
-      APPLE_CLIENT_SECRET: 'jwt',
+  it('keep Google disabled until its client ids are configured', async () => {
+    const { app } = buildTestApp({ db: database.db });
+    const res = await post(app, '/api/auth/sign-in/social', {
+      provider: 'google',
+      idToken: { token: 'not-a-jwt' },
     });
-    expect(providers?.apple).toMatchObject({ appBundleIdentifier: 'fr.johanpoyet.cran' });
-    expect(providers?.google).toBeUndefined();
+
+    expect(res.status).toBe(404);
+    expect(socialProviders(testAuthEnv)?.google).toBeUndefined();
+  });
+
+  it('accept native Apple id tokens issued for the bundle id', () => {
+    expect(socialProviders(testAuthEnv)?.apple).toMatchObject({
+      clientId: 'fr.johanpoyet.cran',
+      appBundleIdentifier: 'fr.johanpoyet.cran',
+    });
   });
 
   it('enable Google with every client id (web, iOS, Android)', () => {
     const providers = socialProviders({
       ...testAuthEnv,
       GOOGLE_CLIENT_IDS: 'web.apps.googleusercontent.com, ios.apps.googleusercontent.com',
-      GOOGLE_CLIENT_SECRET: 'secret',
     });
     expect(providers?.google).toMatchObject({
       clientId: ['web.apps.googleusercontent.com', 'ios.apps.googleusercontent.com'],

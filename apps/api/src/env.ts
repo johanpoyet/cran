@@ -16,13 +16,10 @@ const envSchema = z.object({
   BETTER_AUTH_URL: z.url().default('http://localhost:3000'),
   /** Signs session cookies and tokens: at least 32 random characters (openssl rand -base64 32). */
   BETTER_AUTH_SECRET: z.string().min(32),
-  /** Sign in with Apple: Services ID, client secret (JWT) and the iOS bundle id for native id tokens. */
-  APPLE_CLIENT_ID: optional,
-  APPLE_CLIENT_SECRET: optional,
-  APPLE_APP_BUNDLE_IDENTIFIER: z.string().default('fr.johanpoyet.cran'),
-  /** Google: comma-separated OAuth client ids (web, iOS, Android) and the web client secret. */
+  /** Sign in with Apple: native id tokens are issued for the iOS bundle id. */
+  APPLE_APP_BUNDLE_IDENTIFIER: z.string().min(1).default('fr.johanpoyet.cran'),
+  /** Google: comma-separated OAuth client ids (web, iOS, Android) accepted as id token audience. */
   GOOGLE_CLIENT_IDS: optional,
-  GOOGLE_CLIENT_SECRET: optional,
 });
 
 export type Env = z.infer<typeof envSchema>;
