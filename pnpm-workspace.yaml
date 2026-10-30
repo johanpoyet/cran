@@ -4,3 +4,7 @@ packages:
 
 allowBuilds:
   esbuild: true
+  # Prebuilt binaries come from platform-specific optional dependencies: no install script needed.
+  '@sentry/cli': false
+  '@parcel/watcher': false
+  unrs-resolver: false

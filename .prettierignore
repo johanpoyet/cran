@@ -4,3 +4,6 @@ dist/
 .turbo/
 docs/design/
 docs/SPEC.md
+apps/mobile/ios/
+apps/mobile/android/
+apps/mobile/.expo/

@@ -1,7 +1,9 @@
 {
   "extends": "@cran/config/tsconfig/base.json",
   "compilerOptions": {
-    "types": []
+    "lib": ["ES2023", "DOM"],
+    "jsx": "react-jsx",
+    "types": ["jest"]
   },
-  "include": ["src", "*.ts"]
+  "include": ["src", "*.ts", "expo-env.d.ts", ".expo/types/**/*.ts"]
 }

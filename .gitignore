@@ -28,3 +28,11 @@ android/
 
 # Logs
 *.log
+
+# Expo generated types and native credentials
+expo-env.d.ts
+*.p8
+*.p12
+*.mobileprovision
+*.jks
+*.keystore
