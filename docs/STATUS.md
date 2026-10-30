@@ -2,13 +2,13 @@
 
 ## Sprint en cours : S1 — Compte, profil, onboarding
 
-| Story                               | État    | PR  |
-| ----------------------------------- | ------- | --- |
-| S1-1 Calculs initiaux dans `shared` | à faire |     |
-| S1-2 Auth API                       | à faire |     |
-| S1-3 Auth app                       | à faire |     |
-| S1-4 Profil                         | à faire |     |
-| S1-5 Onboarding                     | à faire |     |
+| Story                               | État     | PR                               |
+| ----------------------------------- | -------- | -------------------------------- |
+| S1-1 Calculs initiaux dans `shared` | en revue | `feat/S1-1-initial-calculations` |
+| S1-2 Auth API                       | à faire  |                                  |
+| S1-3 Auth app                       | à faire  |                                  |
+| S1-4 Profil                         | à faire  |                                  |
+| S1-5 Onboarding                     | à faire  |                                  |
 
 ## Sprints terminés
 
@@ -65,6 +65,11 @@ Petites décisions prises sans changer le modèle de données, l'API ou l'UX. Le
 - **2026-10-30 · Redéploiement automatique vérifié** : le merge de la PR #8 (qui touche `packages/shared`) a déclenché « Deploy staging » sans action manuelle ; `/health` a renvoyé le SHA du merge `7fa005a` avec la base `up` (critère de S0-4 vérifié).
 - **2026-10-30 · Validation de l'app par checklist** : à la demande de Johan, la vérification des écrans se fait désormais avec une liste de comportements à tester sur son iPhone (OK / pas OK), au lieu d'une démo enregistrée. Cela remplace la « démo enregistrée » de la Definition of Done d'un sprint (spec section 9) à partir du sprint 1.
 - **2026-10-30 · Build `preview` sur iPhone** : iPhone de Johan enregistré par son UDID (saisie manuelle dans `eas device:create`, ce qui évite le délai de sécurité d'iOS pour installer un profil hors d'un lieu habituel). Build EAS `preview` installé : l'écran « Ta journée » et la barre flottante s'affichent comme sur la maquette (critère de S0-5 vérifié).
+- **2026-10-30 · Calculs : arrondi des glucides** : protéines et lipides arrondis au gramme le plus proche (comme le dit la spec), glucides arrondis **à l'inférieur**. C'est la seule règle qui redonne l'exemple de référence (68,4 kg, 2 900 kcal → 150 / 86 / **381** ; l'arrondi au plus proche donnerait 382), et elle garantit que les macros ne dépassent jamais la cible.
+- **2026-10-30 · Calculs : maquette « Objectifs »** : elle affiche 85 g de lipides et 384 g de glucides pour 2 900 kcal, ce qui ne correspond pas aux règles de la section 6 ni à la maquette « Ta cible » (86 / 381). Pour les chiffres, la spec fait foi ; les maquettes priment seulement pour le visuel.
+- **2026-10-30 · Calculs : âge** : le profil ne stocke que l'année de naissance ; l'âge est l'âge atteint dans l'année civile en cours (2026 − 2005 = 21 ans, comme dans la maquette « Onboarding 2 »).
+- **2026-10-30 · Calculs : entrées invalides** : poids, taille, âge, cible ou ratios nuls, négatifs ou non finis lèvent une `RangeError`, plutôt que de produire une cible `NaN` silencieuse. Une cible trop basse pour couvrir protéines et lipides est aussi refusée.
+- **2026-10-30 · Couverture** : `pnpm test` de `shared` lance Vitest avec couverture v8 et seuils bloquants : 100 % sur `src/calc/**`, 80 % sur le paquet. Le badge de couverture du README viendra quand l'API aura aussi ses seuils.
 
 ## Rétros
 
