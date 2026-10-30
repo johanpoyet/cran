@@ -22,7 +22,7 @@ export interface TestAppOptions extends Partial<Omit<AppDeps, 'auth'>> {
 }
 
 export function buildTestApp({ db, rateLimit = false, ...overrides }: TestAppOptions) {
-  const auth = createAuth({ db, env: testAuthEnv, rateLimit });
+  const auth = createAuth({ db, env: testAuthEnv, logger: silentLogger, rateLimit });
   const app = createApp({
     logger: silentLogger,
     auth,

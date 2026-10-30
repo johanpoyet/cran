@@ -11,7 +11,7 @@ const env = loadEnv();
 const logger = createLogger(env.LOG_LEVEL);
 const database = createDatabase(env.DATABASE_URL);
 
-const auth = createAuth({ db: database.db, env });
+const auth = createAuth({ db: database.db, env, logger });
 
 const app = createApp({
   logger,

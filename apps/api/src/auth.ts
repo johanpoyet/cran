@@ -5,6 +5,7 @@ import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import type { AppDatabase } from './db/client';
 import * as schema from './db/schema';
 import type { Env } from './env';
+import type { Logger } from './logger';
 
 const DAY = 60 * 60 * 24;
 
@@ -22,6 +23,7 @@ export type AuthEnv = Pick<
 export interface AuthDeps {
   db: AppDatabase;
   env: AuthEnv;
+  logger: Logger;
   /** Better Auth only rate-limits in production by default; tests switch it on explicitly. */
   rateLimit?: boolean;
 }
@@ -46,7 +48,7 @@ export function socialProviders(env: AuthEnv): BetterAuthOptions['socialProvider
   return providers;
 }
 
-export function createAuth({ db, env, rateLimit }: AuthDeps) {
+export function createAuth({ db, env, logger, rateLimit }: AuthDeps) {
   return betterAuth({
     appName: 'Cran',
     baseURL: env.BETTER_AUTH_URL,
@@ -85,6 +87,12 @@ export function createAuth({ db, env, rateLimit }: AuthDeps) {
       database: { generateId: 'uuid' },
       // nginx sets X-Real-IP to the client address; X-Forwarded-For's first entry can be forged.
       ipAddress: { ipAddressHeaders: ['x-real-ip'] },
+    },
+    // Better Auth messages go to the JSON logs. Extra arguments are dropped: they may hold emails.
+    logger: {
+      log: (level, message) => {
+        logger[level]({ source: 'better-auth' }, message);
+      },
     },
     telemetry: { enabled: false },
   });
