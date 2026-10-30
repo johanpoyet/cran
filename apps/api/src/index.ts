@@ -2,6 +2,7 @@ import { serve } from '@hono/node-server';
 import * as Sentry from '@sentry/node';
 
 import { createApp } from './app';
+import { createAuth } from './auth';
 import { createDatabase } from './db/client';
 import { loadEnv } from './env';
 import { createLogger } from './logger';
@@ -10,8 +11,11 @@ const env = loadEnv();
 const logger = createLogger(env.LOG_LEVEL);
 const database = createDatabase(env.DATABASE_URL);
 
+const auth = createAuth({ db: database.db, env });
+
 const app = createApp({
   logger,
+  auth,
   version: env.APP_VERSION,
   pingDatabase: database.ping,
 });

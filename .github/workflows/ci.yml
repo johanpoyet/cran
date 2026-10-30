@@ -96,6 +96,7 @@ jobs:
         run: |
           docker run -d --name api --network host \
             -e DATABASE_URL=postgres://cran:cran@localhost:5432/cran \
+            -e BETTER_AUTH_SECRET=ci-secret-that-is-at-least-32-characters \
             -e APP_VERSION=ci \
             cran-api:ci
 
