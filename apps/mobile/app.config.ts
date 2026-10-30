@@ -1,12 +1,13 @@
 import type { ConfigContext, ExpoConfig } from 'expo/config';
 
-// Filled by `eas init` (Expo project linked to Johan's account).
-const EAS_PROJECT_ID = process.env.EAS_PROJECT_ID;
+// Expo project @johanpoyet/cran, created by `eas init`. Not a secret.
+const EAS_PROJECT_ID = '8bef77cd-d6f5-4647-a2b3-8074f397a69b';
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: 'Cran',
   slug: 'cran',
+  owner: 'johanpoyet',
   scheme: 'cran',
   version: '0.1.0',
   orientation: 'portrait',
@@ -40,10 +41,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ],
   experiments: { typedRoutes: true },
   runtimeVersion: { policy: 'appVersion' },
-  ...(EAS_PROJECT_ID
-    ? {
-        updates: { url: `https://u.expo.dev/${EAS_PROJECT_ID}` },
-        extra: { eas: { projectId: EAS_PROJECT_ID } },
-      }
-    : {}),
+  updates: { url: `https://u.expo.dev/${EAS_PROJECT_ID}` },
+  extra: { eas: { projectId: EAS_PROJECT_ID } },
 });
