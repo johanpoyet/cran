@@ -29,6 +29,7 @@ Conséquences :
 - Le certificat est géré par **certbot côté nginx**. Le Let's Encrypt de Traefik ne peut pas fonctionner (le défi HTTP-01 arrive sur nginx).
 - Dans Dokploy, le domaine est donc déclaré **en HTTP, sans HTTPS** : Traefik ne fait que router vers le conteneur. Avec HTTPS activé côté Dokploy, Traefik redirigerait vers HTTPS en boucle.
 - nginx ne connaît pas l'adresse du conteneur : Dokploy peut redéployer l'API librement.
+- Le bloc `/etc/nginx/sites-available/00-default` (`default_server`, `ssl_reject_handshake on`, `return 444`) ferme la connexion pour tout nom de domaine non déclaré. Sans lui, nginx servait le premier site HTTPS (Budget) pour n'importe quel hôte.
 
 ## Déploiement continu du staging
 
