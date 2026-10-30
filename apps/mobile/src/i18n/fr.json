@@ -1,0 +1,38 @@
+{
+  "tabs": {
+    "today": "Jour",
+    "journal": "Journal",
+    "add": "Ajouter un aliment",
+    "weight": "Poids",
+    "profile": "Profil"
+  },
+  "today": {
+    "title": "Ta journée",
+    "empty": "Ton journal du jour arrive bientôt ici."
+  },
+  "journal": {
+    "title": "Journal",
+    "empty": "Tes semaines et tes bilans apparaîtront ici."
+  },
+  "weight": {
+    "title": "Poids",
+    "empty": "Ta courbe de poids et ton objectif adaptatif arrivent bientôt."
+  },
+  "profile": {
+    "title": "Objectifs",
+    "empty": "Ton rythme, tes macros et tes rappels se régleront ici."
+  },
+  "add": {
+    "title": "Ajouter un aliment",
+    "empty": "La recherche, le scan et les modèles de repas arrivent bientôt.",
+    "close": "Fermer"
+  },
+  "macros": {
+    "protein": "Protéines",
+    "carbs": "Glucides",
+    "fat": "Lipides"
+  },
+  "common": {
+    "comingSoon": "Bientôt"
+  }
+}

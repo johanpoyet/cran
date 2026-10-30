@@ -28,6 +28,16 @@ pnpm --filter @cran/api dev              # http://localhost:3000/health, /docs
 
 Tests that need Postgres run when `DATABASE_URL` is set (always in CI). The production image is built from the repository root with `docker build -f apps/api/Dockerfile .`.
 
+### Mobile app
+
+```sh
+pnpm --filter @cran/mobile ios       # dev build on the iOS simulator (Xcode required): expo run:ios
+pnpm --filter @cran/mobile start     # Metro for an installed development build
+pnpm --filter @cran/mobile test      # Jest + React Native Testing Library
+```
+
+Builds for devices go through EAS (`eas build --profile preview`); see `apps/mobile/eas.json`.
+
 ## Structure
 
 | Path              | Content                                              |

@@ -28,6 +28,7 @@ export function createConfig({ tsconfigRootDir, ignores = [] }) {
       rules: {
         '@typescript-eslint/no-explicit-any': 'error',
         '@typescript-eslint/consistent-type-imports': 'error',
+        '@typescript-eslint/restrict-template-expressions': ['error', { allowNumber: true }],
         'simple-import-sort/imports': 'error',
         'simple-import-sort/exports': 'error',
       },
