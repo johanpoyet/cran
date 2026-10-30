@@ -22,6 +22,7 @@ describe.each([
   ['accent on surface', colors.accent, colors.surface],
   ['accent on accentSoft', colors.accent, colors.accentSoft],
   ['success on surface', colors.success, colors.surface],
+  ['danger on bg (form errors)', colors.danger, colors.bg],
   ['onAccent on text (selected chip)', colors.onAccent, colors.text],
 ])('%s', (_, foreground, background) => {
   it('reaches 4.5:1', () => {
