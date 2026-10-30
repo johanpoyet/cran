@@ -1,14 +1,28 @@
 # Avancement
 
-## Sprint en cours : S0 — Fondations
+## Sprint en cours : S1 — Compte, profil, onboarding
 
-| Story                    | État                                                     | PR  |
-| ------------------------ | -------------------------------------------------------- | --- |
-| S0-1 Monorepo            | fait                                                     | #1  |
-| S0-2 CI                  | fait                                                     | #2  |
-| S0-3 API squelette       | fait                                                     | #4  |
-| S0-4 Déploiement staging | staging en ligne ; preuve finale au prochain merge API   | #5  |
-| S0-5 App squelette       | build `preview` installé sur l'iPhone de Johan, en revue | #8  |
+| Story                               | État    | PR  |
+| ----------------------------------- | ------- | --- |
+| S1-1 Calculs initiaux dans `shared` | à faire |     |
+| S1-2 Auth API                       | à faire |     |
+| S1-3 Auth app                       | à faire |     |
+| S1-4 Profil                         | à faire |     |
+| S1-5 Onboarding                     | à faire |     |
+
+## Sprints terminés
+
+### S0 — Fondations (clos le 2026-10-30)
+
+| Story                    | État | PR         |
+| ------------------------ | ---- | ---------- |
+| S0-1 Monorepo            | fait | #1         |
+| S0-2 CI                  | fait | #2         |
+| S0-3 API squelette       | fait | #4         |
+| S0-4 Déploiement staging | fait | #5, #6, #7 |
+| S0-5 App squelette       | fait | #8         |
+
+Démo : [`docs/demo/sprint-0.gif`](demo/sprint-0.gif) (build `preview` sur l'iPhone de Johan).
 
 ## Décisions
 
@@ -48,8 +62,14 @@ Petites décisions prises sans changer le modèle de données, l'API ou l'UX. Le
 - **2026-10-30 · App : icônes de l'app** : `pnpm --filter @cran/mobile icons` génère l'icône adaptative Android (logo blanc dans la zone de sécurité, fond `#3554F5`) et l'image de démarrage depuis `docs/design/logo/app-icon.svg` ; l'icône iOS est l'export 1024 px des maquettes. Écran de démarrage bleu avec le logo blanc, comme l'icône.
 - **2026-10-30 · App : tests** : Jest (`jest-expo`) et React Native Testing Library 14, dont `render` et `fireEvent` sont asynchrones. `lucide-react-native` est résolu vers sa version CommonJS dans Jest (son entrée `react-native` est un `.mjs` non transformé).
 - **2026-10-30 · pnpm** : `@sentry/cli`, `@parcel/watcher` et `unrs-resolver` sans script d'installation (binaires fournis par des dépendances optionnelles). Versions publiées depuis moins d'un jour refusées par pnpm : `i18next` 26.5.11 et `lucide-react-native` 1.63.0 plutôt que les toutes dernières.
+- **2026-10-30 · Redéploiement automatique vérifié** : le merge de la PR #8 (qui touche `packages/shared`) a déclenché « Deploy staging » sans action manuelle ; `/health` a renvoyé le SHA du merge `7fa005a` avec la base `up` (critère de S0-4 vérifié).
+- **2026-10-30 · Validation de l'app par checklist** : à la demande de Johan, la vérification des écrans se fait désormais avec une liste de comportements à tester sur son iPhone (OK / pas OK), au lieu d'une démo enregistrée. Cela remplace la « démo enregistrée » de la Definition of Done d'un sprint (spec section 9) à partir du sprint 1.
 - **2026-10-30 · Build `preview` sur iPhone** : iPhone de Johan enregistré par son UDID (saisie manuelle dans `eas device:create`, ce qui évite le délai de sécurité d'iOS pour installer un profil hors d'un lieu habituel). Build EAS `preview` installé : l'écran « Ta journée » et la barre flottante s'affichent comme sur la maquette (critère de S0-5 vérifié).
 
 ## Rétros
 
-_Aucune pour l'instant._
+### S0 — Fondations
+
+- **Bien** : monorepo, CI, API et app en place en 3 jours ; staging redéployé automatiquement ; app sur l'iPhone dès le sprint 0.
+- **À améliorer** : particularité du VPS non documentée (nginx devant Traefik) découverte en cours de route ; outils très récents (pnpm 12, Sentry 11, Expo 58) qui ont demandé des ajustements.
+- **À essayer** : documenter le VPS avant de s'en servir ; prévoir un temps « comptes et accès » (Apple, Expo, Sentry) en début de sprint.

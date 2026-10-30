@@ -6,6 +6,8 @@ Ta prise de masse, un cran après l'autre.
 
 Cran is a native mobile app for tracking calories and macros during a lean bulk, with a target that adjusts every week from your real weight trend. Local-first Expo app, self-hosted Hono API, shared TypeScript business rules.
 
+<p align="center"><img src="docs/demo/sprint-0.gif" width="260" alt="Cran on iPhone: tab bar and add sheet (sprint 0)"></p>
+
 > Work in progress. See [`docs/SPEC.md`](docs/SPEC.md) for the full specification and [`docs/STATUS.md`](docs/STATUS.md) for progress.
 
 ## Getting started
