@@ -2,13 +2,13 @@
 
 ## Sprint en cours : S0 — Fondations
 
-| Story                    | État                                                   | PR  |
-| ------------------------ | ------------------------------------------------------ | --- |
-| S0-1 Monorepo            | fait                                                   | #1  |
-| S0-2 CI                  | fait                                                   | #2  |
-| S0-3 API squelette       | fait                                                   | #4  |
-| S0-4 Déploiement staging | staging en ligne ; preuve finale au prochain merge API | #5  |
-| S0-5 App squelette       | à faire                                                |     |
+| Story                    | État                                                   | PR                       |
+| ------------------------ | ------------------------------------------------------ | ------------------------ |
+| S0-1 Monorepo            | fait                                                   | #1                       |
+| S0-2 CI                  | fait                                                   | #2                       |
+| S0-3 API squelette       | fait                                                   | #4                       |
+| S0-4 Déploiement staging | staging en ligne ; preuve finale au prochain merge API | #5                       |
+| S0-5 App squelette       | en revue (build `preview` à installer)                 | `feat/S0-5-app-skeleton` |
 
 ## Décisions
 
@@ -35,6 +35,19 @@ Petites décisions prises sans changer le modèle de données, l'API ou l'UX. Le
 - **2026-10-28 · Mémoire Node** : `NODE_OPTIONS=--max-old-space-size=128` en staging pour rester sous la limite de 192 Mo du conteneur (à ajuster pour la prod, 256 Mo).
 - **2026-10-29 · nginx devant Traefik** : sur le VPS, un nginx hôte occupe les ports 80/443 et termine le TLS (certificats certbot) ; Traefik n'est joignable qu'en local sur `127.0.0.1:8080`. Le domaine `api-staging.cran.johanpoyet.fr` a donc un bloc nginx qui renvoie vers Traefik, et le domaine Dokploy est en HTTP seul. Mis en place avec l'accord de Johan, documenté dans `docs/runbook.md`. Même schéma à prévoir pour `api.cran.johanpoyet.fr` en S9-3.
 - **2026-10-29 · Staging en ligne** : `https://api-staging.cran.johanpoyet.fr/health` renvoie `status: ok` et `database: up` (critère de S0-3 vérifié). Le webhook Dokploy redéploie bien le conteneur (`uptimeSeconds` remis à zéro par le workflow lancé à la main). Il reste à constater le redéploiement automatique sur un vrai merge touchant l'API.
+- **2026-10-30 · Bloc nginx par défaut** : `00-default` (`default_server`, `ssl_reject_handshake on`, `return 444`) ferme les connexions pour les domaines non déclarés ; avant, nginx servait Budget pour n'importe quel hôte (PR #7).
+- **2026-10-30 · App : versions** : Expo SDK 58 (React 19.3, React Native 0.88, New Architecture seule), versions natives alignées sur `bundledNativeModules.json` du SDK. Le monorepo pnpm en mode isolé fonctionne avec Metro sans configuration particulière (`expo export` vérifié). `react-dom` 19.3.0 est épinglé (dépendance d'Expo Router).
+- **2026-10-30 · App : structure** : routes dans `src/app` (Expo Router), tokens dans `src/theme/tokens.ts`, composants dans `src/ui`, textes dans `src/i18n/fr.json` avec des clés typées. Aucun test dans `src/app` : Expo Router y traiterait le fichier comme une route.
+- **2026-10-30 · App : composants livrés en S0-5** : `Text`, `Screen`, `Card`, `HeroCard`, `PrimaryButton`, `Chip`, `ProgressBar`, `MacroRing`, `EmptyState`, `TabBar`. `Segmented`, `Stepper`, `Sheet`, `ListRow` et `Toggle` arrivent avec leur premier écran (onboarding, S1-5), pour être construits sur un vrai cas d'usage.
+- **2026-10-30 · App : typographie** : échelle mesurée sur les maquettes @2x (display 44/800, title 28/800, heading 20/700, body 16/500, label 15/600, caption 13/500). Une famille de police par graisse, car `fontWeight` ne choisit pas le fichier d'une police personnalisée.
+- **2026-10-30 · App : icônes** : `lucide-react-native` (sur `react-native-svg`, déjà prévu par la spec) : maison, barres, plus, poids, utilisateur, proches de la maquette.
+- **2026-10-30 · App : TabBar** : composant indépendant du navigateur (`active`, `onNavigate`, `onAdd`), branché dans `(tabs)/_layout.tsx` via `navigateToTab` (API d'Expo Router 58). Barre flottante de 68 pt à 20 pt des bords, à `max(inset bas − 10, 16)` du bas (24 pt sur iPhone avec Face ID, comme la maquette). Le « + » ouvre la route `add` en `formSheet` ; le choix du repas selon l'heure arrive en S3-2.
+- **2026-10-30 · App : accessibilité** : cibles d'au moins 44 × 44 pt, `accessibilityLabel` sur les boutons icônes, rôles `tab`/`tablist`/`progressbar`/`header`, taille de texte dynamique laissée active. Les contrastes des paires de tokens utilisées pour du texte sont vérifiés par un test (≥ 4,5:1).
+- **2026-10-30 · App : Sentry** : actif seulement si `EXPO_PUBLIC_SENTRY_DSN` est défini. Le SDK React Native 8 n'expose pas encore `dataCollection` : `sendDefaultPii: false` reste le seul réglage (et la valeur par défaut). L'envoi des source maps est désactivé (`SENTRY_DISABLE_AUTO_UPLOAD`) jusqu'à la création du projet Sentry.
+- **2026-10-30 · App : EAS** : profils `development` (client de dev), `preview` (distribution interne, API staging) et `production` (API prod, numéro de build auto-incrémenté), canaux EAS Update du même nom, `runtimeVersion` liée à la version de l'app. L'identifiant du projet EAS est lu dans `EAS_PROJECT_ID` en attendant `eas init` sur le compte de Johan.
+- **2026-10-30 · App : icônes de l'app** : `pnpm --filter @cran/mobile icons` génère l'icône adaptative Android (logo blanc dans la zone de sécurité, fond `#3554F5`) et l'image de démarrage depuis `docs/design/logo/app-icon.svg` ; l'icône iOS est l'export 1024 px des maquettes. Écran de démarrage bleu avec le logo blanc, comme l'icône.
+- **2026-10-30 · App : tests** : Jest (`jest-expo`) et React Native Testing Library 14, dont `render` et `fireEvent` sont asynchrones. `lucide-react-native` est résolu vers sa version CommonJS dans Jest (son entrée `react-native` est un `.mjs` non transformé).
+- **2026-10-30 · pnpm** : `@sentry/cli`, `@parcel/watcher` et `unrs-resolver` sans script d'installation (binaires fournis par des dépendances optionnelles). Versions publiées depuis moins d'un jour refusées par pnpm : `i18next` 26.5.11 et `lucide-react-native` 1.63.0 plutôt que les toutes dernières.
 
 ## Rétros
 

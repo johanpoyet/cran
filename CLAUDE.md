@@ -55,6 +55,12 @@ pnpm format      # Prettier
 
 Run a command in a single workspace with `pnpm --filter @cran/<name> <script>` (`api`, `mobile`, `shared`, `config`).
 
+## Mobile app
+
+- Routes live in `apps/mobile/src/app` (Expo Router). Never put tests or helpers there: every file becomes a route.
+- Screens use only `src/ui` components and `src/theme/tokens.ts`; no hard-coded colours, sizes or fonts, no hard-coded strings (`src/i18n/fr.json`, typed keys).
+- React Native Testing Library 14: `render`, `fireEvent` and `renderRouter` are async, always `await` them.
+
 ## Repo layout
 
 ```
