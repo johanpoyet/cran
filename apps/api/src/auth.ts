@@ -56,6 +56,12 @@ export function createAuth({ db, env, logger, rateLimit }: AuthDeps) {
       requireEmailVerification: false,
     },
     socialProviders: socialProviders(env),
+    user: {
+      additionalFields: {
+        // Set by POST /v1/onboarding; the app reads it from the cached session, even offline.
+        onboardedAt: { type: 'date', required: false, input: false },
+      },
+    },
     session: {
       // Mobile app: stay signed in for 30 days, extended at most once a day while in use.
       expiresIn: 30 * DAY,

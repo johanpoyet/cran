@@ -11,9 +11,11 @@ import type { AppDatabase } from './db/client';
 import { errorBody } from './errors';
 import type { Logger } from './logger';
 import { requireSession, type SessionVariables } from './middleware/session';
+import { createOnboardingRepository } from './repositories/onboarding';
 import { createProfileRepository } from './repositories/profiles';
 import { healthRoutes } from './routes/health';
 import { meRoutes } from './routes/me';
+import { onboardingRoutes } from './routes/onboarding';
 
 export const MAX_BODY_BYTES = 1024 * 1024;
 
@@ -77,6 +79,7 @@ export function createApp({ logger, auth, db, version, pingDatabase, databaseTim
   const v1 = new OpenAPIHono<{ Variables: SessionVariables }>();
   v1.use(requireSession(auth));
   v1.route('/', meRoutes(createProfileRepository(db)));
+  v1.route('/', onboardingRoutes(createOnboardingRepository(db)));
   app.route('/v1', v1);
 
   app.doc31('/openapi.json', {
