@@ -1,16 +1,28 @@
 # Avancement
 
-## Sprint en cours : S1 — Compte, profil, onboarding
+## Sprint en cours : S2 — Base d'aliments
 
-| Story                               | État     | PR                  |
-| ----------------------------------- | -------- | ------------------- |
-| S1-1 Calculs initiaux dans `shared` | fait     | #10                 |
-| S1-2 Auth API                       | fait     | #11                 |
-| S1-3 Auth app                       | fait     | #12                 |
-| S1-4 Profil                         | en revue | `feat/S1-4-profile` |
-| S1-5 Onboarding                     | à faire  |                     |
+| Story                                             | État    | PR  |
+| ------------------------------------------------- | ------- | --- |
+| S2-1 Schéma `foods`, `food_portions`, `favorites` | à faire |     |
+| S2-2 Import CIQUAL                                | à faire |     |
+| S2-3 Recherche                                    | à faire |     |
+| S2-4 Base locale                                  | à faire |     |
+| S2-5 Aliment perso                                | à faire |     |
 
 ## Sprints terminés
+
+### S1 — Compte, profil, onboarding (clos le 2026-10-31)
+
+| Story                               | État | PR  |
+| ----------------------------------- | ---- | --- |
+| S1-1 Calculs initiaux dans `shared` | fait | #10 |
+| S1-2 Auth API                       | fait | #11 |
+| S1-3 Auth app                       | fait | #12 |
+| S1-4 Profil                         | fait | #13 |
+| S1-5 Onboarding                     | fait | #14 |
+
+Démo : checklist de 10 points validée par Johan sur son iPhone (build `preview` du commit `aa7da03`, API staging) : création de compte, onboarding complet, cible 2 900 kcal et 150 / 381 / 86 g pour le cas de la maquette, consentement obligatoire, arrivée sur « Ta journée » et pas de nouvel onboarding après relance.
 
 ### S0 — Fondations (clos le 2026-10-30)
 
@@ -101,9 +113,16 @@ Petites décisions prises sans changer le modèle de données, l'API ou l'UX. Le
 - **2026-10-31 · Onboarding : choix d'interface** : rythme +1 kg/mois présélectionné (« Recommandé » dans la maquette) ; sexe et niveau d'activité sans valeur par défaut, « Continuer » désactivé tant qu'ils ne sont pas choisis ; valeurs de départ des sélecteurs : année de naissance = année en cours − 25, 175 cm, 70,0 kg. Le bouton retour de la première étape ramène à l'écran de connexion (déconnexion, rien n'est encore enregistré). Le bouton « Importer depuis Apple Santé » de l'étape 3 n'est pas affiché avant l'intégration d'Apple Santé (S7-2). Le texte d'information de l'étape 1 change selon le rythme choisi. Désactiver le « Bonus jour de séance » enregistre un bonus de 0 kcal.
 - **2026-10-31 · Onboarding : sélecteurs** : règle horizontale pour la taille (1 cm) et le poids (0,1 kg), qui défile sous un curseur fixe avec aimantation sur chaque graduation. Elle est « ajustable » pour VoiceOver (balayer vers le haut ou le bas change d'une graduation). Année de naissance avec boutons − et +, bornée à 14–100 ans. Jours d'entraînement : chaque bouton occupe un septième de la ligne, ce qui garde une zone tactile d'au moins 44 pt alors que la pastille dessinée est plus étroite.
 - **2026-10-31 · App : nouveaux composants** : `StepScreen`, `StepHeader` (retour, progression lue par VoiceOver), `OptionCard` (bouton radio), `ChoiceButton`, `Overline`, `Stepper`, `RulerPicker`, `DayPicker`, `SwitchRow`, `Checkbox`, `InfoBanner`, `StatTile`. Appels aux routes `/v1` : `apiFetch` envoie le cookie de session et valide la réponse avec le schéma Zod partagé.
+- **2026-10-31 · Staging avec l'onboarding** : après le merge de #14, migration `0002_onboarding` appliquée au démarrage ; vérifié sur le staging : `POST /v1/onboarding` renvoie 201 avec la cible 2 900 / 150 / 381 / 86 pour le cas de la maquette, 409 au second envoi, `onboardedAt` présent dans la session, 401 sans session. Le build `preview` passe désormais sans session interactive.
 - **2026-10-31 · Vérification visuelle** : Maestro est installé mais demande Java, absent de la machine. Pas installé sans l'accord de Johan, donc pas de parcours Maestro pour l'instant (prévu par la spec en S9). Les écrans sont vérifiés sur l'iPhone de Johan avec la checklist.
 
 ## Rétros
+
+### S1 — Compte, profil, onboarding
+
+- **Bien** : connexion Apple, Google et email sans secret client à gérer ; cible identique entre l'app et le serveur grâce aux calculs partagés ; chaque story vérifiée sur le staging puis sur l'iPhone.
+- **À améliorer** : variables Dokploy à ajouter à la main par Johan (env chiffré, pas de clé d'API) ; capacités Apple à synchroniser en interactif ; pas de vérification visuelle automatique (Maestro sans Java).
+- **À essayer** : lister en début de story les variables et accès à préparer ; décider de l'installation de Java pour Maestro avant le sprint 3.
 
 ### S0 — Fondations
 
