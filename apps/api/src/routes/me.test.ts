@@ -79,6 +79,7 @@ describe('PATCH /v1/me', () => {
       trainingBonusKcal: 150,
       waterGoalMl: 3000,
       reminders: DEFAULT_REMINDERS,
+      healthDataConsentAt: null,
       updatedAt: expect.any(String) as string,
     });
     expect((await (await getMe(user.cookie)).json()) as Me).toEqual(me);

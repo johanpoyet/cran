@@ -65,11 +65,18 @@ const profileFields = {
   reminders: remindersSchema,
 };
 
-export const profileSchema = z.object({ ...profileFields, updatedAt: z.iso.datetime() });
+export const profileSchema = z.object({
+  ...profileFields,
+  /** When the user agreed to the processing of their health data (onboarding checkbox). */
+  healthDataConsentAt: z.iso.datetime().nullable(),
+  updatedAt: z.iso.datetime(),
+});
 
 export type Profile = z.infer<typeof profileSchema>;
 
 /** Fields the onboarding must give before a profile exists; the others have defaults. */
+export { profileFields };
+
 export const PROFILE_REQUIRED_FIELDS = [
   'sex',
   'birthYear',
@@ -87,7 +94,10 @@ export const PROFILE_FIELD_DEFAULTS = {
   reminders: DEFAULT_REMINDERS,
 } as const satisfies Partial<Profile>;
 
-/** Partial update (PATCH /v1/me): unknown fields are rejected, reminders are replaced whole. */
+/**
+ * Partial update (PATCH /v1/me): unknown fields are rejected, reminders are replaced whole.
+ * Consent is given by the onboarding and withdrawn from the settings, not through this update.
+ */
 export const profileUpdateSchema = z
   .strictObject(profileFields)
   .partial()

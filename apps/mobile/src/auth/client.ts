@@ -1,4 +1,5 @@
 import { expoClient } from '@better-auth/expo/client';
+import { inferAdditionalFields } from 'better-auth/client/plugins';
 import { createAuthClient } from 'better-auth/react';
 import * as SecureStore from 'expo-secure-store';
 
@@ -9,5 +10,14 @@ export const apiUrl = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000'
 // the cookie with every request and restores the cached session at launch, even offline.
 export const authClient = createAuthClient({
   baseURL: apiUrl,
-  plugins: [expoClient({ scheme: 'cran', storagePrefix: 'cran', storage: SecureStore })],
+  plugins: [
+    expoClient({ scheme: 'cran', storagePrefix: 'cran', storage: SecureStore }),
+    // Set by the API at the end of the onboarding (apps/api/src/auth.ts).
+    inferAdditionalFields({ user: { onboardedAt: { type: 'date', required: false } } }),
+  ],
 });
+
+/** Asks the API for the session again, e.g. once the onboarding has marked the account. */
+export function refreshSession(): void {
+  authClient.$store.notify('$sessionSignal');
+}

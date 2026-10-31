@@ -58,7 +58,7 @@ describe('GET /health', () => {
 });
 
 describe('API documentation', () => {
-  it('serves the OpenAPI document with /health and /v1/me', async () => {
+  it('serves the OpenAPI document with every route', async () => {
     const res = await buildTestApp().request('/openapi.json');
     const doc = (await res.json()) as {
       openapi: string;
@@ -70,6 +70,7 @@ describe('API documentation', () => {
     expect(doc.openapi).toBe('3.1.0');
     expect(doc.paths).toHaveProperty('/health');
     expect(Object.keys(doc.paths['/v1/me'] ?? {})).toEqual(['get', 'patch']);
+    expect(Object.keys(doc.paths['/v1/onboarding'] ?? {})).toEqual(['post']);
     expect(doc.components.schemas).toHaveProperty('Me');
     expect(doc.components.schemas).toHaveProperty('ProfileUpdate');
   });

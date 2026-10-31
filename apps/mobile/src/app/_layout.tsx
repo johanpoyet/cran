@@ -21,6 +21,8 @@ import { initSentry, Sentry } from '../lib/sentry';
 import { colors, radius } from '../theme/tokens';
 
 initSentry();
+
+const HOME = { signedOut: '/sign-in', onboarding: '/rate', ready: '/' } as const;
 void SplashScreen.preventAutoHideAsync();
 
 function RootLayout() {
@@ -32,7 +34,6 @@ function RootLayout() {
     PlusJakartaSans_800ExtraBold,
   });
   const authStatus = useAuthStatus();
-  const signedIn = authStatus === 'signedIn';
   // The splash screen stays up until fonts are loaded and the session is known.
   const ready = (fontsLoaded || fontError !== null) && authStatus !== 'loading';
 
@@ -40,16 +41,19 @@ function RootLayout() {
     if (ready) void SplashScreen.hideAsync();
   }, [ready]);
 
-  if (!ready) return null;
+  if (authStatus === 'loading' || !ready) return null;
+  // Where each state starts; any other group redirects there.
+  const home = HOME[authStatus];
 
   return (
     <GestureHandlerRootView style={styles.root}>
       <SafeAreaProvider>
         <StatusBar style="dark" />
-        {/* Navigation guard: the app needs a session, the sign-in screens need none. Signing in
-            or out (or a revoked session) switches between the two groups. */}
+        {/* Navigation guard: signed out → sign-in screens, signed in without a profile →
+            onboarding, onboarded → the app. Signing in or out, finishing the onboarding or a
+            revoked session switches group. */}
         <Stack screenOptions={{ headerShown: false, contentStyle: styles.content }}>
-          <Stack.Protected guard={signedIn} redirectTo="/sign-in">
+          <Stack.Protected guard={authStatus === 'ready'} redirectTo={home}>
             <Stack.Screen name="(tabs)" />
             <Stack.Screen
               name="add"
@@ -62,7 +66,10 @@ function RootLayout() {
               }}
             />
           </Stack.Protected>
-          <Stack.Protected guard={!signedIn} redirectTo="/">
+          <Stack.Protected guard={authStatus === 'onboarding'} redirectTo={home}>
+            <Stack.Screen name="(onboarding)" />
+          </Stack.Protected>
+          <Stack.Protected guard={authStatus === 'signedOut'} redirectTo={home}>
             <Stack.Screen name="(auth)" />
           </Stack.Protected>
         </Stack>

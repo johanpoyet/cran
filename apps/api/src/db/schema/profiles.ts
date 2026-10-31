@@ -9,6 +9,7 @@ import {
   pgEnum,
   pgTable,
   smallint,
+  timestamp,
   uniqueIndex,
 } from 'drizzle-orm/pg-core';
 
@@ -43,6 +44,7 @@ export const profiles = pgTable(
     trainingDays: smallint('training_days').notNull().default(0),
     waterGoalMl: integer('water_goal_ml').notNull().default(PROFILE_DEFAULTS.waterGoalMl),
     reminders: jsonb('reminders').$type<Reminders>().notNull().default(DEFAULT_REMINDERS),
+    healthDataConsentAt: timestamp('health_data_consent_at', { withTimezone: true }),
   },
   (table) => [
     uniqueIndex('profiles_user_id_idx').on(table.userId),

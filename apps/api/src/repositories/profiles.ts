@@ -47,7 +47,7 @@ export type ProfileRepository = ReturnType<typeof createProfileRepository>;
 /** Required fields plus any of the optional ones (the others take their defaults). */
 export type ProfileCreate = Pick<Profile, (typeof PROFILE_REQUIRED_FIELDS)[number]> & ProfileUpdate;
 
-function toProfile(row: ProfileRow): Profile {
+export function toProfile(row: ProfileRow): Profile {
   return {
     sex: row.sex,
     birthYear: row.birthYear,
@@ -60,6 +60,7 @@ function toProfile(row: ProfileRow): Profile {
     trainingDays: row.trainingDays,
     waterGoalMl: row.waterGoalMl,
     reminders: row.reminders,
+    healthDataConsentAt: row.healthDataConsentAt?.toISOString() ?? null,
     updatedAt: row.updatedAt.toISOString(),
   };
 }

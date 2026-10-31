@@ -1,4 +1,4 @@
-# ADR 0002 — Schémas Drizzle à côté de leur base, schémas Zod dans `shared`
+# ADR 0003 — Schémas Drizzle à côté de leur base, schémas Zod dans `shared`
 
 - Statut : accepté
 - Date : 2026-10-31

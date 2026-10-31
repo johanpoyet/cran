@@ -23,6 +23,7 @@ const profile = {
   trainingDays: 0b0110101,
   waterGoalMl: 3000,
   reminders: DEFAULT_REMINDERS,
+  healthDataConsentAt: '2026-10-31T12:00:00.000Z',
   updatedAt: '2026-10-31T12:00:00.000Z',
 };
 

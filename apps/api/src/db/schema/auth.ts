@@ -16,6 +16,8 @@ export const user = pgTable('user', {
   email: text('email').notNull().unique(),
   emailVerified: boolean('email_verified').notNull().default(false),
   image: text('image'),
+  /** End of the onboarding: exposed in the session so the app routes offline (S1-5). */
+  onboardedAt: timestamp('onboarded_at', { withTimezone: true }),
   ...timestamps,
 });
 
