@@ -2,13 +2,13 @@
 
 ## Sprint en cours : S1 — Compte, profil, onboarding
 
-| Story                               | État     | PR                   |
-| ----------------------------------- | -------- | -------------------- |
-| S1-1 Calculs initiaux dans `shared` | fait     | #10                  |
-| S1-2 Auth API                       | fait     | #11                  |
-| S1-3 Auth app                       | en revue | `feat/S1-3-auth-app` |
-| S1-4 Profil                         | à faire  |                      |
-| S1-5 Onboarding                     | à faire  |                      |
+| Story                               | État     | PR                  |
+| ----------------------------------- | -------- | ------------------- |
+| S1-1 Calculs initiaux dans `shared` | fait     | #10                 |
+| S1-2 Auth API                       | fait     | #11                 |
+| S1-3 Auth app                       | fait     | #12                 |
+| S1-4 Profil                         | en revue | `feat/S1-4-profile` |
+| S1-5 Onboarding                     | à faire  |                     |
 
 ## Sprints terminés
 
@@ -85,6 +85,13 @@ Petites décisions prises sans changer le modèle de données, l'API ou l'UX. Le
 - **2026-10-30 · Auth : formulaire email** (non dessiné) : écran `(auth)/email` dans le style des maquettes (titre, champs blancs arrondis, bouton bleu). Un seul écran pour la connexion et l'inscription, avec un lien pour passer de l'une à l'autre. Pas de champ nom (Cran ne l'affiche pas). Mot de passe de 8 caractères minimum à l'inscription, vérifié avant l'envoi. Les erreurs de Better Auth sont traduites (identifiants incorrects, email déjà utilisé, trop de tentatives, serveur injoignable…).
 - **2026-10-30 · Auth : déconnexion** : bouton « Se déconnecter » provisoire en bas de l'onglet Profil, en attendant l'écran `settings/account` (à dessiner). La déconnexion efface d'abord la session sur l'appareil, donc elle marche aussi hors ligne, puis la révoque côté API. Elle oublie aussi le compte Google choisi. Quand la base locale arrivera (S2-4), la déconnexion devra aussi la vider.
 - **2026-10-30 · App : nouveaux composants** : `TextField`, `LinkButton`, `ListRow`, `IconTile`, et une variante `outline` avec un état `loading` pour `PrimaryButton`. Nouveaux tokens : couleur `danger` (erreurs, contraste vérifié), texte `lead` (18 pt), rayon `icon`, tailles `control` (52 pt pour les boutons et les champs).
+- **2026-10-31 · S1-3 vérifiée sur iPhone** : build `preview` installé, checklist validée par Johan (9 points sur 9) : connexion email, Apple et Google, session conservée après relance et en mode avion, déconnexion, message d'erreur, et retour à l'écran de connexion après révocation de la session. La révocation a été faite en supprimant la ligne `session` dans la base du staging, avec l'accord de Johan. Le premier build a échoué parce que le profil de provisionnement n'avait pas la capacité « Sign in with Apple » ; Johan a relancé le build en interactif pour qu'EAS synchronise les capacités avec son compte Apple.
+- **2026-10-31 · Schémas Drizzle et Zod** : les schémas Zod sont dans `shared` (contrat commun à l'app et à l'API), les schémas Drizzle restent à côté de leur base (Postgres dans l'API, SQLite dans l'app en S2-4). Écart à la spec, voir l'[ADR 0002](adr/0002-schemas-drizzle-par-base.md).
+- **2026-10-31 · Colonnes de synchro** : toute table synchronisée reçoit `id`, `user_id` (clé étrangère vers `user`, suppression en cascade), `created_at`, `updated_at`, `deleted_at` et `server_seq` (helper `syncColumns()`). `server_seq` vient d'**une seule séquence Postgres pour toutes les tables**, reprise à chaque écriture : le curseur de synchro ordonne ainsi les changements de toutes les tables. Pour `profiles`, l'identité est le `user_id` (une ligne par utilisateur, index unique) ; l'`id` est généré par le serveur.
+- **2026-10-31 · Table `profiles`** : colonnes de la spec, numériques exacts pour le rythme (0,5 / 1 / 1,5, contrainte `check`) et les g/kg, taille en cm entiers (la règle de la maquette « Onboarding 3 » avance au centimètre), niveau d'activité 1 à 5 et masque des jours d'entraînement 0 à 127 contrôlés en base. Le poids n'est pas dans le profil : la pesée de l'onboarding ira dans `weigh_ins`.
+- **2026-10-31 · Rappels** : le champ `reminders` (JSON dans la spec) a un schéma typé, `{ meal, weighIn, weeklyReview }`, chacun avec `enabled` et une heure `HH:MM`. Valeurs par défaut prises sur la maquette « Objectifs » : repas à 14 h et pesée à 8 h activés, bilan du dimanche à 19 h désactivé. Une mise à jour remplace l'objet en entier.
+- **2026-10-31 · Bornes du profil** : âge de 14 à 100 ans (calculé sur l'année en cours), taille de 120 à 230 cm, protéines de 1,2 à 3,5 g/kg, lipides de 0,5 à 2 g/kg, bonus d'entraînement de 0 à 1 000 kcal, objectif d'eau de 500 à 10 000 ml. Elles sont définies une seule fois dans `shared` (`PROFILE_LIMITS`).
+- **2026-10-31 · `GET` et `PATCH /v1/me`** : la réponse est `{ user: { id, email }, profile }`, avec `profile: null` tant que l'onboarding n'est pas terminé. `PATCH` est une mise à jour partielle ; si le profil n'existe pas encore, il est créé, à condition de recevoir le sexe, l'année de naissance, la taille, l'activité et le rythme (sinon 422 `profile_incomplete` avec la liste des champs manquants). Les autres champs prennent leurs valeurs par défaut. Champs inconnus ou réservés au serveur (`userId`, `updatedAt`…) : 400. L'utilisateur vient toujours de la session ; le repository ne prend jamais d'identifiant de profil, ce qui rend impossible l'accès au profil d'un autre.
 
 ## Rétros
 
