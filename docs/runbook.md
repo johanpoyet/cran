@@ -153,6 +153,20 @@ curl -s https://api-staging.cran.johanpoyet.fr/health | jq
 - `version` donne le commit déployé : `git show <sha>`.
 - `503` avec `"status": "degraded"` : l'API tourne mais la base ne répond pas. Regarder `cran-db-staging` dans Dokploy. Le conteneur de l'API n'est volontairement pas redémarré dans ce cas (son `HEALTHCHECK` ne teste que la vivacité).
 
+## Importer la table CIQUAL
+
+La base d'aliments CIQUAL (ANSES) s'importe avec un script inclus dans l'image de l'API. Il télécharge la version 2025 depuis Zenodo ([dépôt de l'ANSES](https://zenodo.org/records/17550133), licence CC BY 4.0), puis l'enregistre dans `foods`. Le script est idempotent : on peut le relancer sans créer de doublon, et une relance sur la même version n'écrit rien. Il modifie la base : **à lancer seulement avec l'accord de Johan**.
+
+```sh
+# Sur le VPS, dans le conteneur de l'API (DATABASE_URL et les autres variables y sont déjà)
+docker exec $(docker ps -q -f name=cranapistaging | head -1) node dist/seed-ciqual.js
+# {"msg":"CIQUAL imported","imported":3339,"written":3339,"removed":0,"skipped":145}
+```
+
+- `imported` : aliments lus. `written` : aliments créés ou modifiés (0 pour une relance de la même version). `removed` : aliments CIQUAL absents de la nouvelle version, marqués supprimés. `skipped` : aliments sans valeur énergétique, non importés.
+- Pour une nouvelle version de la table, mettre à jour l'adresse et la date dans `apps/api/src/seed-ciqual.ts`. On peut aussi passer un dossier qui contient `alim_*.xml` et `compo_*.xml` : `node dist/seed-ciqual.js /chemin/du/dossier`.
+- En local : `pnpm --filter @cran/api seed:ciqual` (avec `DATABASE_URL` dans `apps/api/.env`).
+
 ## Revenir à une version précédente
 
 Chaque build est conservé sur GHCR sous son SHA.
