@@ -79,5 +79,106 @@
       "unknown": "Une erreur est survenue. Réessaie."
     },
     "signOut": "Se déconnecter"
+  },
+  "onboarding": {
+    "back": "Retour",
+    "backToSignIn": "Retour à la connexion",
+    "progress": "Étape {{step}} sur {{total}}",
+    "continue": "Continuer",
+    "rate": {
+      "title": "À quel rythme veux-tu prendre ?",
+      "subtitle": "Tu pourras le changer à tout moment.",
+      "option": "+{{rate}} kg / mois",
+      "recommended": "Recommandé",
+      "slow": "Lent et très propre · +{{kcal}} kcal/jour",
+      "balanced": "Le bon équilibre · +{{kcal}} kcal/jour",
+      "fast": "Plus rapide, un peu plus de gras · +{{kcal}} kcal/jour",
+      "infoBefore": "{{rate}} kg par mois, c'est environ ",
+      "infoBold": "+{{kcal}} kcal par jour",
+      "infoAfterSlow": " au-dessus de ton maintien. Une prise très propre, mais plus lente.",
+      "infoAfterBalanced": " au-dessus de ton maintien. Assez pour progresser en limitant le gras.",
+      "infoAfterFast": " au-dessus de ton maintien. Plus rapide, avec un peu plus de gras."
+    },
+    "about": {
+      "title": "Parle-nous un peu de toi",
+      "subtitle": "Ça sert à estimer ton métabolisme de départ.",
+      "sex": "Sexe",
+      "male": "Homme",
+      "female": "Femme",
+      "birthYear": "Année de naissance",
+      "age_one": "{{count}} an",
+      "age_other": "{{count}} ans",
+      "older": "Année précédente",
+      "younger": "Année suivante",
+      "privacy": "Ces infos restent privées et ne sont jamais partagées."
+    },
+    "body": {
+      "title": "Ta taille et ton poids",
+      "subtitle": "Pèse-toi le matin, à jeun, pour un point de départ fiable.",
+      "height": "Taille",
+      "weight": "Poids actuel",
+      "cm": "cm",
+      "kg": "kg"
+    },
+    "activity": {
+      "title": "Ton niveau d'activité",
+      "subtitle": "Séances comprises, sur une semaine type.",
+      "levels": {
+        "1": {
+          "title": "Sédentaire",
+          "subtitle": "Travail assis, pas de sport"
+        },
+        "2": {
+          "title": "Légèrement actif",
+          "subtitle": "1 à 2 séances par semaine"
+        },
+        "3": {
+          "title": "Modérément actif",
+          "subtitle": "3 à 4 séances, quelques marches"
+        },
+        "4": {
+          "title": "Actif",
+          "subtitle": "5 séances ou plus, ou job physique"
+        },
+        "5": {
+          "title": "Très actif",
+          "subtitle": "Entraînement intense et job physique"
+        }
+      }
+    },
+    "training": {
+      "title": "Quels jours tu t'entraînes ?",
+      "subtitle": "On peut te donner un peu plus de glucides ces jours-là.",
+      "letters": ["L", "M", "M", "J", "V", "S", "D"],
+      "days": ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"],
+      "sessions_zero": "Aucune séance pour l'instant",
+      "sessions_one": "{{count}} séance par semaine",
+      "sessions_other": "{{count}} séances par semaine",
+      "bonusTitle": "Bonus jour de séance",
+      "bonusSubtitle": "+{{kcal}} kcal, ajoutées en glucides",
+      "surchargeTitle": "Tu utilises Surcharge ?",
+      "surchargeText": "Tes séances pourront être reprises via Apple Santé.",
+      "action": "Voir ma cible"
+    },
+    "summary": {
+      "title": "Ta cible de départ",
+      "aim": "Chaque jour, vise",
+      "trainingBonus": "+{{kcal}} les jours de séance",
+      "maintenance": "Maintien estimé",
+      "surplus": "Surplus pour +{{rate}} kg / mois",
+      "protein": "Protéines",
+      "carbs": "Glucides",
+      "fat": "Lipides",
+      "adaptive": "C'est un point de départ. Chaque lundi, Cran ajuste ta cible selon ta vraie courbe de poids.",
+      "consent": "J'accepte que Cran traite mes données de santé (poids, mensurations) pour calculer mes objectifs.",
+      "learnMore": "En savoir plus",
+      "disclaimer": "Cran ne remplace pas l'avis d'un professionnel de santé.",
+      "action": "C'est parti",
+      "consentRequired": "Coche la case pour continuer : sans tes données de santé, Cran ne peut pas calculer ta cible."
+    },
+    "errors": {
+      "network": "Impossible de joindre Cran. Vérifie ta connexion et réessaie.",
+      "unknown": "Ta cible n'a pas pu être enregistrée. Réessaie."
+    }
   }
 }
