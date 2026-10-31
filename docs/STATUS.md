@@ -2,13 +2,13 @@
 
 ## Sprint en cours : S2 — Base d'aliments
 
-| Story                                             | État    | PR  |
-| ------------------------------------------------- | ------- | --- |
-| S2-1 Schéma `foods`, `food_portions`, `favorites` | à faire |     |
-| S2-2 Import CIQUAL                                | à faire |     |
-| S2-3 Recherche                                    | à faire |     |
-| S2-4 Base locale                                  | à faire |     |
-| S2-5 Aliment perso                                | à faire |     |
+| Story                                             | État     | PR                       |
+| ------------------------------------------------- | -------- | ------------------------ |
+| S2-1 Schéma `foods`, `food_portions`, `favorites` | en revue | `feat/S2-1-foods-schema` |
+| S2-2 Import CIQUAL                                | à faire  |                          |
+| S2-3 Recherche                                    | à faire  |                          |
+| S2-4 Base locale                                  | à faire  |                          |
+| S2-5 Aliment perso                                | à faire  |                          |
 
 ## Sprints terminés
 
@@ -115,6 +115,11 @@ Petites décisions prises sans changer le modèle de données, l'API ou l'UX. Le
 - **2026-10-31 · App : nouveaux composants** : `StepScreen`, `StepHeader` (retour, progression lue par VoiceOver), `OptionCard` (bouton radio), `ChoiceButton`, `Overline`, `Stepper`, `RulerPicker`, `DayPicker`, `SwitchRow`, `Checkbox`, `InfoBanner`, `StatTile`. Appels aux routes `/v1` : `apiFetch` envoie le cookie de session et valide la réponse avec le schéma Zod partagé.
 - **2026-10-31 · Staging avec l'onboarding** : après le merge de #14, migration `0002_onboarding` appliquée au démarrage ; vérifié sur le staging : `POST /v1/onboarding` renvoie 201 avec la cible 2 900 / 150 / 381 / 86 pour le cas de la maquette, 409 au second envoi, `onboardedAt` présent dans la session, 401 sans session. Le build `preview` passe désormais sans session interactive.
 - **2026-10-31 · Vérification visuelle** : Maestro est installé mais demande Java, absent de la machine. Pas installé sans l'accord de Johan, donc pas de parcours Maestro pour l'instant (prévu par la spec en S9). Les écrans sont vérifiés sur l'iPhone de Johan avec la checklist.
+
+- **2026-10-31 · Valeurs manquantes des aliments** : sur décision de Johan, les calories, protéines, glucides et lipides sont toujours renseignés. Une valeur absente ou « traces » (CIQUAL) est enregistrée à 0 et l'aliment est marqué `quality_flag = incomplete` ; un aliment sans calories ne sera pas importé (S2-2). Fibres, sel et portion par défaut restent facultatifs. Valeurs en numérique 6,2, positives ou nulles (contrainte en base).
+- **2026-10-31 · Propriétaire des aliments** : `foods` et `food_portions` ont un `owner_id` facultatif à la place du `user_id` des autres tables synchronisées : vide pour le catalogue global (CIQUAL, Open Food Facts), rempli pour ce qu'a créé l'utilisateur, qui sera synchronisé. Une contrainte impose `owner_id` si et seulement si `source = user`, et une `source_ref` pour les aliments globaux. Une portion a son propre propriétaire : un utilisateur pourra nommer une portion d'un aliment CIQUAL (« 1 bol de riz = 150 g ») sans toucher au catalogue. La suppression du compte efface ses aliments, portions et favoris, jamais le catalogue global.
+- **2026-10-31 · Favoris** : `food_id` ou `recipe_id`, exactement l'un des deux (contrainte). `recipe_id` n'a pas encore de clé étrangère : la table `recipes` arrive en S6. Pas d'index unique utilisateur + aliment : deux appareils hors ligne pourraient créer le même favori avec deux identifiants, et la synchro (S4) refuserait le second ; les doublons seront ignorés par l'app.
+- **2026-10-31 · Recherche sans accents** : extensions `pg_trgm` et `unaccent` créées par la migration `0003_foods`, avec une fonction `f_unaccent` déclarée `IMMUTABLE` (la fonction `unaccent` ne l'est pas, donc ne peut pas servir dans un index). Deux index GIN trigrammes, sur `f_unaccent(name)` et `f_unaccent(brand)` ; les trigrammes ignorent déjà la casse. PGlite charge les deux extensions pour les tests locaux. Les schémas Zod des aliments arriveront avec la première route (S2-3).
 
 ## Rétros
 
