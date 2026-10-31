@@ -7,22 +7,26 @@ import { requestId } from 'hono/request-id';
 import { secureHeaders } from 'hono/secure-headers';
 
 import type { Auth } from './auth';
+import type { AppDatabase } from './db/client';
 import { errorBody } from './errors';
 import type { Logger } from './logger';
 import { requireSession, type SessionVariables } from './middleware/session';
+import { createProfileRepository } from './repositories/profiles';
 import { healthRoutes } from './routes/health';
+import { meRoutes } from './routes/me';
 
 export const MAX_BODY_BYTES = 1024 * 1024;
 
 export interface AppDeps {
   logger: Logger;
   auth: Auth;
+  db: AppDatabase;
   version: string;
   pingDatabase: () => Promise<void>;
   databaseTimeoutMs?: number;
 }
 
-export function createApp({ logger, auth, version, pingDatabase, databaseTimeoutMs }: AppDeps) {
+export function createApp({ logger, auth, db, version, pingDatabase, databaseTimeoutMs }: AppDeps) {
   const app = new OpenAPIHono({
     // Zod validation failures share the common error shape.
     defaultHook: (result, c) => {
@@ -72,6 +76,7 @@ export function createApp({ logger, auth, version, pingDatabase, databaseTimeout
   // Every /v1 route requires a session (spec section 5).
   const v1 = new OpenAPIHono<{ Variables: SessionVariables }>();
   v1.use(requireSession(auth));
+  v1.route('/', meRoutes(createProfileRepository(db)));
   app.route('/v1', v1);
 
   app.doc31('/openapi.json', {
