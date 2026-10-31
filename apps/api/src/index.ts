@@ -16,6 +16,7 @@ const auth = createAuth({ db: database.db, env, logger });
 const app = createApp({
   logger,
   auth,
+  db: database.db,
   version: env.APP_VERSION,
   pingDatabase: database.ping,
 });

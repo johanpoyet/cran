@@ -13,7 +13,7 @@ export const testAuthEnv: AuthEnv = {
   GOOGLE_CLIENT_IDS: undefined,
 };
 
-export interface TestAppOptions extends Partial<Omit<AppDeps, 'auth'>> {
+export interface TestAppOptions extends Partial<Omit<AppDeps, 'auth' | 'db'>> {
   db: AppDatabase;
   rateLimit?: boolean;
 }
@@ -23,6 +23,7 @@ export function buildTestApp({ db, rateLimit = false, ...overrides }: TestAppOpt
   const app = createApp({
     logger: silentLogger,
     auth,
+    db,
     version: 'test',
     pingDatabase: () => Promise.resolve(),
     ...overrides,
