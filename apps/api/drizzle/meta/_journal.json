@@ -22,6 +22,13 @@
       "when": 1793448700165,
       "tag": "0002_onboarding",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1793460330780,
+      "tag": "0003_foods",
+      "breakpoints": true
     }
   ]
 }

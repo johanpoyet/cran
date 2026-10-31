@@ -23,7 +23,10 @@ export async function createTestDatabase(): Promise<TestDatabase> {
   const { PGlite } = await import('@electric-sql/pglite');
   const { drizzle } = await import('drizzle-orm/pglite');
   const { migrate } = await import('drizzle-orm/pglite/migrator');
-  const client = new PGlite();
+  const { pg_trgm } = await import('@electric-sql/pglite/contrib/pg_trgm');
+  const { unaccent } = await import('@electric-sql/pglite/contrib/unaccent');
+  // Extensions created by the migrations must be bundled into PGlite first.
+  const client = new PGlite({ extensions: { pg_trgm, unaccent } });
   const db = drizzle(client, { schema });
   await migrate(db, { migrationsFolder });
   return {
