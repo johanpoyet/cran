@@ -20,6 +20,8 @@ export const colors = {
   success: '#0E6B58',
   danger: '#C0362C',
   track: '#E9EBF1',
+  /** Separator on the accent hero card. */
+  onAccentDivider: 'rgba(255, 255, 255, 0.3)',
 } as const;
 
 export type ColorToken = keyof typeof colors;
@@ -86,6 +88,20 @@ export const control = {
   height: 52,
   iconTile: 36,
   iconSize: 20,
+  /** Round buttons: back arrow, stepper − and +. */
+  round: 52,
+  radio: 24,
+  checkbox: 26,
+  dayHeight: 48,
+} as const;
+
+export const ruler = {
+  /** Distance between two ticks. */
+  tickSpacing: 11,
+  tickWidth: 2,
+  minorHeight: 28,
+  majorHeight: 40,
+  cursorHeight: 56,
 } as const;
 
 export const tabBar = {
