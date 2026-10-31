@@ -9,11 +9,8 @@ export const silentLogger = pino({ level: 'silent' });
 export const testAuthEnv: AuthEnv = {
   BETTER_AUTH_URL: 'http://localhost:3000',
   BETTER_AUTH_SECRET: 'test-secret-that-is-long-enough-for-better-auth',
-  APPLE_CLIENT_ID: undefined,
-  APPLE_CLIENT_SECRET: undefined,
   APPLE_APP_BUNDLE_IDENTIFIER: 'fr.johanpoyet.cran',
   GOOGLE_CLIENT_IDS: undefined,
-  GOOGLE_CLIENT_SECRET: undefined,
 };
 
 export interface TestAppOptions extends Partial<Omit<AppDeps, 'auth'>> {

@@ -18,6 +18,7 @@ export const colors = {
   fatSoft: '#F2ECFC',
   water: '#3FA9F5',
   success: '#0E6B58',
+  danger: '#C0362C',
   track: '#E9EBF1',
 } as const;
 
@@ -27,6 +28,7 @@ export const radius = {
   hero: 28,
   card: 22,
   tile: 16,
+  icon: 12,
   pill: 999,
 } as const;
 
@@ -59,6 +61,7 @@ export const typography = {
   display: { fontSize: 44, lineHeight: 50, weight: 800 },
   title: { fontSize: 28, lineHeight: 34, weight: 800 },
   heading: { fontSize: 20, lineHeight: 26, weight: 700 },
+  lead: { fontSize: 18, lineHeight: 24, weight: 500 },
   body: { fontSize: 16, lineHeight: 22, weight: 500 },
   label: { fontSize: 15, lineHeight: 20, weight: 600 },
   caption: { fontSize: 13, lineHeight: 18, weight: 500 },
@@ -69,11 +72,20 @@ export type TypographyVariant = keyof typeof typography;
 export const shadow = {
   floating: '0px 8px 24px rgba(20, 22, 31, 0.10)',
   card: '0px 1px 2px rgba(20, 22, 31, 0.04)',
+  /** Blue glow under the logo on the sign-in screen. */
+  logo: '0px 12px 32px rgba(53, 84, 245, 0.25)',
 } as const;
 
 export const touch = {
   /** Minimum touch target (Apple HIG). */
   minSize: 44,
+} as const;
+
+export const control = {
+  /** Height of buttons and text fields. */
+  height: 52,
+  iconTile: 36,
+  iconSize: 20,
 } as const;
 
 export const tabBar = {

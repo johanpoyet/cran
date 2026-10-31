@@ -15,11 +15,8 @@ describe('loadEnv', () => {
       APP_VERSION: 'dev',
       BETTER_AUTH_URL: 'http://localhost:3000',
       BETTER_AUTH_SECRET: secret,
-      APPLE_CLIENT_ID: undefined,
-      APPLE_CLIENT_SECRET: undefined,
       APPLE_APP_BUNDLE_IDENTIFIER: 'fr.johanpoyet.cran',
       GOOGLE_CLIENT_IDS: undefined,
-      GOOGLE_CLIENT_SECRET: undefined,
     });
   });
 
@@ -39,9 +36,7 @@ describe('loadEnv', () => {
   });
 
   it('treats empty provider settings as absent', () => {
-    const env = loadEnv({ ...minimal, APPLE_CLIENT_ID: '', GOOGLE_CLIENT_IDS: '' });
-    expect(env.APPLE_CLIENT_ID).toBeUndefined();
-    expect(env.GOOGLE_CLIENT_IDS).toBeUndefined();
+    expect(loadEnv({ ...minimal, GOOGLE_CLIENT_IDS: '' }).GOOGLE_CLIENT_IDS).toBeUndefined();
   });
 
   it('rejects an unknown log level', () => {
