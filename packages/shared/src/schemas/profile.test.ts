@@ -12,6 +12,7 @@ afterEach(() => {
 });
 
 const profile = {
+  id: '0195f2a4-9f3e-7c3a-8f2b-000000000001',
   sex: 'male',
   birthYear: 2005,
   heightCm: 180,
@@ -85,6 +86,26 @@ describe('meSchema', () => {
     const me = {
       user: { id: '0195f2a4-9f3e-7c3a-8f2b-1d2e3f4a5b6c', email: 'johan@example.com' },
       profile: null,
+      weeklyTarget: null,
+    };
+    expect(meSchema.parse(me)).toEqual(me);
+  });
+
+  it('carries the profile and the latest weekly target after onboarding', () => {
+    const me = {
+      user: { id: '0195f2a4-9f3e-7c3a-8f2b-1d2e3f4a5b6c', email: 'johan@example.com' },
+      profile,
+      weeklyTarget: {
+        id: '0195f2a4-9f3e-7c3a-8f2b-000000000002',
+        weekStart: '2026-10-26',
+        maintenanceKcal: 2650,
+        targetKcal: 2900,
+        proteinG: 150,
+        carbsG: 381,
+        fatG: 86,
+        method: 'formula',
+        status: 'insufficient_data',
+      },
     };
     expect(meSchema.parse(me)).toEqual(me);
   });

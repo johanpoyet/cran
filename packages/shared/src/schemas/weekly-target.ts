@@ -2,6 +2,8 @@ import { z } from 'zod';
 
 /** Target of one week (table `weekly_targets`): from the formula at first, then adaptive. */
 export const weeklyTargetSchema = z.object({
+  /** Server id of the row. */
+  id: z.uuid(),
   /** Monday of the week, "YYYY-MM-DD". */
   weekStart: z.iso.date(),
   maintenanceKcal: z.number().int(),

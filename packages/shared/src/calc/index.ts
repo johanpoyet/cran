@@ -1,4 +1,5 @@
 export * from './constants';
+export * from './day-target';
 export * from './energy';
 export * from './food-coherence';
 export * from './initial-target';

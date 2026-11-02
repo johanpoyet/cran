@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { GOAL_RATES_KG_PER_MONTH, PROFILE_DEFAULTS } from '../calc/constants';
+import { weeklyTargetSchema } from './weekly-target';
 
 // Profile and settings (docs/SPEC.md section 4, table `profiles`), shared by the API and the app.
 
@@ -66,6 +67,8 @@ const profileFields = {
 };
 
 export const profileSchema = z.object({
+  /** Server id of the row, kept by the app's local copy (and by the sync, S4). */
+  id: z.uuid(),
   ...profileFields,
   /** When the user agreed to the processing of their health data (onboarding checkbox). */
   healthDataConsentAt: z.iso.datetime().nullable(),
@@ -105,10 +108,14 @@ export const profileUpdateSchema = z
 
 export type ProfileUpdate = z.infer<typeof profileUpdateSchema>;
 
-/** Response of GET and PATCH /v1/me: the account and its profile, null before onboarding. */
+/**
+ * Response of GET and PATCH /v1/me: the account, its profile and its latest weekly target, both
+ * null before onboarding. The app copies them to its local database at launch (until the sync, S4).
+ */
 export const meSchema = z.object({
   user: z.object({ id: z.uuid(), email: z.email() }),
   profile: profileSchema.nullable(),
+  weeklyTarget: weeklyTargetSchema.nullable(),
 });
 
 export type Me = z.infer<typeof meSchema>;
