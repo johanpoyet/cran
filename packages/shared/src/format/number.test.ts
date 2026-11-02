@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { formatGrams, formatInteger, formatKcal, formatKg } from './number';
+import { formatGrams, formatInteger, formatKcal, formatKg, parseDecimal } from './number';
 
 // Normalise every kind of space so assertions read like the spec ("2 900 kcal").
 const plain = (value: string) => value.replace(/[\u00a0\u202f]/g, ' ');
@@ -34,5 +34,23 @@ describe('formatKg', () => {
     expect(plain(formatKg(68.4))).toBe('68,4 kg');
     expect(plain(formatKg(70))).toBe('70,0 kg');
     expect(plain(formatKg(66.66))).toBe('66,7 kg');
+  });
+});
+
+describe('parseDecimal', () => {
+  it.each([
+    ['162', 162],
+    ['2,5', 2.5],
+    ['2.5', 2.5],
+    [' 1 200 ', 1200],
+    ['1 200', 1200],
+    ['0,', 0],
+    [',5', 0.5],
+  ])('reads %j', (text, expected) => {
+    expect(parseDecimal(text)).toBe(expected);
+  });
+
+  it.each(['', 'abc', '-3', '1,2,3', '1e3', '12 kcal'])('refuses %j', (text) => {
+    expect(parseDecimal(text)).toBeNull();
   });
 });

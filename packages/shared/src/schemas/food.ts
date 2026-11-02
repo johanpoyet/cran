@@ -43,3 +43,47 @@ export type FoodSearchQuery = z.infer<typeof foodSearchQuerySchema>;
 export const foodSearchResultSchema = z.object({ foods: z.array(foodSchema) });
 
 export type FoodSearchResult = z.infer<typeof foodSearchResultSchema>;
+
+/** Bounds of a food entered by hand, per 100 g: pure fat is 900 kcal, a macro 100 g at most. */
+export const NEW_FOOD_LIMITS = {
+  nameMax: 100,
+  brandMax: 100,
+  kcalMax: 900,
+  gramsMax: 100,
+  portionLabelMax: 40,
+  portionGramsMax: 5000,
+  portionsMax: 20,
+} as const;
+
+const per100g = z.number().min(0).max(NEW_FOOD_LIMITS.gramsMax);
+
+export const foodPortionInputSchema = z.object({
+  /** "1 galette", "1 pot". */
+  label: z.string().trim().min(1).max(NEW_FOOD_LIMITS.portionLabelMax),
+  grams: z.number().positive().max(NEW_FOOD_LIMITS.portionGramsMax),
+});
+
+export type FoodPortionInput = z.infer<typeof foodPortionInputSchema>;
+
+/** "Nouvel aliment" form: values per 100 g and named portions. */
+export const newFoodSchema = z
+  .object({
+    name: z.string().trim().min(1).max(NEW_FOOD_LIMITS.nameMax),
+    brand: z
+      .string()
+      .trim()
+      .max(NEW_FOOD_LIMITS.brandMax)
+      .transform((brand) => (brand === '' ? null : brand))
+      .nullable(),
+    kcal100g: z.number().min(0).max(NEW_FOOD_LIMITS.kcalMax),
+    protein100g: per100g,
+    carbs100g: per100g,
+    fat100g: per100g,
+    portions: z.array(foodPortionInputSchema).max(NEW_FOOD_LIMITS.portionsMax),
+  })
+  .refine((food) => food.protein100g + food.carbs100g + food.fat100g <= NEW_FOOD_LIMITS.gramsMax, {
+    message: 'Proteins, carbohydrates and fat exceed 100 g',
+    path: ['macros'],
+  });
+
+export type NewFood = z.infer<typeof newFoodSchema>;
