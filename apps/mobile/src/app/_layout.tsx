@@ -20,6 +20,7 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStatus, useSessionUserId } from '../auth';
 import { localDb, useLocalDatabase } from '../db';
 import { initSentry, Sentry } from '../lib/sentry';
+import { useLocalCopy } from '../profile';
 import { colors, radius, space } from '../theme/tokens';
 import { EmptyState } from '../ui';
 
@@ -39,6 +40,8 @@ function RootLayout() {
   const { t } = useTranslation();
   const authStatus = useAuthStatus();
   const databaseStatus = useLocalDatabase(localDb, useSessionUserId());
+  // Profile and weekly target reach the phone at launch (until the sync of S4).
+  useLocalCopy(localDb, authStatus === 'ready' && databaseStatus === 'ready');
   // The splash screen stays up until fonts are loaded, the session is known and the local database
   // is migrated and belongs to the signed-in user.
   const ready =

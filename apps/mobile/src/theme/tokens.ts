@@ -27,6 +27,10 @@ export const colors = {
   track: '#E9EBF1',
   /** Separator on the accent hero card. */
   onAccentDivider: 'rgba(255, 255, 255, 0.3)',
+  /** Badge on the accent hero card ("Surplus +250"): white text keeps 4.5:1. */
+  onAccentSoft: '#4965F6',
+  /** Unfilled part of the progress bar on the accent hero card. */
+  onAccentTrack: '#6E86F8',
 } as const;
 
 export type ColorToken = keyof typeof colors;
@@ -98,6 +102,9 @@ export const control = {
   radio: 24,
   checkbox: 26,
   dayHeight: 48,
+  /** Letter tile of a meal row ("P" for petit-déjeuner). */
+  mealTile: 44,
+  macroRing: 64,
 } as const;
 
 export const ruler = {

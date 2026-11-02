@@ -19,6 +19,7 @@ describe.each([
   ['textMuted on bg', colors.textMuted, colors.bg],
   ['textMuted on surface', colors.textMuted, colors.surface],
   ['onAccent on accent', colors.onAccent, colors.accent],
+  ['onAccent on onAccentSoft (hero badge)', colors.onAccent, colors.onAccentSoft],
   ['accent on surface', colors.accent, colors.surface],
   ['accent on accentSoft', colors.accent, colors.accentSoft],
   ['success on surface', colors.success, colors.surface],

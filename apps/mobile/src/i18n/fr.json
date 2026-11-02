@@ -8,7 +8,23 @@
   },
   "today": {
     "title": "Ta journée",
-    "empty": "Ton journal du jour arrive bientôt ici."
+    "week": "Semaine",
+    "weekHint": "Ouvre le journal de la semaine",
+    "remaining": "Il te reste",
+    "over": "Au-dessus de ta cible",
+    "surplus": "Surplus +{{kcal}}",
+    "eaten": "{{kcal}} mangées",
+    "goal": "Objectif {{kcal}}",
+    "progressLabel": "{{eaten}} mangées sur un objectif de {{goal}}",
+    "macroLabel": "{{macro}} : {{eaten}} sur {{goal}}",
+    "meals": "Repas",
+    "mealSummary_one": "1 aliment · {{time}}",
+    "mealSummary_other": "{{count}} aliments · {{time}}",
+    "mealEmpty": "Touche pour ajouter",
+    "mealLabel": "{{meal}}, {{summary}}, {{kcal}}",
+    "mealEmptyLabel": "{{meal}}, rien pour l’instant",
+    "mealHint": "Ouvre l’ajout d’un aliment pour ce repas",
+    "noTarget": "Ta cible s’affichera dès que Cran aura pu joindre le serveur une première fois. Vérifie ta connexion."
   },
   "journal": {
     "title": "Journal",
@@ -221,5 +237,17 @@
         "save": "L'aliment n'a pas pu être enregistré. Réessaie."
       }
     }
+  },
+  "meals": {
+    "breakfast": "Petit-déjeuner",
+    "lunch": "Déjeuner",
+    "snack": "Collation",
+    "dinner": "Dîner"
+  },
+  "mealLetters": {
+    "breakfast": "P",
+    "lunch": "D",
+    "snack": "C",
+    "dinner": "D"
   }
 }
