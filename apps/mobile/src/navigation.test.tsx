@@ -34,6 +34,10 @@ import { mockFetchFailure, mockFetchResponse } from './test/fetch';
 jest.mock('./auth/client', () => jest.requireActual<object>('./test/fake-auth-client'));
 jest.mock('./db/use-local-database', () => ({ useLocalDatabase: jest.fn(() => 'ready') }));
 jest.mock('./db/local-data', () => ({ clearLocalData: jest.fn(), claimLocalData: jest.fn() }));
+jest.mock('./profile/use-local-copy', () => ({ useLocalCopy: jest.fn() }));
+jest.mock('./journal/today', () => ({
+  readToday: jest.fn(() => ({ target: null, eaten: {}, meals: [] })),
+}));
 jest.mock('./lib/sentry', () => ({
   initSentry: jest.fn(),
   Sentry: { wrap: <T,>(component: T) => component },
@@ -262,6 +266,7 @@ describe('onboarding', () => {
 
 const onboardingResult = {
   profile: {
+    id: '0195f2a4-9f3e-7c3a-8f2b-000000000001',
     sex: 'male',
     birthYear: 2005,
     heightCm: 180,
@@ -281,6 +286,7 @@ const onboardingResult = {
     updatedAt: '2026-10-31T10:00:00.000Z',
   },
   weeklyTarget: {
+    id: '0195f2a4-9f3e-7c3a-8f2b-000000000002',
     weekStart: '2026-10-26',
     maintenanceKcal: 2650,
     targetKcal: 2900,

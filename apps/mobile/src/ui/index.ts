@@ -1,3 +1,4 @@
+export { Badge } from './badge';
 export { Card } from './card';
 export { Checkbox, type CheckboxProps } from './checkbox';
 export { Chip, type ChipProps } from './chip';
@@ -11,6 +12,8 @@ export { BANNER_TONES, type BannerTone, InfoBanner, type InfoBannerProps } from 
 export { LinkButton, type LinkButtonProps } from './link-button';
 export { ListRow, type ListRowProps } from './list-row';
 export { MacroRing, type MacroRingProps } from './macro-ring';
+export { MacroTile, type MacroTileProps } from './macro-tile';
+export { MealRow, type MealRowProps } from './meal-row';
 export { NutrientField, type NutrientFieldProps } from './nutrient-field';
 export { OptionCard, type OptionCardProps } from './option-card';
 export { Overline } from './overline';

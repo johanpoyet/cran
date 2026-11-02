@@ -1,5 +1,6 @@
 import { eq } from 'drizzle-orm';
 
+import { notifyLocalChange } from './changes';
 import * as schema from './schema';
 import type { LocalDatabase } from './types';
 
@@ -29,6 +30,7 @@ export function clearLocalData(db: LocalDatabase): void {
   db.transaction((tx) => {
     for (const table of TABLES) tx.delete(table).run();
   });
+  notifyLocalChange();
 }
 
 /**

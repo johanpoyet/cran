@@ -9,6 +9,7 @@ import { createRoute, OpenAPIHono } from '@hono/zod-openapi';
 import { errorBody, ErrorSchema } from '../errors';
 import type { SessionVariables } from '../middleware/session';
 import type { ProfileCreate, ProfileRepository } from '../repositories/profiles';
+import type { WeeklyTargetRepository } from '../repositories/weekly-targets';
 
 const MeSchema = meSchema.meta({ id: 'Me' });
 const ProfileUpdateSchema = profileUpdateSchema.meta({ id: 'ProfileUpdate' });
@@ -22,8 +23,9 @@ const getMe = createRoute({
   method: 'get',
   path: '/me',
   tags: ['Profile'],
-  summary: 'Current account and profile',
-  description: 'The profile is null until the onboarding has been completed.',
+  summary: 'Current account, profile and weekly target',
+  description:
+    'The profile and the weekly target (the latest one) are null until the onboarding has been completed.',
   responses: {
     200: {
       description: 'Account and profile',
@@ -64,12 +66,15 @@ function canCreate(changes: ProfileUpdate): changes is ProfileCreate {
   return missingFields(changes).length === 0;
 }
 
-export function meRoutes(profiles: ProfileRepository) {
+export function meRoutes(profiles: ProfileRepository, weeklyTargets: WeeklyTargetRepository) {
   return new OpenAPIHono<{ Variables: SessionVariables }>()
     .openapi(getMe, async (c) => {
       const user = c.get('user');
-      const profile = await profiles.find(user.id);
-      return c.json({ user: { id: user.id, email: user.email }, profile }, 200);
+      const [profile, weeklyTarget] = await Promise.all([
+        profiles.find(user.id),
+        weeklyTargets.latest(user.id),
+      ]);
+      return c.json({ user: { id: user.id, email: user.email }, profile, weeklyTarget }, 200);
     })
     .openapi(patchMe, async (c) => {
       const user = c.get('user');
@@ -87,6 +92,7 @@ export function meRoutes(profiles: ProfileRepository) {
         }
         profile = await profiles.create(user.id, changes);
       }
-      return c.json({ user: { id: user.id, email: user.email }, profile }, 200);
+      const weeklyTarget = await weeklyTargets.latest(user.id);
+      return c.json({ user: { id: user.id, email: user.email }, profile, weeklyTarget }, 200);
     });
 }

@@ -19,6 +19,7 @@ const today = new Date(2026, 9, 31);
 
 const result = {
   profile: {
+    id: '0195f2a4-9f3e-7c3a-8f2b-000000000001',
     sex: 'male',
     birthYear: 2005,
     heightCm: 180,
@@ -38,6 +39,7 @@ const result = {
     updatedAt: '2026-10-31T10:00:00.000Z',
   },
   weeklyTarget: {
+    id: '0195f2a4-9f3e-7c3a-8f2b-000000000002',
     weekStart: '2026-10-26',
     maintenanceKcal: 2650,
     targetKcal: 2900,

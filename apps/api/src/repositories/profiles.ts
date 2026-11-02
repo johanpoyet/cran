@@ -49,6 +49,7 @@ export type ProfileCreate = Pick<Profile, (typeof PROFILE_REQUIRED_FIELDS)[numbe
 
 export function toProfile(row: ProfileRow): Profile {
   return {
+    id: row.id,
     sex: row.sex,
     birthYear: row.birthYear,
     heightCm: row.heightCm,

@@ -55,7 +55,11 @@ describe('GET /v1/me', () => {
     const res = await getMe(user.cookie);
 
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ user: { id: user.id, email: user.email }, profile: null });
+    expect(await res.json()).toEqual({
+      user: { id: user.id, email: user.email },
+      profile: null,
+      weeklyTarget: null,
+    });
   });
 
   it('requires a session', async () => {
@@ -65,6 +69,54 @@ describe('GET /v1/me', () => {
   });
 });
 
+describe('GET /v1/me after the onboarding', () => {
+  it('returns the profile and the latest weekly target with their ids', async () => {
+    const user = await signUpUser(app);
+    const [profile] = await database.db
+      .insert(schema.profiles)
+      .values({ userId: user.id, ...onboarding, sex: 'male' })
+      .returning();
+    await database.db.insert(schema.weeklyTargets).values([
+      { userId: user.id, weekStart: '2026-10-26', ...target(2900) },
+      { userId: user.id, weekStart: '2026-11-02', ...target(2950) },
+      { userId: user.id, weekStart: '2026-11-09', ...target(3000), deletedAt: new Date() },
+    ]);
+
+    const me = (await (await getMe(user.cookie)).json()) as Me;
+
+    expect(me.profile?.id).toBe(profile?.id);
+    expect(me.weeklyTarget).toMatchObject({
+      id: expect.any(String) as string,
+      weekStart: '2026-11-02',
+      targetKcal: 2950,
+    });
+  });
+
+  it("never returns another user's weekly target", async () => {
+    const alice = await signUpUser(app);
+    const bob = await signUpUser(app);
+    await database.db
+      .insert(schema.weeklyTargets)
+      .values({ userId: alice.id, weekStart: '2026-10-26', ...target(2900) });
+
+    const me = (await (await getMe(bob.cookie)).json()) as Me;
+
+    expect(me.weeklyTarget).toBeNull();
+  });
+});
+
+function target(targetKcal: number) {
+  return {
+    maintenanceKcal: targetKcal - 250,
+    targetKcal,
+    proteinG: 150,
+    carbsG: 381,
+    fatG: 86,
+    method: 'formula' as const,
+    status: 'insufficient_data' as const,
+  };
+}
+
 describe('PATCH /v1/me', () => {
   it('creates the profile from the onboarding answers, with defaults for the rest', async () => {
     const user = await signUpUser(app);
@@ -73,6 +125,7 @@ describe('PATCH /v1/me', () => {
     expect(res.status).toBe(200);
     const me = (await res.json()) as Me;
     expect(me.profile).toEqual({
+      id: expect.any(String) as string,
       ...onboarding,
       proteinGPerKg: 2.2,
       fatGPerKg: 1.25,

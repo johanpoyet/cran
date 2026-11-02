@@ -1,5 +1,6 @@
 import { foodCoherence, type NewFood } from '@cran/shared';
 
+import { notifyLocalChange } from '../db/changes';
 import { newId } from '../db/id';
 import * as schema from '../db/schema';
 import type { LocalDatabase } from '../db/types';
@@ -54,5 +55,6 @@ export function createFood(
       tx.insert(schema.favorites).values({ id: newId(), userId, foodId: id }).run();
     }
   });
+  notifyLocalChange();
   return id;
 }

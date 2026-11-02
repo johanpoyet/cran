@@ -1,6 +1,7 @@
+import type { LucideIcon } from 'lucide-react-native';
 import { Pressable, StyleSheet } from 'react-native';
 
-import { colors, radius, space, touch } from '../theme/tokens';
+import { colors, control, radius, space, touch } from '../theme/tokens';
 import { Text } from './text';
 
 export interface ChipProps {
@@ -11,6 +12,8 @@ export interface ChipProps {
    * value ("1 galette = 50 g"). "dashed": action to add an item ("+ Ajouter une portion").
    */
   variant?: 'outline' | 'soft' | 'dashed';
+  /** Icon before the label ("Semaine" with a calendar). */
+  icon?: LucideIcon;
   onPress?: () => void;
   accessibilityLabel?: string;
   accessibilityHint?: string;
@@ -22,6 +25,7 @@ export function Chip({
   label,
   selected = false,
   variant = 'outline',
+  icon: Icon,
   onPress,
   accessibilityLabel,
   accessibilityHint,
@@ -37,6 +41,12 @@ export function Chip({
       onPress={onPress}
       style={[styles.chip, styles[variant], selected && styles.selected]}
     >
+      {Icon ? (
+        <Icon
+          color={colors[selected ? 'onAccent' : LABEL_COLOR[variant]]}
+          size={control.iconSize}
+        />
+      ) : null}
       <Text
         variant={variant === 'outline' ? 'caption' : 'label'}
         weight={600}
@@ -56,6 +66,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.surface,
+    flexDirection: 'row',
+    gap: space[8],
     alignItems: 'center',
     justifyContent: 'center',
   },
