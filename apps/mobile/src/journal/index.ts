@@ -1,5 +1,13 @@
 export { addEntries, type EntryToAdd } from './add-entries';
 export {
+  deleteEntry,
+  type Entry,
+  readEntry,
+  readMealEntries,
+  scaleEntry,
+  updateEntry,
+} from './entries';
+export {
   type MealSummary,
   type MealType,
   type Nutrition,

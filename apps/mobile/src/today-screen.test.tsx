@@ -31,7 +31,7 @@ async function renderToday(summary: TodaySummary) {
   jest.mocked(readToday).mockReturnValue(summary);
   setSession(signedIn);
   await renderRouter(
-    { index: TodayScreen, add: () => null, journal: () => null },
+    { index: TodayScreen, add: () => null, 'meal/[type]': () => null, journal: () => null },
     { initialUrl: '/' },
   );
 }
@@ -76,6 +76,14 @@ describe('Ta journée', () => {
 
     expect(screen).toHavePathname('/add');
     expect(screen).toHaveSearchParams({ meal: 'dinner' });
+  });
+
+  it('opens the entries of a filled meal', async () => {
+    await renderToday(mockup);
+
+    await fireEvent.press(screen.getByRole('button', { name: /^Déjeuner, 3 aliments/ }));
+
+    expect(screen).toHavePathname('/meal/lunch');
   });
 
   it('says how much the target is exceeded', async () => {

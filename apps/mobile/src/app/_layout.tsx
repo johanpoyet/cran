@@ -27,6 +27,15 @@ import { EmptyState } from '../ui';
 initSentry();
 
 const HOME = { signedOut: '/sign-in', onboarding: '/rate', ready: '/' } as const;
+
+/** Bottom sheets: add, meal, entry. */
+const SHEET = {
+  presentation: 'formSheet' as const,
+  sheetAllowedDetents: [0.9],
+  sheetGrabberVisible: true,
+  sheetCornerRadius: radius.hero,
+  contentStyle: { backgroundColor: colors.surface },
+};
 void SplashScreen.preventAutoHideAsync();
 
 function RootLayout() {
@@ -74,16 +83,9 @@ function RootLayout() {
         <Stack screenOptions={{ headerShown: false, contentStyle: styles.content }}>
           <Stack.Protected guard={authStatus === 'ready'} redirectTo={home}>
             <Stack.Screen name="(tabs)" />
-            <Stack.Screen
-              name="add"
-              options={{
-                presentation: 'formSheet',
-                sheetAllowedDetents: [0.9],
-                sheetGrabberVisible: true,
-                sheetCornerRadius: radius.hero,
-                contentStyle: styles.sheet,
-              }}
-            />
+            <Stack.Screen name="add" options={SHEET} />
+            <Stack.Screen name="meal/[type]" options={SHEET} />
+            <Stack.Screen name="entry/[id]" options={SHEET} />
             <Stack.Screen name="food/new" />
           </Stack.Protected>
           <Stack.Protected guard={authStatus === 'onboarding'} redirectTo={home}>
@@ -109,5 +111,4 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg,
   },
   content: { backgroundColor: colors.bg },
-  sheet: { backgroundColor: colors.surface },
 });

@@ -157,9 +157,14 @@ export default function TodayScreen() {
                     })
                   : t('today.mealEmptyLabel', { meal: name })
               }
-              accessibilityHint={t('today.mealHint')}
+              accessibilityHint={filled ? t('today.mealOpenHint') : t('today.mealHint')}
               onPress={() => {
-                router.push({ pathname: '/add', params: { meal: meal.mealType } });
+                // A filled meal opens its entries; an empty one, the add sheet.
+                if (filled) {
+                  router.push({ pathname: '/meal/[type]', params: { type: meal.mealType } });
+                } else {
+                  router.push({ pathname: '/add', params: { meal: meal.mealType } });
+                }
               }}
             />
           );

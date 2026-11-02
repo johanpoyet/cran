@@ -24,7 +24,8 @@
     "mealLabel": "{{meal}}, {{summary}}, {{kcal}}",
     "mealEmptyLabel": "{{meal}}, rien pour l’instant",
     "mealHint": "Ouvre l’ajout d’un aliment pour ce repas",
-    "noTarget": "Ta cible s’affichera dès que Cran aura pu joindre le serveur une première fois. Vérifie ta connexion."
+    "noTarget": "Ta cible s’affichera dès que Cran aura pu joindre le serveur une première fois. Vérifie ta connexion.",
+    "mealOpenHint": "Ouvre les aliments de ce repas"
   },
   "journal": {
     "title": "Journal",
@@ -276,5 +277,32 @@
     "lunch": "D",
     "snack": "C",
     "dinner": "D"
+  },
+  "meal": {
+    "summary_one": "1 aliment · {{kcal}}",
+    "summary_other": "{{count}} aliments · {{kcal}}",
+    "entryDetails": "{{grams}} · P {{protein}} · G {{carbs}} · L {{fat}}",
+    "entryDetailsNoGrams": "P {{protein}} · G {{carbs}} · L {{fat}}",
+    "entryLabel": "{{name}}, {{details}}, {{kcal}}",
+    "entryHint": "Ouvre l’aliment pour changer la quantité, le déplacer ou le supprimer",
+    "empty": "Plus rien dans ce repas.",
+    "add": "Ajouter un aliment",
+    "close": "Fermer"
+  },
+  "entry": {
+    "close": "Fermer",
+    "quantity": "Quantité en grammes",
+    "values": "{{kcal}} · P {{protein}} · G {{carbs}} · L {{fat}}",
+    "move": "Repas",
+    "save": "Enregistrer",
+    "saveHint": "Change la quantité ou le repas pour enregistrer",
+    "delete": "Supprimer de ce repas",
+    "deleteTitle": "Supprimer {{name}} ?",
+    "deleteMessage": "Il sera retiré de ton journal.",
+    "deleteConfirm": "Supprimer",
+    "deleteCancel": "Annuler",
+    "invalidQuantity": "La quantité doit être un nombre de grammes supérieur à 0 (5 000 au plus).",
+    "missing": "Cet aliment n’est plus dans ton journal.",
+    "error": "La modification n’a pas pu être enregistrée. Réessaie."
   }
 }
