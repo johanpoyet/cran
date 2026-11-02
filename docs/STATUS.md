@@ -2,14 +2,14 @@
 
 ## Sprint en cours : S3 — Journal du jour
 
-| Story                                            | État    | PR  |
-| ------------------------------------------------ | ------- | --- |
-| S3-1 Écran Aujourd'hui                           | à faire |     |
-| S3-2 Feuille d'ajout                             | à faire |     |
-| S3-3 Fiche quantité                              | à faire |     |
-| S3-4 Modifier / supprimer une saisie             | à faire |     |
-| S3-5 Ajout rapide kcal et copier un repas d'hier | à faire |     |
-| S3-6 Eau                                         | à faire |     |
+| Story                                            | État     | PR                |
+| ------------------------------------------------ | -------- | ----------------- |
+| S3-1 Écran Aujourd'hui                           | en revue | `feat/S3-1-today` |
+| S3-2 Feuille d'ajout                             | à faire  |                   |
+| S3-3 Fiche quantité                              | à faire  |                   |
+| S3-4 Modifier / supprimer une saisie             | à faire  |                   |
+| S3-5 Ajout rapide kcal et copier un repas d'hier | à faire  |                   |
+| S3-6 Eau                                         | à faire  |                   |
 
 ## Sprints terminés
 
@@ -156,6 +156,12 @@ Petites décisions prises sans changer le modèle de données, l'API ou l'UX. Le
 - **2026-11-02 · Nouvel aliment : saisie** : nombres au clavier décimal, virgule ou point acceptés (`parseDecimal` dans `shared`). Bornes (`newFoodSchema`) : nom de 1 à 100 caractères, marque facultative (vide = aucune), calories de 0 à 900 kcal pour 100 g, chaque macro de 0 à 100 g, et protéines + glucides + lipides au plus 100 g ; portions de 1 à 40 caractères et de plus de 0 à 5 000 g, 20 au plus. « Enregistrer l'aliment » reste désactivé tant que le nom et les quatre valeurs ne sont pas saisis ; une valeur hors bornes est signalée sous le bouton et le champ passe en rouge. Les fibres et le sel ne sont pas demandés (absents de la maquette).
 - **2026-11-02 · Nouvel aliment : portions et favori** (formulaire d'ajout non dessiné) : « + Ajouter une portion » ouvre deux champs (nom, grammes) sous les puces, avec « Ajouter la portion » et « Annuler » ; toucher une puce retire la portion. L'étoile est un interrupteur (rôle `switch` pour VoiceOver), pleine quand l'aliment sera en favori.
 - **2026-11-02 · Nouvel aliment : enregistrement** : local-first, dans SQLite seulement (aliment `source = user`, portions et favori dans une transaction, identifiants UUID v7) ; il partira vers le serveur avec la synchro (S4), et la recherche de l'API ne le trouvera qu'à ce moment-là. Route `food/new`, `?name=` préremplit le nom. En attendant la recherche de la feuille d'ajout (S3-2), un lien provisoire « Créer un aliment » dans la feuille ouvre le formulaire.
+
+- **2026-11-02 · Profil et cible sur le téléphone avant la synchro** : décision de Johan. `GET /v1/me` renvoie aussi la cible hebdomadaire la plus récente (`weeklyTarget`), et le profil comme la cible portent désormais leur `id` serveur (aussi dans la réponse de l'onboarding). Au lancement et au retour au premier plan, l'app copie profil et cible dans SQLite en gardant ces identifiants ; hors ligne, la copie précédente reste. L'écran ne lit que SQLite. La synchro de S4 remplacera cette copie.
+- **2026-11-02 · Cible du jour** : `dayTarget` dans `shared/calc` : cible de la semaine en vigueur (la dernière commencée au plus tard ce jour-là), plus le bonus d'entraînement les jours cochés, ajouté aux glucides (arrondi à l'inférieur, 150 kcal = +37 g). Le badge « Surplus » montre cible du jour − maintien, bonus compris.
+- **2026-11-02 · Écran « Ta journée »** : carte « Il te reste » (calories restantes, barre de progression, « mangées » et « Objectif »), trois cartes de macros (anneau = grammes mangés sur l'objectif), liste des quatre repas. Le jour est fixé à l'ouverture de l'écran. Au-delà de la cible : « Au-dessus de ta cible » et « +120 kcal » (non dessiné). Repas : lettre P, D, C, D ; couleurs des macros pour les trois premiers et bleu pour le dîner (le dîner est masqué par la barre sur la maquette), tuile grise et « Touche pour ajouter » quand le repas est vide ; heure du premier aliment du repas. Toucher un repas ouvre la feuille d'ajout avec `?meal=` (utilisé en S3-2). La puce « Semaine » ouvre l'onglet Journal. La carte « Eau » de la maquette arrive avec S3-6. Sans profil ni cible sur le téléphone (jamais connecté), un message l'explique.
+- **2026-11-02 · Lecture réactive de SQLite** : `useLocalQuery(read)` relit la base après chaque écriture locale (`notifyLocalChange`, appelée par la copie du profil, la création d'aliment et l'effacement des données), sans dépendre de l'écouteur natif d'expo-sqlite, ce qui garde les écrans testables avec sql.js.
+- **2026-11-02 · Nouveaux composants** : `Badge`, `MacroTile`, `MealRow` ; `Chip` peut porter une icône. Tokens `onAccentSoft` (badge, texte blanc à 4,7:1, vérifié par le test de contraste) et `onAccentTrack` (fond de la barre sur la carte bleue).
 
 ## Rétros
 
