@@ -1,7 +1,7 @@
 import { defineConfig } from 'tsdown';
 
 export default defineConfig({
-  entry: ['src/index.ts', 'src/instrument.ts', 'src/migrate.ts'],
+  entry: ['src/index.ts', 'src/instrument.ts', 'src/migrate.ts', 'src/seed-ciqual.ts'],
   format: 'esm',
   platform: 'node',
   target: 'node22',

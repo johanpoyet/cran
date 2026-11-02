@@ -2,13 +2,13 @@
 
 ## Sprint en cours : S2 — Base d'aliments
 
-| Story                                             | État     | PR                       |
-| ------------------------------------------------- | -------- | ------------------------ |
-| S2-1 Schéma `foods`, `food_portions`, `favorites` | en revue | `feat/S2-1-foods-schema` |
-| S2-2 Import CIQUAL                                | à faire  |                          |
-| S2-3 Recherche                                    | à faire  |                          |
-| S2-4 Base locale                                  | à faire  |                          |
-| S2-5 Aliment perso                                | à faire  |                          |
+| Story                                             | État    | PR  |
+| ------------------------------------------------- | ------- | --- |
+| S2-1 Schéma `foods`, `food_portions`, `favorites` | fait    | #16 |
+| S2-2 Import CIQUAL                                | à faire |     |
+| S2-3 Recherche                                    | à faire |     |
+| S2-4 Base locale                                  | à faire |     |
+| S2-5 Aliment perso                                | à faire |     |
 
 ## Sprints terminés
 
@@ -120,6 +120,12 @@ Petites décisions prises sans changer le modèle de données, l'API ou l'UX. Le
 - **2026-10-31 · Propriétaire des aliments** : `foods` et `food_portions` ont un `owner_id` facultatif à la place du `user_id` des autres tables synchronisées : vide pour le catalogue global (CIQUAL, Open Food Facts), rempli pour ce qu'a créé l'utilisateur, qui sera synchronisé. Une contrainte impose `owner_id` si et seulement si `source = user`, et une `source_ref` pour les aliments globaux. Une portion a son propre propriétaire : un utilisateur pourra nommer une portion d'un aliment CIQUAL (« 1 bol de riz = 150 g ») sans toucher au catalogue. La suppression du compte efface ses aliments, portions et favoris, jamais le catalogue global.
 - **2026-10-31 · Favoris** : `food_id` ou `recipe_id`, exactement l'un des deux (contrainte). `recipe_id` n'a pas encore de clé étrangère : la table `recipes` arrive en S6. Pas d'index unique utilisateur + aliment : deux appareils hors ligne pourraient créer le même favori avec deux identifiants, et la synchro (S4) refuserait le second ; les doublons seront ignorés par l'app.
 - **2026-10-31 · Recherche sans accents** : extensions `pg_trgm` et `unaccent` créées par la migration `0003_foods`, avec une fonction `f_unaccent` déclarée `IMMUTABLE` (la fonction `unaccent` ne l'est pas, donc ne peut pas servir dans un index). Deux index GIN trigrammes, sur `f_unaccent(name)` et `f_unaccent(brand)` ; les trigrammes ignorent déjà la casse. PGlite charge les deux extensions pour les tests locaux. Les schémas Zod des aliments arriveront avec la première route (S2-3).
+
+- **2026-10-31 · Staging avec les aliments** : après le merge de #16, migration `0003_foods` appliquée : extensions `pg_trgm` et `unaccent` présentes, index trigrammes créés (vérifié en lecture seule).
+- **2026-10-31 · Version de CIQUAL** : table 2025 (publiée le 19 novembre 2025, 3 484 aliments), et non la 2020 citée par data.gouv.fr. Le site `ciqual.anses.fr` répondait en erreur 503 : les fichiers XML viennent du dépôt Zenodo de l'ANSES (record 17550133), sous licence **CC BY 4.0** (la spec parlait de la Licence Ouverte Etalab ; les deux demandent de citer la source). La mention « ANSES-CIQUAL » devra figurer dans l'app et sur les pages légales (S9).
+- **2026-10-31 · Import CIQUAL : valeurs** : calories = énergie selon le règlement UE 1169/2011 (code 328, celle des étiquettes), protéines = N × facteur de Jones (25000), glucides (31000), lipides (40000), fibres (34100), sel (10004). Une valeur « traces » ou absente (« - ») pour les protéines, glucides ou lipides vaut 0 et marque l'aliment `incomplete` (décision de Johan). Une valeur sous la limite de détection (« < 0,5 ») est une mesure : elle vaut 0 **sans** marquer l'aliment, sinon presque tous les légumes seraient « incomplets ». Fibres et sel manquants restent vides. Les 145 aliments sans valeur énergétique ne sont pas importés (dont certaines viandes et fromages, comme la feta) ; 3 339 aliments importés, dont 159 incomplets. Le contrôle de cohérence (`incoherent`) arrive avec S2-5.
+- **2026-10-31 · Import CIQUAL : relances** : upsert sur (`source`, `source_ref`) ; un aliment inchangé n'est pas réécrit (ni `updated_at` ni `server_seq` ne bougent), donc une relance sur la même version n'écrit rien. Un aliment disparu d'une nouvelle version est marqué supprimé (`deleted_at`), et restauré s'il revient ; les saisies du journal gardent leurs valeurs copiées. L'import refuse de tourner s'il lit moins de 1 000 aliments (fichiers tronqués). Tout se fait dans une transaction.
+- **2026-10-31 · Import CIQUAL : exécution** : script `seed-ciqual` inclus dans l'image (`node dist/seed-ciqual.js`), qui télécharge la table depuis Zenodo ou lit un dossier local. Les fichiers sont lus ligne par ligne, sans charger les 70 Mo du fichier `compo` en mémoire. Sur la vraie table : moins d'une seconde d'import, une seconde passe sans écriture. Procédure dans `docs/runbook.md`.
 
 ## Rétros
 

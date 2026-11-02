@@ -9,6 +9,7 @@
     "start": "node dist/migrate.js && node --import ./dist/instrument.js dist/index.js",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx --env-file-if-exists=.env src/migrate.ts",
+    "seed:ciqual": "tsx --env-file-if-exists=.env src/seed-ciqual.ts",
     "lint": "eslint .",
     "typecheck": "tsc",
     "test": "vitest run"
