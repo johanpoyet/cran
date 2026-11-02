@@ -18,6 +18,7 @@ import JournalScreen from './app/(tabs)/journal';
 import ProfileScreen from './app/(tabs)/profile';
 import WeightScreen from './app/(tabs)/weight';
 import AddSheet from './app/add';
+import NewFoodScreen from './app/food/new';
 import { clearLocalData } from './db/local-data';
 import { useLocalDatabase } from './db/use-local-database';
 import {
@@ -69,6 +70,7 @@ function renderApp(initialUrl = '/') {
       '(tabs)/weight': WeightScreen,
       '(tabs)/profile': ProfileScreen,
       add: AddSheet,
+      'food/new': NewFoodScreen,
     },
     { initialUrl },
   );
@@ -393,5 +395,16 @@ describe('app navigation', () => {
     expect(screen).toHavePathname('/add');
     await fireEvent.press(screen.getByRole('button', { name: 'Fermer' }));
     expect(screen).toHavePathname('/');
+  });
+});
+
+describe('add sheet', () => {
+  it('opens the new food form', async () => {
+    setSession(signedIn);
+    await renderApp('/add');
+    await fireEvent.press(screen.getByRole('button', { name: 'Créer un aliment' }));
+
+    expect(screen).toHavePathname('/food/new');
+    expect(screen.getByRole('header', { name: 'Nouvel aliment' })).toBeOnTheScreen();
   });
 });

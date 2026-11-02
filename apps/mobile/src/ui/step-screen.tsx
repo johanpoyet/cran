@@ -15,10 +15,20 @@ export interface StepScreenProps {
   action: PrimaryButtonProps;
   /** Shown above the action, e.g. an error message. */
   footer?: ReactNode;
+  /** Round button on the left of the action (favourite star of "Nouvel aliment"). */
+  actionAccessory?: ReactNode;
 }
 
 // Onboarding step: header, large title, scrolling content and a button pinned at the bottom.
-export function StepScreen({ header, title, subtitle, children, action, footer }: StepScreenProps) {
+export function StepScreen({
+  header,
+  title,
+  subtitle,
+  children,
+  action,
+  footer,
+  actionAccessory,
+}: StepScreenProps) {
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.content}>
@@ -39,7 +49,16 @@ export function StepScreen({ header, title, subtitle, children, action, footer }
       </ScrollView>
       <View style={styles.bottom}>
         {footer}
-        <PrimaryButton {...action} />
+        {actionAccessory ? (
+          <View style={styles.actions}>
+            {actionAccessory}
+            <View style={styles.action}>
+              <PrimaryButton {...action} />
+            </View>
+          </View>
+        ) : (
+          <PrimaryButton {...action} />
+        )}
       </View>
     </SafeAreaView>
   );
@@ -55,4 +74,6 @@ const styles = StyleSheet.create({
   },
   titles: { gap: space[8], marginTop: space[8] },
   bottom: { paddingHorizontal: space.screen, paddingBottom: space[8], gap: space[12] },
+  actions: { flexDirection: 'row', alignItems: 'center', gap: space[12] },
+  action: { flex: 1 },
 });

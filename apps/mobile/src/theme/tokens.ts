@@ -18,6 +18,11 @@ export const colors = {
   fatSoft: '#F2ECFC',
   water: '#3FA9F5',
   success: '#0E6B58',
+  /** Background of the "Cohérent" banner. */
+  successSoft: '#E6F6F2',
+  /** Non-blocking warning ("À vérifier"), on warningSoft. */
+  warning: '#9A4A00',
+  warningSoft: '#FFF1E6',
   danger: '#C0362C',
   track: '#E9EBF1',
   /** Separator on the accent hero card. */

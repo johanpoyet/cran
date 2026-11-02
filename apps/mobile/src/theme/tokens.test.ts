@@ -22,6 +22,9 @@ describe.each([
   ['accent on surface', colors.accent, colors.surface],
   ['accent on accentSoft', colors.accent, colors.accentSoft],
   ['success on surface', colors.success, colors.surface],
+  ['success on successSoft (coherence banner)', colors.success, colors.successSoft],
+  ['warning on warningSoft (coherence warning)', colors.warning, colors.warningSoft],
+  ['text on bg-filled fields', colors.text, colors.bg],
   ['danger on bg (form errors)', colors.danger, colors.bg],
   ['onAccent on text (selected chip)', colors.onAccent, colors.text],
 ])('%s', (_, foreground, background) => {

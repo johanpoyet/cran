@@ -25,7 +25,8 @@
   "add": {
     "title": "Ajouter un aliment",
     "empty": "La recherche, le scan et les modèles de repas arrivent bientôt.",
-    "close": "Fermer"
+    "close": "Fermer",
+    "createFood": "Créer un aliment"
   },
   "macros": {
     "protein": "Protéines",
@@ -180,6 +181,45 @@
     "errors": {
       "network": "Impossible de joindre Cran. Vérifie ta connexion et réessaie.",
       "unknown": "Ta cible n'a pas pu être enregistrée. Réessaie."
+    }
+  },
+  "food": {
+    "new": {
+      "title": "Nouvel aliment",
+      "back": "Retour",
+      "name": "Nom",
+      "namePlaceholder": "Ex. galette de sarrasin",
+      "brand": "Marque (optionnel)",
+      "brandPlaceholder": "Ex. maison",
+      "per100g": "Valeurs pour 100 g",
+      "kcal": "Calories",
+      "kcalUnit": "kcal",
+      "gramUnit": "g",
+      "fieldLabel": "{{nutrient}}, en {{unit}} pour 100 g",
+      "coherent": "Cohérent : 4×P + 4×G + 9×L = {{kcal}}",
+      "incoherent": "À vérifier : 4×P + 4×G + 9×L = {{computed}}, loin des {{kcal}} saisies. Tu peux enregistrer quand même.",
+      "portions": "Portions nommées",
+      "portion": "{{label}} = {{grams}}",
+      "removePortion": "Retirer la portion {{label}}",
+      "removePortionHint": "Touche pour retirer cette portion",
+      "addPortion": "+ Ajouter une portion",
+      "addPortionLabel": "Ajouter une portion",
+      "portionName": "Nom de la portion",
+      "portionNamePlaceholder": "Ex. 1 galette",
+      "portionGrams": "Poids en grammes",
+      "portionGramsPlaceholder": "Ex. 50",
+      "confirmPortion": "Ajouter la portion",
+      "cancelPortion": "Annuler",
+      "favorite": "Favori",
+      "save": "Enregistrer l'aliment",
+      "saveHint": "Renseigne le nom, les calories et les trois macros",
+      "errors": {
+        "name": "Donne un nom à cet aliment (100 caractères au plus).",
+        "kcal": "Les calories doivent être un nombre entre 0 et 900 kcal pour 100 g.",
+        "macro": "Chaque macro doit être un nombre entre 0 et 100 g pour 100 g.",
+        "macrosTotal": "Protéines, glucides et lipides dépassent 100 g pour 100 g.",
+        "save": "L'aliment n'a pas pu être enregistré. Réessaie."
+      }
     }
   }
 }

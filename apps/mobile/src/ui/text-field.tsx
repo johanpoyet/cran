@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { StyleSheet, TextInput, type TextInputProps, View } from 'react-native';
 
 import { colors, control, fontFamily, radius, space, typography } from '../theme/tokens';
@@ -9,7 +10,9 @@ export interface TextFieldProps extends Omit<TextInputProps, 'style'> {
   hint?: string;
 }
 
-export function TextField({ label, hint, ...input }: TextFieldProps) {
+// The border turns blue while typing, as on the "Nouvel aliment" mockup.
+export function TextField({ label, hint, onFocus, onBlur, ...input }: TextFieldProps) {
+  const [focused, setFocused] = useState(false);
   return (
     <View style={styles.field}>
       <Text variant="caption" weight={600} color="textMuted">
@@ -20,7 +23,15 @@ export function TextField({ label, hint, ...input }: TextFieldProps) {
         {...(hint ? { accessibilityHint: hint } : {})}
         placeholderTextColor={colors.textMuted}
         selectionColor={colors.accent}
-        style={styles.input}
+        style={[styles.input, focused && styles.focused]}
+        onFocus={(event) => {
+          setFocused(true);
+          onFocus?.(event);
+        }}
+        onBlur={(event) => {
+          setFocused(false);
+          onBlur?.(event);
+        }}
         {...input}
       />
       {hint ? (
@@ -45,4 +56,5 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily[typography.body.weight],
     fontSize: typography.body.fontSize,
   },
+  focused: { borderColor: colors.accent, borderWidth: 1.5 },
 });

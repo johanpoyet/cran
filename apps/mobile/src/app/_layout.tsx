@@ -81,6 +81,7 @@ function RootLayout() {
                 contentStyle: styles.sheet,
               }}
             />
+            <Stack.Screen name="food/new" />
           </Stack.Protected>
           <Stack.Protected guard={authStatus === 'onboarding'} redirectTo={home}>
             <Stack.Screen name="(onboarding)" />
