@@ -2,13 +2,13 @@
 
 ## Sprint en cours : S2 — Base d'aliments
 
-| Story                                             | État     | PR                      |
-| ------------------------------------------------- | -------- | ----------------------- |
-| S2-1 Schéma `foods`, `food_portions`, `favorites` | fait     | #16                     |
-| S2-2 Import CIQUAL                                | à faire  |                         |
-| S2-3 Recherche                                    | en revue | `feat/S2-3-food-search` |
-| S2-4 Base locale                                  | à faire  |                         |
-| S2-5 Aliment perso                                | à faire  |                         |
+| Story                                             | État     | PR                         |
+| ------------------------------------------------- | -------- | -------------------------- |
+| S2-1 Schéma `foods`, `food_portions`, `favorites` | fait     | #16                        |
+| S2-2 Import CIQUAL                                | à faire  |                            |
+| S2-3 Recherche                                    | fait     | #19                        |
+| S2-4 Base locale                                  | en revue | `feat/S2-4-local-database` |
+| S2-5 Aliment perso                                | à faire  |                            |
 
 ## Sprints terminés
 
@@ -130,6 +130,13 @@ Petites décisions prises sans changer le modèle de données, l'API ou l'UX. Le
 - **2026-11-02 · CIQUAL sur le staging** : import lancé avec l'accord de Johan après le merge de #17 : 3 339 aliments (159 incomplets, 145 sans énergie écartés). Le premier essai a échoué sans rien écrire : Zenodo répond 403 au User-Agent par défaut du `fetch` de Node. Les fichiers ont été téléchargés dans le conteneur avec un User-Agent, puis importés par le même script depuis ce dossier. Le script envoie désormais son propre User-Agent (#18).
 - **2026-11-02 · Recherche d'aliments** : `GET /v1/foods/search?q=&limit=` (limite 20 par défaut, 50 au plus). Chaque mot de la requête doit se retrouver dans le nom ou la marque : contenu tel quel (`ilike`) ou mot proche (`strict_word_similarity` de `pg_trgm`, seuil abaissé à 0,4 pour pardonner une lettre fausse, réglé par `set local` dans la transaction de la requête). Accents ignorés des deux côtés (`f_unaccent`), mots vides retirés (« de », « au », « d' »…), 6 mots au plus. Ordre : aliments de l'utilisateur, puis CIQUAL, puis cache Open Food Facts ; dans chaque groupe, nom qui commence par le premier mot, puis similarité (la marque compte pour 0,8), puis nom le plus court. Les aliments supprimés et ceux des autres utilisateurs ne sont jamais renvoyés. Une requête faite seulement de mots vides renvoie une liste vide.
 - **2026-11-02 · Recherche : essais sur la vraie table** : sur les 3 339 aliments CIQUAL en local (PGlite), environ 25 ms par requête. « poulet », « flocon avoine », « riz », « oeuf », « fromage blanc », « thon » donnent les aliments attendus en tête. « pate » est ambigu : le pâté (mot exact) passe avant les pâtes, qui arrivent en tête avec « pates ». La similarité stricte (sur des mots entiers) a remplacé la similarité simple, qui faisait remonter « Poudre cacaotée… chocolat » pour « poulat ». Le rate limiting par utilisateur des routes `/v1` n'est pas encore en place.
+
+- **2026-11-02 · Recherche sur le staging** : critère de S2-3 vérifié après le merge de #19 : « poulet », « pate » et « flocon avoine » répondent en 25 à 75 ms côté serveur (journal de l'API), 90 à 145 ms depuis le poste de développement, réseau compris.
+- **2026-11-02 · Base locale** : `expo-sqlite` et Drizzle, un fichier `cran.db` (WAL, clés étrangères activées). Toutes les tables de la section 4 existent sur l'appareil, plus `local_meta` (réglages de la base locale : propriétaire, plus tard le curseur de synchro). La file `pending_changes` arrive avec le moteur de synchro (S4-3). Types SQLite : instants en millisecondes (`integer`), jours en texte `YYYY-MM-DD`, valeurs numériques en `real`, rappels en JSON. Pas de `server_seq` sur l'appareil. Les tables locales n'ont pas de contraintes `check` : les écritures passeront par des fonctions validées par les schémas Zod de `shared`, et le serveur garde ses contraintes.
+- **2026-11-02 · Migrations embarquées** : `pnpm --filter @cran/mobile db:generate` lance drizzle-kit puis recopie les migrations SQL dans `src/db/migrations.ts`, au format du migrateur Drizzle pour expo-sqlite. Cela évite de configurer Metro et Babel pour importer des fichiers `.sql`, et Jest lit le même fichier. Les migrations sont appliquées au lancement, pendant l'écran de démarrage ; en cas d'échec, l'app affiche un message au lieu des onglets, et l'erreur part dans Sentry.
+- **2026-11-02 · Identifiants** : `uuidV7(time, randomBytes)` dans `shared` (RFC 9562, testé avec l'exemple de la RFC) ; l'app l'appelle avec `getRandomBytes` d'expo-crypto (`newId()`).
+- **2026-11-02 · Données locales et compte** : la déconnexion efface toutes les tables locales avant de révoquer la session (aussi hors ligne). Au lancement, la base est attribuée à l'utilisateur connecté ; si elle contient les données d'un autre compte (session révoquée sans passer par la déconnexion), elles sont effacées d'abord. Le même utilisateur qui se reconnecte retrouve ses données. Quand la synchro existera (S4), la déconnexion devra prévenir s'il reste des changements non envoyés, sinon ils seront perdus.
+- **2026-11-02 · Tests de la base locale** : sql.js (SQLite en WebAssembly) dans Jest, migré par le même migrateur que sur le téléphone. `src/db/client` (expo-sqlite, natif) et `src/lib/sentry` (modules ES) sont remplacés globalement dans `jest.setup.ts`.
 
 ## Rétros
 
