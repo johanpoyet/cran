@@ -1,11 +1,10 @@
-import { type DayTarget, dayTarget, localDateKey } from '@cran/shared';
+import { type DayTarget, dayTarget, localDateKey, MEAL_TYPES, type MealType } from '@cran/shared';
 import { and, desc, eq, isNull, lte } from 'drizzle-orm';
 
 import * as schema from '../db/schema';
-import { MEAL_TYPES } from '../db/schema';
 import type { LocalDatabase } from '../db/types';
 
-export type MealType = (typeof MEAL_TYPES)[number];
+export type { MealType };
 
 export interface Nutrition {
   kcal: number;

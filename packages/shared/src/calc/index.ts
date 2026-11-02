@@ -4,6 +4,8 @@ export * from './energy';
 export * from './food-coherence';
 export * from './initial-target';
 export * from './macros';
+export * from './meal';
+export * from './nutrition';
 export * from './rounding';
 export * from './training-days';
 export type * from './types';

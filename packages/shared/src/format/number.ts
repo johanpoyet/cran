@@ -9,6 +9,13 @@ const weightFormat = new Intl.NumberFormat(LOCALE, {
   maximumFractionDigits: 1,
 });
 
+const decimalFormat = new Intl.NumberFormat(LOCALE, { maximumFractionDigits: 1 });
+
+/** At most one decimal, French separator: "2,7", "28", "0,4". */
+export function formatDecimal(value: number): string {
+  return decimalFormat.format(value);
+}
+
 export function formatInteger(value: number): string {
   return integerFormat.format(value);
 }

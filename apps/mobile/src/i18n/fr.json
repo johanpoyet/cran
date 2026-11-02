@@ -40,9 +40,36 @@
   },
   "add": {
     "title": "Ajouter un aliment",
-    "empty": "La recherche, le scan et les modèles de repas arrivent bientôt.",
     "close": "Fermer",
-    "createFood": "Créer un aliment"
+    "meal": "Repas",
+    "mealShort": {
+      "breakfast": "Petit-déj",
+      "lunch": "Déjeuner",
+      "snack": "Collation",
+      "dinner": "Dîner"
+    },
+    "search": "Rechercher un aliment",
+    "searchPlaceholder": "Riz, poulet, skyr…",
+    "clearSearch": "Effacer la recherche",
+    "recent": "Récents",
+    "favorites": "Favoris",
+    "recentEmpty": "Les aliments que tu ajoutes apparaîtront ici, pour les retrouver en un geste.",
+    "favoritesEmpty": "Touche l’étoile d’un aliment pour le retrouver ici.",
+    "results": "Résultats pour « {{query}} »",
+    "searching": "Recherche dans CIQUAL…",
+    "offline": "Hors ligne : seuls les aliments déjà sur ton téléphone s’affichent.",
+    "noResult": "Aucun aliment trouvé pour « {{query}} ».",
+    "per100g": "{{kcal}} · P {{protein}} · G {{carbs}} / 100 g",
+    "withBrand": "{{brand}} · {{values}}",
+    "select": "Ajouter {{name}}",
+    "quantity": "Quantité de {{name}} : {{grams}}",
+    "createFood": "Créer un aliment",
+    "createNamed": "Créer « {{query}} »",
+    "selected_one": "1 aliment sélectionné",
+    "selected_other": "{{count}} aliments sélectionnés",
+    "total": "+ {{kcal}}",
+    "action": "Ajouter",
+    "error": "Les aliments n’ont pas pu être ajoutés. Réessaie."
   },
   "macros": {
     "protein": "Protéines",
