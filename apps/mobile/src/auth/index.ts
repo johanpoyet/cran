@@ -9,4 +9,4 @@ export {
 } from './actions';
 export { refreshSession } from './client';
 export { type AuthErrorKey, authErrorKey } from './errors';
-export { type AuthStatus, useAuthStatus } from './session';
+export { type AuthStatus, useAuthStatus, useSessionUserId } from './session';

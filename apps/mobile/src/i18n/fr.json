@@ -33,7 +33,8 @@
     "fat": "Lipides"
   },
   "common": {
-    "comingSoon": "Bientôt"
+    "comingSoon": "Bientôt",
+    "localDataError": "Impossible d'ouvrir tes données sur ce téléphone. Ferme Cran puis relance-le."
   },
   "auth": {
     "appName": "Cran",

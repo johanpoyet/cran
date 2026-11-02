@@ -6,6 +6,8 @@ import {
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as Crypto from 'expo-crypto';
 
+import { clearLocalData, localDb } from '../db';
+import { Sentry } from '../lib/sentry';
 import { authClient } from './client';
 import { type AuthApiError, type AuthErrorKey, authErrorKey } from './errors';
 
@@ -100,6 +102,12 @@ export async function signInWithGoogle(): Promise<AuthResult> {
  * it when reachable. Google forgets the chosen account, to offer the account picker next time.
  */
 export async function signOut(): Promise<void> {
+  // The journal, weights and photos are health data: nothing stays on the phone after signing out.
+  try {
+    clearLocalData(localDb);
+  } catch (error) {
+    Sentry.captureException(error);
+  }
   if (googleConfigured) await GoogleSignin.signOut().catch(() => undefined);
   await authClient.signOut().catch(() => undefined);
 }
