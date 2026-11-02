@@ -2,13 +2,13 @@
 
 ## Sprint en cours : S2 — Base d'aliments
 
-| Story                                             | État     | PR                         |
-| ------------------------------------------------- | -------- | -------------------------- |
-| S2-1 Schéma `foods`, `food_portions`, `favorites` | fait     | #16                        |
-| S2-2 Import CIQUAL                                | à faire  |                            |
-| S2-3 Recherche                                    | fait     | #19                        |
-| S2-4 Base locale                                  | en revue | `feat/S2-4-local-database` |
-| S2-5 Aliment perso                                | à faire  |                            |
+| Story                                             | État     | PR                   |
+| ------------------------------------------------- | -------- | -------------------- |
+| S2-1 Schéma `foods`, `food_portions`, `favorites` | fait     | #16                  |
+| S2-2 Import CIQUAL                                | à faire  |                      |
+| S2-3 Recherche                                    | fait     | #19                  |
+| S2-4 Base locale                                  | fait     | #20                  |
+| S2-5 Aliment perso                                | en revue | `feat/S2-5-new-food` |
 
 ## Sprints terminés
 
@@ -137,6 +137,12 @@ Petites décisions prises sans changer le modèle de données, l'API ou l'UX. Le
 - **2026-11-02 · Identifiants** : `uuidV7(time, randomBytes)` dans `shared` (RFC 9562, testé avec l'exemple de la RFC) ; l'app l'appelle avec `getRandomBytes` d'expo-crypto (`newId()`).
 - **2026-11-02 · Données locales et compte** : la déconnexion efface toutes les tables locales avant de révoquer la session (aussi hors ligne). Au lancement, la base est attribuée à l'utilisateur connecté ; si elle contient les données d'un autre compte (session révoquée sans passer par la déconnexion), elles sont effacées d'abord. Le même utilisateur qui se reconnecte retrouve ses données. Quand la synchro existera (S4), la déconnexion devra prévenir s'il reste des changements non envoyés, sinon ils seront perdus.
 - **2026-11-02 · Tests de la base locale** : sql.js (SQLite en WebAssembly) dans Jest, migré par le même migrateur que sur le téléphone. `src/db/client` (expo-sqlite, natif) et `src/lib/sentry` (modules ES) sont remplacés globalement dans `jest.setup.ts`.
+
+- **2026-11-02 · S2-4 vérifiée sur iPhone** : build `preview` de la branche installé, checklist validée par Johan (5 points sur 5) : lancement, relance, mode avion, déconnexion, reconnexion sans nouvel onboarding.
+- **2026-11-02 · Contrôle de cohérence** : `foodCoherence` dans `shared/calc` : écart entre les calories et 4 × P + 4 × G + 9 × L strictement inférieur à max(15 kcal, 10 % des calories saisies). Le bandeau s'affiche dès que les quatre valeurs sont saisies : vert « Cohérent : 4×P + 4×G + 9×L = 162 kcal » (maquette), ou orange « À vérifier… Tu peux enregistrer quand même » (texte non dessiné). L'aliment incohérent est enregistré avec `quality_flag = incoherent`. Nouveaux tokens `successSoft`, `warning` et `warningSoft`, contrastes vérifiés.
+- **2026-11-02 · Nouvel aliment : saisie** : nombres au clavier décimal, virgule ou point acceptés (`parseDecimal` dans `shared`). Bornes (`newFoodSchema`) : nom de 1 à 100 caractères, marque facultative (vide = aucune), calories de 0 à 900 kcal pour 100 g, chaque macro de 0 à 100 g, et protéines + glucides + lipides au plus 100 g ; portions de 1 à 40 caractères et de plus de 0 à 5 000 g, 20 au plus. « Enregistrer l'aliment » reste désactivé tant que le nom et les quatre valeurs ne sont pas saisis ; une valeur hors bornes est signalée sous le bouton et le champ passe en rouge. Les fibres et le sel ne sont pas demandés (absents de la maquette).
+- **2026-11-02 · Nouvel aliment : portions et favori** (formulaire d'ajout non dessiné) : « + Ajouter une portion » ouvre deux champs (nom, grammes) sous les puces, avec « Ajouter la portion » et « Annuler » ; toucher une puce retire la portion. L'étoile est un interrupteur (rôle `switch` pour VoiceOver), pleine quand l'aliment sera en favori.
+- **2026-11-02 · Nouvel aliment : enregistrement** : local-first, dans SQLite seulement (aliment `source = user`, portions et favori dans une transaction, identifiants UUID v7) ; il partira vers le serveur avec la synchro (S4), et la recherche de l'API ne le trouvera qu'à ce moment-là. Route `food/new`, `?name=` préremplit le nom. En attendant la recherche de la feuille d'ajout (S3-2), un lien provisoire « Créer un aliment » dans la feuille ouvre le formulaire.
 
 ## Rétros
 

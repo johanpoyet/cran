@@ -6,21 +6,42 @@ import { Text } from './text';
 export interface ChipProps {
   label: string;
   selected?: boolean;
+  /**
+   * "outline" (default): white with a border, dark when selected (meal picker). "soft": blue
+   * value ("1 galette = 50 g"). "dashed": action to add an item ("+ Ajouter une portion").
+   */
+  variant?: 'outline' | 'soft' | 'dashed';
   onPress?: () => void;
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
 }
 
-// Selected chips are dark, as in the meal picker of the add sheet.
-export function Chip({ label, selected = false, onPress }: ChipProps) {
+const LABEL_COLOR = { outline: 'text', soft: 'accent', dashed: 'textMuted' } as const;
+
+export function Chip({
+  label,
+  selected = false,
+  variant = 'outline',
+  onPress,
+  accessibilityLabel,
+  accessibilityHint,
+}: ChipProps) {
   const extra = (touch.minSize - 36) / 2;
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityState={{ selected }}
+      {...(accessibilityLabel ? { accessibilityLabel } : {})}
+      {...(accessibilityHint ? { accessibilityHint } : {})}
       hitSlop={{ top: extra, bottom: extra }}
       onPress={onPress}
-      style={[styles.chip, selected && styles.selected]}
+      style={[styles.chip, styles[variant], selected && styles.selected]}
     >
-      <Text variant="caption" weight={600} color={selected ? 'onAccent' : 'text'}>
+      <Text
+        variant={variant === 'outline' ? 'caption' : 'label'}
+        weight={600}
+        color={selected ? 'onAccent' : LABEL_COLOR[variant]}
+      >
         {label}
       </Text>
     </Pressable>
@@ -38,6 +59,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  outline: {},
+  soft: { borderColor: colors.accentSoft, backgroundColor: colors.accentSoft },
+  dashed: { borderStyle: 'dashed', borderColor: colors.textMuted },
   selected: {
     backgroundColor: colors.text,
     borderColor: colors.text,

@@ -1,5 +1,6 @@
 export * from './constants';
 export * from './energy';
+export * from './food-coherence';
 export * from './initial-target';
 export * from './macros';
 export * from './rounding';

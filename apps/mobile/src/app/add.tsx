@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { colors, radius, space, touch } from '../theme/tokens';
-import { EmptyState, Text } from '../ui';
+import { EmptyState, LinkButton, Text } from '../ui';
 
 // "Ajouter un aliment" sheet, opened by the + of the tab bar. Content arrives in S3.
 export default function AddSheet() {
@@ -27,6 +27,14 @@ export default function AddSheet() {
         </Pressable>
       </View>
       <EmptyState message={t('add.empty')} />
+      {/* Provisional entry until the search of S3-2 offers "Créer « … »". */}
+      <LinkButton
+        label={t('add.createFood')}
+        onPress={() => {
+          router.back();
+          router.push('/food/new');
+        }}
+      />
     </View>
   );
 }
