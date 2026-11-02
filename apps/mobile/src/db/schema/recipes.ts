@@ -1,7 +1,7 @@
+import { MEAL_TYPES } from '@cran/shared';
 import { index, integer, real, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 
 import { syncColumns } from './columns';
-import { MEAL_TYPES } from './journal';
 
 export const recipes = sqliteTable('recipes', {
   ...syncColumns(),

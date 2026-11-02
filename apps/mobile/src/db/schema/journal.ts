@@ -1,8 +1,7 @@
+import { MEAL_TYPES } from '@cran/shared';
 import { index, integer, real, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 
 import { day, instant, syncColumns } from './columns';
-
-export const MEAL_TYPES = ['breakfast', 'lunch', 'snack', 'dinner'] as const;
 
 // Journal entries: nutritional values are copied when the entry is made, so editing a food never
 // rewrites the history. Quick add = no food or recipe, a label and calories.
