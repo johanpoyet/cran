@@ -1,16 +1,29 @@
 # Avancement
 
-## Sprint en cours : S2 — Base d'aliments
+## Sprint en cours : S3 — Journal du jour
 
-| Story                                             | État     | PR                   |
-| ------------------------------------------------- | -------- | -------------------- |
-| S2-1 Schéma `foods`, `food_portions`, `favorites` | fait     | #16                  |
-| S2-2 Import CIQUAL                                | à faire  |                      |
-| S2-3 Recherche                                    | fait     | #19                  |
-| S2-4 Base locale                                  | fait     | #20                  |
-| S2-5 Aliment perso                                | en revue | `feat/S2-5-new-food` |
+| Story                                            | État    | PR  |
+| ------------------------------------------------ | ------- | --- |
+| S3-1 Écran Aujourd'hui                           | à faire |     |
+| S3-2 Feuille d'ajout                             | à faire |     |
+| S3-3 Fiche quantité                              | à faire |     |
+| S3-4 Modifier / supprimer une saisie             | à faire |     |
+| S3-5 Ajout rapide kcal et copier un repas d'hier | à faire |     |
+| S3-6 Eau                                         | à faire |     |
 
 ## Sprints terminés
+
+### S2 — Base d'aliments (clos le 2026-11-02)
+
+| Story                                             | État | PR       |
+| ------------------------------------------------- | ---- | -------- |
+| S2-1 Schéma `foods`, `food_portions`, `favorites` | fait | #16      |
+| S2-2 Import CIQUAL                                | fait | #17, #18 |
+| S2-3 Recherche                                    | fait | #19      |
+| S2-4 Base locale                                  | fait | #20      |
+| S2-5 Aliment perso                                | fait | #21      |
+
+Démo : sur le staging, `GET /v1/foods/search?q=riz` renvoie les riz de CIQUAL 2025 (3 339 aliments importés), « poulet », « pate » et « flocon avoine » en moins de 200 ms. Sur l'iPhone de Johan (build `preview` de #21) : checklist « Nouvel aliment » de 8 points validée, dont « Cohérent » pour 162 kcal / P 6 / G 30 / L 2 et l'avertissement pour 300 kcal.
 
 ### S1 — Compte, profil, onboarding (clos le 2026-10-31)
 
@@ -145,6 +158,12 @@ Petites décisions prises sans changer le modèle de données, l'API ou l'UX. Le
 - **2026-11-02 · Nouvel aliment : enregistrement** : local-first, dans SQLite seulement (aliment `source = user`, portions et favori dans une transaction, identifiants UUID v7) ; il partira vers le serveur avec la synchro (S4), et la recherche de l'API ne le trouvera qu'à ce moment-là. Route `food/new`, `?name=` préremplit le nom. En attendant la recherche de la feuille d'ajout (S3-2), un lien provisoire « Créer un aliment » dans la feuille ouvre le formulaire.
 
 ## Rétros
+
+### S2 — Base d'aliments
+
+- **Bien** : CIQUAL 2025 importé en moins d'une seconde et relançable sans doublon ; recherche sans accents et tolérante aux fautes, à 25–75 ms sur le staging ; base locale testée avec le même migrateur que sur le téléphone.
+- **À améliorer** : un import en production sans User-Agent a échoué (Zenodo, 403) et a demandé un correctif après coup ; « pate » reste ambigu (pâté avant pâtes) ; les écrans ne sont vérifiés que par la checklist sur l'iPhone.
+- **À essayer** : tester depuis le VPS tout appel réseau d'un script avant de le livrer ; mesurer la pertinence de la recherche sur les requêtes réelles de Johan en S3 (Récents, Favoris).
 
 ### S1 — Compte, profil, onboarding
 
