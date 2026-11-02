@@ -2,13 +2,13 @@
 
 ## Sprint en cours : S2 — Base d'aliments
 
-| Story                                             | État    | PR  |
-| ------------------------------------------------- | ------- | --- |
-| S2-1 Schéma `foods`, `food_portions`, `favorites` | fait    | #16 |
-| S2-2 Import CIQUAL                                | à faire |     |
-| S2-3 Recherche                                    | à faire |     |
-| S2-4 Base locale                                  | à faire |     |
-| S2-5 Aliment perso                                | à faire |     |
+| Story                                             | État     | PR                      |
+| ------------------------------------------------- | -------- | ----------------------- |
+| S2-1 Schéma `foods`, `food_portions`, `favorites` | fait     | #16                     |
+| S2-2 Import CIQUAL                                | à faire  |                         |
+| S2-3 Recherche                                    | en revue | `feat/S2-3-food-search` |
+| S2-4 Base locale                                  | à faire  |                         |
+| S2-5 Aliment perso                                | à faire  |                         |
 
 ## Sprints terminés
 
@@ -126,6 +126,10 @@ Petites décisions prises sans changer le modèle de données, l'API ou l'UX. Le
 - **2026-10-31 · Import CIQUAL : valeurs** : calories = énergie selon le règlement UE 1169/2011 (code 328, celle des étiquettes), protéines = N × facteur de Jones (25000), glucides (31000), lipides (40000), fibres (34100), sel (10004). Une valeur « traces » ou absente (« - ») pour les protéines, glucides ou lipides vaut 0 et marque l'aliment `incomplete` (décision de Johan). Une valeur sous la limite de détection (« < 0,5 ») est une mesure : elle vaut 0 **sans** marquer l'aliment, sinon presque tous les légumes seraient « incomplets ». Fibres et sel manquants restent vides. Les 145 aliments sans valeur énergétique ne sont pas importés (dont certaines viandes et fromages, comme la feta) ; 3 339 aliments importés, dont 159 incomplets. Le contrôle de cohérence (`incoherent`) arrive avec S2-5.
 - **2026-10-31 · Import CIQUAL : relances** : upsert sur (`source`, `source_ref`) ; un aliment inchangé n'est pas réécrit (ni `updated_at` ni `server_seq` ne bougent), donc une relance sur la même version n'écrit rien. Un aliment disparu d'une nouvelle version est marqué supprimé (`deleted_at`), et restauré s'il revient ; les saisies du journal gardent leurs valeurs copiées. L'import refuse de tourner s'il lit moins de 1 000 aliments (fichiers tronqués). Tout se fait dans une transaction.
 - **2026-10-31 · Import CIQUAL : exécution** : script `seed-ciqual` inclus dans l'image (`node dist/seed-ciqual.js`), qui télécharge la table depuis Zenodo ou lit un dossier local. Les fichiers sont lus ligne par ligne, sans charger les 70 Mo du fichier `compo` en mémoire. Sur la vraie table : moins d'une seconde d'import, une seconde passe sans écriture. Procédure dans `docs/runbook.md`.
+
+- **2026-11-02 · CIQUAL sur le staging** : import lancé avec l'accord de Johan après le merge de #17 : 3 339 aliments (159 incomplets, 145 sans énergie écartés). Le premier essai a échoué sans rien écrire : Zenodo répond 403 au User-Agent par défaut du `fetch` de Node. Les fichiers ont été téléchargés dans le conteneur avec un User-Agent, puis importés par le même script depuis ce dossier. Le script envoie désormais son propre User-Agent (#18).
+- **2026-11-02 · Recherche d'aliments** : `GET /v1/foods/search?q=&limit=` (limite 20 par défaut, 50 au plus). Chaque mot de la requête doit se retrouver dans le nom ou la marque : contenu tel quel (`ilike`) ou mot proche (`strict_word_similarity` de `pg_trgm`, seuil abaissé à 0,4 pour pardonner une lettre fausse, réglé par `set local` dans la transaction de la requête). Accents ignorés des deux côtés (`f_unaccent`), mots vides retirés (« de », « au », « d' »…), 6 mots au plus. Ordre : aliments de l'utilisateur, puis CIQUAL, puis cache Open Food Facts ; dans chaque groupe, nom qui commence par le premier mot, puis similarité (la marque compte pour 0,8), puis nom le plus court. Les aliments supprimés et ceux des autres utilisateurs ne sont jamais renvoyés. Une requête faite seulement de mots vides renvoie une liste vide.
+- **2026-11-02 · Recherche : essais sur la vraie table** : sur les 3 339 aliments CIQUAL en local (PGlite), environ 25 ms par requête. « poulet », « flocon avoine », « riz », « oeuf », « fromage blanc », « thon » donnent les aliments attendus en tête. « pate » est ambigu : le pâté (mot exact) passe avant les pâtes, qui arrivent en tête avec « pates ». La similarité stricte (sur des mots entiers) a remplacé la similarité simple, qui faisait remonter « Poudre cacaotée… chocolat » pour « poulat ». Le rate limiting par utilisateur des routes `/v1` n'est pas encore en place.
 
 ## Rétros
 
