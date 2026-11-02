@@ -4,6 +4,7 @@ import { eq } from 'drizzle-orm';
 import type { AppDatabase } from '../db/client';
 import { profiles, user, weeklyTargets, weighIns } from '../db/schema';
 import { toProfile } from './profiles';
+import { toWeeklyTarget } from './weekly-targets';
 
 export class AlreadyOnboardedError extends Error {
   constructor() {
@@ -49,22 +50,27 @@ export function createOnboardingRepository(db: AppDatabase) {
         updatedAt: now,
       });
 
-      const weeklyTarget = {
-        weekStart: weekStart(answers.date),
-        maintenanceKcal: target.maintenanceKcal,
-        targetKcal: target.targetKcal,
-        proteinG: target.proteinG,
-        carbsG: target.carbsG,
-        fatG: target.fatG,
-        method: 'formula' as const,
-        // No weight trend yet: the adaptive check starts with the weigh-ins (S7).
-        status: 'insufficient_data' as const,
-      };
-      await tx.insert(weeklyTargets).values({ ...weeklyTarget, userId, updatedAt: now });
+      const [weeklyTarget] = await tx
+        .insert(weeklyTargets)
+        .values({
+          userId,
+          updatedAt: now,
+          weekStart: weekStart(answers.date),
+          maintenanceKcal: target.maintenanceKcal,
+          targetKcal: target.targetKcal,
+          proteinG: target.proteinG,
+          carbsG: target.carbsG,
+          fatG: target.fatG,
+          method: 'formula',
+          // No weight trend yet: the adaptive check starts with the weigh-ins (S7).
+          status: 'insufficient_data',
+        })
+        .returning();
+      if (!weeklyTarget) throw new Error('weekly target insert returned no row');
 
       await tx.update(user).set({ onboardedAt: now }).where(eq(user.id, userId));
 
-      return { profile: toProfile(profile), weeklyTarget };
+      return { profile: toProfile(profile), weeklyTarget: toWeeklyTarget(weeklyTarget) };
     });
   }
 

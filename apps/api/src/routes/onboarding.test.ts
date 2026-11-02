@@ -57,6 +57,7 @@ describe('POST /v1/onboarding', () => {
     expect(res.status).toBe(201);
     const result = (await res.json()) as OnboardingResult;
     expect(result.weeklyTarget).toEqual({
+      id: expect.any(String) as string,
       weekStart: '2026-10-26',
       maintenanceKcal: 2650,
       targetKcal: 2900,

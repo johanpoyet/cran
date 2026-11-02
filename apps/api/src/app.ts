@@ -14,6 +14,7 @@ import { requireSession, type SessionVariables } from './middleware/session';
 import { createFoodRepository } from './repositories/foods';
 import { createOnboardingRepository } from './repositories/onboarding';
 import { createProfileRepository } from './repositories/profiles';
+import { createWeeklyTargetRepository } from './repositories/weekly-targets';
 import { foodRoutes } from './routes/foods';
 import { healthRoutes } from './routes/health';
 import { meRoutes } from './routes/me';
@@ -80,7 +81,7 @@ export function createApp({ logger, auth, db, version, pingDatabase, databaseTim
   // Every /v1 route requires a session (spec section 5).
   const v1 = new OpenAPIHono<{ Variables: SessionVariables }>();
   v1.use(requireSession(auth));
-  v1.route('/', meRoutes(createProfileRepository(db)));
+  v1.route('/', meRoutes(createProfileRepository(db), createWeeklyTargetRepository(db)));
   v1.route('/', onboardingRoutes(createOnboardingRepository(db)));
   v1.route('/', foodRoutes(createFoodRepository(db)));
   app.route('/v1', v1);
