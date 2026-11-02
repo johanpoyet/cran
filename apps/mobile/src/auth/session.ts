@@ -20,3 +20,8 @@ export function useAuthStatus(): AuthStatus {
   if (data) return data.user.onboardedAt ? 'ready' : 'onboarding';
   return settled || !isPending ? 'signedOut' : 'loading';
 }
+
+/** Id of the signed-in user (cached session included), null when signed out. */
+export function useSessionUserId(): string | null {
+  return authClient.useSession().data?.user.id ?? null;
+}

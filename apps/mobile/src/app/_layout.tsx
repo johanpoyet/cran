@@ -12,13 +12,16 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
-import { useAuthStatus } from '../auth';
+import { useAuthStatus, useSessionUserId } from '../auth';
+import { localDb, useLocalDatabase } from '../db';
 import { initSentry, Sentry } from '../lib/sentry';
-import { colors, radius } from '../theme/tokens';
+import { colors, radius, space } from '../theme/tokens';
+import { EmptyState } from '../ui';
 
 initSentry();
 
@@ -33,15 +36,28 @@ function RootLayout() {
     PlusJakartaSans_700Bold,
     PlusJakartaSans_800ExtraBold,
   });
+  const { t } = useTranslation();
   const authStatus = useAuthStatus();
-  // The splash screen stays up until fonts are loaded and the session is known.
-  const ready = (fontsLoaded || fontError !== null) && authStatus !== 'loading';
+  const databaseStatus = useLocalDatabase(localDb, useSessionUserId());
+  // The splash screen stays up until fonts are loaded, the session is known and the local database
+  // is migrated and belongs to the signed-in user.
+  const ready =
+    (fontsLoaded || fontError !== null) && authStatus !== 'loading' && databaseStatus !== 'loading';
 
   useEffect(() => {
     if (ready) void SplashScreen.hideAsync();
   }, [ready]);
 
   if (authStatus === 'loading' || !ready) return null;
+  if (databaseStatus === 'error') {
+    return (
+      <SafeAreaProvider>
+        <SafeAreaView style={styles.blocked}>
+          <EmptyState message={t('common.localDataError')} />
+        </SafeAreaView>
+      </SafeAreaProvider>
+    );
+  }
   // Where each state starts; any other group redirects there.
   const home = HOME[authStatus];
 
@@ -82,6 +98,12 @@ export default Sentry.wrap(RootLayout);
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  blocked: {
+    flex: 1,
+    justifyContent: 'center',
+    padding: space[20],
+    backgroundColor: colors.bg,
+  },
   content: { backgroundColor: colors.bg },
   sheet: { backgroundColor: colors.surface },
 });

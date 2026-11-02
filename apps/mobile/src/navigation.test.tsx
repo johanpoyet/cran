@@ -18,6 +18,8 @@ import JournalScreen from './app/(tabs)/journal';
 import ProfileScreen from './app/(tabs)/profile';
 import WeightScreen from './app/(tabs)/weight';
 import AddSheet from './app/add';
+import { clearLocalData } from './db/local-data';
+import { useLocalDatabase } from './db/use-local-database';
 import {
   authClient,
   onboarding,
@@ -29,6 +31,8 @@ import {
 import { mockFetchFailure, mockFetchResponse } from './test/fetch';
 
 jest.mock('./auth/client', () => jest.requireActual<object>('./test/fake-auth-client'));
+jest.mock('./db/use-local-database', () => ({ useLocalDatabase: jest.fn(() => 'ready') }));
+jest.mock('./db/local-data', () => ({ clearLocalData: jest.fn(), claimLocalData: jest.fn() }));
 jest.mock('./lib/sentry', () => ({
   initSentry: jest.fn(),
   Sentry: { wrap: <T,>(component: T) => component },
@@ -113,8 +117,22 @@ describe('navigation guard', () => {
     setSession(signedIn);
     await renderApp('/profile');
     await fireEvent.press(screen.getByRole('button', { name: 'Se déconnecter' }));
+    expect(clearLocalData).toHaveBeenCalled();
     expect(authClient.signOut).toHaveBeenCalled();
     expect(screen).toHavePathname('/sign-in');
+  });
+
+  it('explains when the local database cannot be opened', async () => {
+    jest.mocked(useLocalDatabase).mockReturnValue('error');
+    setSession(signedIn);
+    await renderApp('/');
+
+    jest.mocked(useLocalDatabase).mockReturnValue('ready');
+    expect(
+      screen.getByText(
+        "Impossible d'ouvrir tes données sur ce téléphone. Ferme Cran puis relance-le.",
+      ),
+    ).toBeOnTheScreen();
   });
 });
 
