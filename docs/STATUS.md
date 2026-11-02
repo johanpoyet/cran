@@ -2,14 +2,14 @@
 
 ## Sprint en cours : S3 — Journal du jour
 
-| Story                                            | État     | PR                |
-| ------------------------------------------------ | -------- | ----------------- |
-| S3-1 Écran Aujourd'hui                           | en revue | `feat/S3-1-today` |
-| S3-2 Feuille d'ajout                             | à faire  |                   |
-| S3-3 Fiche quantité                              | à faire  |                   |
-| S3-4 Modifier / supprimer une saisie             | à faire  |                   |
-| S3-5 Ajout rapide kcal et copier un repas d'hier | à faire  |                   |
-| S3-6 Eau                                         | à faire  |                   |
+| Story                                            | État     | PR                    |
+| ------------------------------------------------ | -------- | --------------------- |
+| S3-1 Écran Aujourd'hui                           | fait     | #23                   |
+| S3-2 Feuille d'ajout                             | en revue | `feat/S3-2-add-sheet` |
+| S3-3 Fiche quantité                              | à faire  |                       |
+| S3-4 Modifier / supprimer une saisie             | à faire  |                       |
+| S3-5 Ajout rapide kcal et copier un repas d'hier | à faire  |                       |
+| S3-6 Eau                                         | à faire  |                       |
 
 ## Sprints terminés
 
@@ -162,6 +162,13 @@ Petites décisions prises sans changer le modèle de données, l'API ou l'UX. Le
 - **2026-11-02 · Écran « Ta journée »** : carte « Il te reste » (calories restantes, barre de progression, « mangées » et « Objectif »), trois cartes de macros (anneau = grammes mangés sur l'objectif), liste des quatre repas. Le jour est fixé à l'ouverture de l'écran. Au-delà de la cible : « Au-dessus de ta cible » et « +120 kcal » (non dessiné). Repas : lettre P, D, C, D ; couleurs des macros pour les trois premiers et bleu pour le dîner (le dîner est masqué par la barre sur la maquette), tuile grise et « Touche pour ajouter » quand le repas est vide ; heure du premier aliment du repas. Toucher un repas ouvre la feuille d'ajout avec `?meal=` (utilisé en S3-2). La puce « Semaine » ouvre l'onglet Journal. La carte « Eau » de la maquette arrive avec S3-6. Sans profil ni cible sur le téléphone (jamais connecté), un message l'explique.
 - **2026-11-02 · Lecture réactive de SQLite** : `useLocalQuery(read)` relit la base après chaque écriture locale (`notifyLocalChange`, appelée par la copie du profil, la création d'aliment et l'effacement des données), sans dépendre de l'écouteur natif d'expo-sqlite, ce qui garde les écrans testables avec sql.js.
 - **2026-11-02 · Nouveaux composants** : `Badge`, `MacroTile`, `MealRow` ; `Chip` peut porter une icône. Tokens `onAccentSoft` (badge, texte blanc à 4,7:1, vérifié par le test de contraste) et `onAccentTrack` (fond de la barre sur la carte bleue).
+
+- **2026-11-02 · S3-1 vérifiée sur iPhone** : après le merge de #23 (staging vérifié : `/v1/me` renvoie profil et cible avec leurs ids), checklist validée par Johan, sauf le bonus d'entraînement, impossible à vérifier sur son compte (aucun jour coché à l'onboarding, et l'écran « Objectifs » qui permettra de les changer est prévu en S8-3). Le calcul du bonus est couvert par les tests.
+- **2026-11-02 · Feuille d'ajout : repas** : présélectionné selon l'heure (`mealForTime` dans `shared` : petit-déjeuner dès 4 h, déjeuner dès 10 h 30, collation dès 15 h, dîner dès 18 h 30 et la nuit), ou sur le repas touché dans « Ta journée » (`?meal=`). Puces courtes de la maquette (« Petit-déj »), nom complet pour VoiceOver.
+- **2026-11-02 · Feuille d'ajout : listes** : sans recherche, onglets « Récents » (aliments des dernières saisies, une fois chacun, du plus récent au plus ancien, 20 au plus) et « Favoris » (non dessinés : sélecteur `Segmented` sous la recherche). Avec une recherche : d'abord les aliments du téléphone (les siens, puis ceux déjà utilisés), filtrés sans accents, puis ceux de l'API 250 ms après la dernière frappe, sans doublon. Hors ligne, un message indique que seuls les aliments du téléphone s'affichent. Lien « Créer « … » » sous les résultats (et « Créer un aliment » sous les onglets), qui remplace le lien provisoire de S2-5. Les appels à l'API passent toujours par `apiFetch` : TanStack Query et le client généré prévus par la spec arriveront quand il y aura du cache serveur à gérer (S4).
+- **2026-11-02 · Feuille d'ajout : sélection** : « + » sélectionne l'aliment avec la dernière quantité saisie pour lui, sinon sa portion par défaut, sinon 100 g ; ✓ le retire. La barre du bas montre le nombre d'aliments et le total des calories, et « Ajouter » enregistre tout dans le repas choisi, avec un retour haptique léger. Ajouter un aliment récent prend 3 touches (le +, son +, « Ajouter ») : critère de S3-2. Modifier la quantité se fera dans la fiche quantité (S3-3), ouverte en touchant la pastille.
+- **2026-11-02 · Saisies du journal** : `addEntries` écrit les saisies dans une transaction SQLite, avec les valeurs copiées pour la quantité (`nutritionFor` dans `shared`, non arrondi), le libellé « nom (marque) » et l'heure. Un aliment global (CIQUAL, Open Food Facts) ajouté est copié dans la table `foods` du téléphone avec son id serveur : il reste disponible hors ligne dans les Récents et la recherche locale (anticipe S4-4).
+- **2026-11-02 · Nouveaux composants** : `SearchField`, `Segmented`, `FoodRow`, `SelectionBar`. `formatDecimal` dans `shared` (« 2,7 »). La recherche par code-barres (S5) et les modèles de repas (S6) de la maquette viendront avec leurs stories.
 
 ## Rétros
 
