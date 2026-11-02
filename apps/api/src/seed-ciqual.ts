@@ -17,10 +17,14 @@ import { createLogger } from './logger';
 /** CIQUAL 2025 (19 November 2025), https://zenodo.org/records/17550133. */
 const ZENODO_FILES = 'https://zenodo.org/api/records/17550133/files';
 const VERSION = '2025_11_03';
+/** Zenodo answers 403 to the default user agent of Node's fetch. */
+const USER_AGENT = 'Cran (contact@johanpoyet.fr)';
 
 async function download(directory: string): Promise<void> {
   for (const file of [`alim_${VERSION}.xml`, `compo_${VERSION}.xml`]) {
-    const res = await fetch(`${ZENODO_FILES}/${file}/content`);
+    const res = await fetch(`${ZENODO_FILES}/${file}/content`, {
+      headers: { 'user-agent': USER_AGENT },
+    });
     if (!res.ok || !res.body) throw new Error(`Download of ${file} failed: ${String(res.status)}`);
     await pipeline(
       Readable.fromWeb(res.body as ReadableStream<Uint8Array>),
