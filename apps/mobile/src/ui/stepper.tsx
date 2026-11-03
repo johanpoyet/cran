@@ -15,6 +15,10 @@ export interface StepperProps {
   incrementLabel: string;
   /** Line under the value ("21 ans"). */
   caption?: string;
+  /** Change of one press (1 by default; 250 for the water goal in ml). */
+  step?: number;
+  /** Text of the value ("3 L"); the number itself by default. */
+  format?: (value: number) => string;
 }
 
 // Big number with − and + buttons (year of birth).
@@ -27,6 +31,8 @@ export function Stepper({
   decrementLabel,
   incrementLabel,
   caption,
+  step = 1,
+  format = String,
 }: StepperProps) {
   const set = (next: number) => {
     onChange(Math.min(max, Math.max(min, next)));
@@ -36,10 +42,10 @@ export function Stepper({
       accessible
       accessibilityRole="adjustable"
       accessibilityLabel={label}
-      accessibilityValue={{ text: caption ? `${String(value)}, ${caption}` : String(value) }}
+      accessibilityValue={{ text: caption ? `${format(value)}, ${caption}` : format(value) }}
       accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
       onAccessibilityAction={({ nativeEvent }) => {
-        set(value + (nativeEvent.actionName === 'increment' ? 1 : -1));
+        set(value + (nativeEvent.actionName === 'increment' ? step : -step));
       }}
       style={styles.stepper}
     >
@@ -48,19 +54,19 @@ export function Stepper({
           label={decrementLabel}
           disabled={value <= min}
           onPress={() => {
-            set(value - 1);
+            set(value - step);
           }}
         >
           <Minus color={colors.text} size={24} />
         </RoundButton>
         <Text variant="display" align="center" style={styles.value}>
-          {String(value)}
+          {format(value)}
         </Text>
         <RoundButton
           label={incrementLabel}
           disabled={value >= max}
           onPress={() => {
-            set(value + 1);
+            set(value + step);
           }}
         >
           <Plus color={colors.text} size={24} />

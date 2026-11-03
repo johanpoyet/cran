@@ -3,6 +3,7 @@ import { and, desc, eq, isNull, lte } from 'drizzle-orm';
 
 import * as schema from '../db/schema';
 import type { LocalDatabase } from '../db/types';
+import { readWater } from './water';
 
 export type { MealType };
 
@@ -24,6 +25,8 @@ export interface MealSummary {
 export interface TodaySummary {
   /** Null until the profile and the target have reached the phone. */
   target: DayTarget | null;
+  /** Water drunk and daily goal (goal null without a profile). */
+  water: { totalMl: number; goalMl: number | null };
   eaten: Nutrition;
   meals: MealSummary[];
 }
@@ -82,6 +85,7 @@ export function readToday(db: LocalDatabase, userId: string, date: Date): TodayS
 
   return {
     target: profile && week ? dayTarget(week, profile, date) : null,
+    water: { totalMl: readWater(db, userId, day).totalMl, goalMl: profile?.waterGoalMl ?? null },
     eaten,
     meals,
   };

@@ -348,5 +348,21 @@
     "saveHint": "Renseigne au moins les calories",
     "invalid": "Les calories doivent être un nombre entre 1 et 9 999 kcal, chaque macro entre 0 et 999 g.",
     "error": "L’ajout n’a pas pu être enregistré. Réessaie."
+  },
+  "water": {
+    "title": "Eau",
+    "amount": "{{drunk}} / {{goal}}",
+    "cardLabel": "Eau : {{drunk}} sur {{goal}}",
+    "cardHint": "Ouvre le détail de l’eau et l’objectif",
+    "addGlass": "Ajouter un verre de {{ml}} ml",
+    "close": "Fermer",
+    "today": "Aujourd’hui",
+    "glass": "{{ml}} ml · {{time}}",
+    "removeGlass": "Retirer le verre de {{ml}} ml de {{time}}",
+    "empty": "Pas encore d’eau aujourd’hui.",
+    "goal": "Objectif par jour",
+    "decreaseGoal": "Baisser l’objectif",
+    "increaseGoal": "Augmenter l’objectif",
+    "removeHint": "Touche un verre pour le retirer."
   }
 }
