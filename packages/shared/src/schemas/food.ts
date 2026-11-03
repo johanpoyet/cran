@@ -87,3 +87,19 @@ export const newFoodSchema = z
   });
 
 export type NewFood = z.infer<typeof newFoodSchema>;
+
+/** Bounds of a quick add (calories without a food). */
+export const QUICK_ENTRY_LIMITS = { labelMax: 100, kcalMax: 9999, gramsMax: 999 } as const;
+
+const quickMacro = z.number().min(0).max(QUICK_ENTRY_LIMITS.gramsMax);
+
+/** Quick add: calories, optional macros (0 when unknown), and a label. */
+export const quickEntrySchema = z.object({
+  label: z.string().trim().max(QUICK_ENTRY_LIMITS.labelMax),
+  kcal: z.number().positive().max(QUICK_ENTRY_LIMITS.kcalMax),
+  proteinG: quickMacro,
+  carbsG: quickMacro,
+  fatG: quickMacro,
+});
+
+export type QuickEntry = z.infer<typeof quickEntrySchema>;

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { FOOD_SEARCH_LIMITS, foodSearchQuerySchema, newFoodSchema } from './food';
+import { FOOD_SEARCH_LIMITS, foodSearchQuerySchema, newFoodSchema, quickEntrySchema } from './food';
 
 describe('foodSearchQuerySchema', () => {
   it('trims the query and applies the default limit', () => {
@@ -58,5 +58,22 @@ describe('newFoodSchema', () => {
     expect(
       newFoodSchema.safeParse({ ...galette, protein100g: 0, carbs100g: 0, fat100g: 100 }).success,
     ).toBe(true);
+  });
+});
+
+describe('quickEntrySchema', () => {
+  const quick = { label: ' Resto ', kcal: 850, proteinG: 0, carbsG: 0, fatG: 0 };
+
+  it('accepts calories alone, the macros being 0', () => {
+    expect(quickEntrySchema.parse(quick)).toEqual({ ...quick, label: 'Resto' });
+  });
+
+  it.each([
+    ['0 kcal', { kcal: 0 }],
+    ['more than 9 999 kcal', { kcal: 10_000 }],
+    ['a negative macro', { fatG: -1 }],
+    ['a label of more than 100 characters', { label: 'a'.repeat(101) }],
+  ])('rejects %s', (_, change) => {
+    expect(quickEntrySchema.safeParse({ ...quick, ...change }).success).toBe(false);
   });
 });
