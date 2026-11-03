@@ -1,6 +1,7 @@
-import { and, eq, inArray } from 'drizzle-orm';
+import { and, eq, inArray, TransactionRollbackError } from 'drizzle-orm';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
+import type { AppDatabase } from '../db/client';
 import { foods } from '../db/schema';
 import { createTestDatabase, type TestDatabase } from '../test/database';
 import { alimLines, compoLines, type FixtureFood, rice } from './fixtures';
@@ -42,8 +43,26 @@ function files(foodsOfTable: FixtureFood[]) {
   return { foods: alimLines(foodsOfTable), contents: compoLines(foodsOfTable) };
 }
 
-async function ciqualRows() {
-  return database.db
+/**
+ * A test run inside a transaction rolled back at the end. The import soft-deletes every CIQUAL
+ * food missing from its files: in the CI database, shared by the test files running in parallel,
+ * it would delete the CIQUAL foods the search tests have just inserted.
+ */
+function isolatedIt(name: string, test: (db: AppDatabase) => Promise<void>) {
+  it(name, async () => {
+    await database.db
+      .transaction(async (tx) => {
+        await test(tx);
+        tx.rollback();
+      })
+      .catch((error: unknown) => {
+        if (!(error instanceof TransactionRollbackError)) throw error;
+      });
+  });
+}
+
+async function ciqualRows(db: AppDatabase) {
+  return db
     .select()
     .from(foods)
     .where(and(eq(foods.source, 'ciqual')))
@@ -51,8 +70,8 @@ async function ciqualRows() {
 }
 
 describe('importCiqual', () => {
-  it('imports the foods with energy and reports the others', async () => {
-    const result = await importCiqual(database.db, files(table()));
+  isolatedIt('imports the foods with energy and reports the others', async (db) => {
+    const result = await importCiqual(db, files(table()));
 
     expect(result).toEqual({
       imported: MIN_CIQUAL_FOODS + 1,
@@ -60,7 +79,7 @@ describe('importCiqual', () => {
       skipped: [`${prefix}vanilla`],
       removed: expect.any(Number) as number,
     });
-    const [riceRow] = await database.db
+    const [riceRow] = await db
       .select()
       .from(foods)
       .where(eq(foods.sourceRef, `${prefix}rice`));
@@ -75,67 +94,74 @@ describe('importCiqual', () => {
     });
   });
 
-  it('creates no duplicate and writes nothing when run again', async () => {
-    await importCiqual(database.db, files(table()));
-    const before = await ciqualRows();
+  isolatedIt('creates no duplicate and writes nothing when run again', async (db) => {
+    await importCiqual(db, files(table()));
+    const before = await ciqualRows(db);
 
-    const result = await importCiqual(database.db, files(table()));
+    const result = await importCiqual(db, files(table()));
 
     expect(result.written).toBe(0);
-    const after = await ciqualRows();
+    const after = await ciqualRows(db);
     expect(after).toHaveLength(MIN_CIQUAL_FOODS + 1);
     expect(after.map((row) => [row.id, row.serverSeq]).sort()).toEqual(
       before.map((row) => [row.id, row.serverSeq]).sort(),
     );
   });
 
-  it('updates a changed food in place and soft-deletes the foods gone from the table', async () => {
-    await importCiqual(database.db, files(table()));
-    const [riceBefore] = await database.db
-      .select()
-      .from(foods)
-      .where(eq(foods.sourceRef, `${prefix}rice`));
+  isolatedIt(
+    'updates a changed food in place and soft-deletes the foods gone from the table',
+    async (db) => {
+      await importCiqual(db, files(table()));
+      const [riceBefore] = await db
+        .select()
+        .from(foods)
+        .where(eq(foods.sourceRef, `${prefix}rice`));
 
-    const newVersion = table({
-      rice: { name: 'Riz blanc, cuit', contents: { ...rice.contents, '328': '130' } },
-    }).filter((food) => food.code !== `${prefix}0`);
-    newVersion.push({ ...rice, code: `${prefix}new` });
-    const result = await importCiqual(database.db, files(newVersion));
+      const newVersion = table({
+        rice: { name: 'Riz blanc, cuit', contents: { ...rice.contents, '328': '130' } },
+      }).filter((food) => food.code !== `${prefix}0`);
+      newVersion.push({ ...rice, code: `${prefix}new` });
+      const result = await importCiqual(db, files(newVersion));
 
-    expect(result.written).toBe(2);
-    expect(result.removed).toBeGreaterThanOrEqual(1);
-    const changed = await database.db
-      .select()
-      .from(foods)
-      .where(inArray(foods.sourceRef, [`${prefix}rice`, `${prefix}0`]));
-    const riceAfter = changed.find((row) => row.sourceRef === `${prefix}rice`);
-    expect(riceAfter).toMatchObject({ id: riceBefore?.id, name: 'Riz blanc, cuit', kcal100g: 130 });
-    expect(riceAfter?.serverSeq).toBeGreaterThan(riceBefore?.serverSeq ?? 0);
-    expect(changed.find((row) => row.sourceRef === `${prefix}0`)?.deletedAt).toBeInstanceOf(Date);
+      expect(result.written).toBe(2);
+      expect(result.removed).toBeGreaterThanOrEqual(1);
+      const changed = await db
+        .select()
+        .from(foods)
+        .where(inArray(foods.sourceRef, [`${prefix}rice`, `${prefix}0`]));
+      const riceAfter = changed.find((row) => row.sourceRef === `${prefix}rice`);
+      expect(riceAfter).toMatchObject({
+        id: riceBefore?.id,
+        name: 'Riz blanc, cuit',
+        kcal100g: 130,
+      });
+      expect(riceAfter?.serverSeq).toBeGreaterThan(riceBefore?.serverSeq ?? 0);
+      expect(changed.find((row) => row.sourceRef === `${prefix}0`)?.deletedAt).toBeInstanceOf(Date);
 
-    // Back in a later version: restored.
-    const restored = await importCiqual(database.db, files(table()));
-    expect(restored.written).toBeGreaterThanOrEqual(2);
-    const [back] = await database.db
-      .select()
-      .from(foods)
-      .where(eq(foods.sourceRef, `${prefix}0`));
-    expect(back?.deletedAt).toBeNull();
-  });
+      // Back in a later version: restored.
+      const restored = await importCiqual(db, files(table()));
+      expect(restored.written).toBeGreaterThanOrEqual(2);
+      const [back] = await db
+        .select()
+        .from(foods)
+        .where(eq(foods.sourceRef, `${prefix}0`));
+      expect(back?.deletedAt).toBeNull();
+    },
+  );
 
-  it('refuses truncated files without touching the catalogue', async () => {
-    await importCiqual(database.db, files(table()));
+  isolatedIt('refuses truncated files without touching the catalogue', async (db) => {
+    await importCiqual(db, files(table()));
 
-    await expect(importCiqual(database.db, files(table({ fillers: 10 })))).rejects.toThrow(
+    await expect(importCiqual(db, files(table({ fillers: 10 })))).rejects.toThrow(
       /incomplete files/,
     );
-    expect((await ciqualRows()).filter((row) => row.deletedAt === null)).toHaveLength(
+    expect((await ciqualRows(db)).filter((row) => row.deletedAt === null)).toHaveLength(
       MIN_CIQUAL_FOODS + 1,
     );
   });
 
-  it('leaves user and Open Food Facts foods alone', async () => {
-    const [off] = await database.db
+  isolatedIt('leaves user and Open Food Facts foods alone', async (db) => {
+    const [off] = await db
       .insert(foods)
       .values({
         source: 'off',
@@ -148,9 +174,9 @@ describe('importCiqual', () => {
       })
       .returning();
 
-    await importCiqual(database.db, files(table()));
+    await importCiqual(db, files(table()));
 
-    const [after] = await database.db
+    const [after] = await db
       .select()
       .from(foods)
       .where(eq(foods.id, off?.id ?? ''));

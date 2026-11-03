@@ -2,13 +2,13 @@
 
 ## Sprint en cours : S4 — Synchronisation
 
-| Story                           | État    | PR  |
-| ------------------------------- | ------- | --- |
-| S4-1 Colonnes de synchro        | à faire |     |
-| S4-2 Endpoints push et pull     | à faire |     |
-| S4-3 Moteur de synchro client   | à faire |     |
-| S4-4 Cache des aliments globaux | à faire |     |
-| S4-5 ADR synchro local-first    | à faire |     |
+| Story                           | État     | PR                       |
+| ------------------------------- | -------- | ------------------------ |
+| S4-1 Colonnes de synchro        | en revue | `feat/S4-1-sync-columns` |
+| S4-2 Endpoints push et pull     | à faire  |                          |
+| S4-3 Moteur de synchro client   | à faire  |                          |
+| S4-4 Cache des aliments globaux | à faire  |                          |
+| S4-5 ADR synchro local-first    | à faire  |                          |
 
 ## Sprints terminés
 
@@ -206,6 +206,12 @@ Petites décisions prises sans changer le modèle de données, l'API ou l'UX. Le
 - **2026-11-03 · Objectif d'eau hors ligne** : l'objectif est modifié dans le profil du téléphone, dont l'`updated_at` avance. À la copie suivante depuis le serveur (lancement, retour au premier plan, ou juste après le changement si le réseau est là), si le profil du téléphone est plus récent que celui du serveur, l'app envoie d'abord `PATCH /v1/me` avec l'objectif, puis garde la réponse : la dernière modification gagne, sans écraser un changement fait en mode avion. Les verres d'eau restent sur le téléphone jusqu'à la synchro (S4). Toute la story fonctionne en mode avion (critère de S3-6).
 
 - **2026-11-03 · S3-6 vérifiée sur iPhone** : checklist de 7 points validée par Johan, dont le mode avion et l'objectif changé hors ligne conservé au retour du réseau.
+
+- **2026-11-03 · Maestro** : Java (OpenJDK, Homebrew) installé avec l'accord de Johan ; Maestro 2.11 démarre avec `JAVA_HOME=/opt/homebrew/opt/openjdk/libexec/openjdk.jdk/Contents/Home`. Le `~/.zshrc` de Johan n'a pas été modifié : le chemin est donné à chaque lancement. Il faudra un build de l'app pour le simulateur pour s'en servir.
+- **2026-11-03 · Tables synchronisées côté serveur** : `log_entries`, `water_logs`, `recipes`, `recipe_ingredients`, `meal_templates`, `meal_template_items` et `measurements` rejoignent Postgres (migration `0004_sync_tables`), avec les colonnes de synchro et les mêmes champs que sur le téléphone. Identifiant généré par le client (UUID v7) gardé tel quel, valeurs en numérique 6,2, enum `meal_type`. Une saisie garde ses valeurs si son aliment est supprimé (`food_id` mis à null). Les ingrédients et favoris d'une recette partent avec elle ; une recette utilisée par un modèle de repas ne peut pas être supprimée tant que le modèle la contient. `favorites.recipe_id` a maintenant sa clé étrangère.
+- **2026-11-03 · `server_seq` par trigger** : la spec laissait le choix entre triggers et couche repository. Un trigger `BEFORE UPDATE` (`bump_server_seq`) sur chacune des 13 tables synchronisées prend la valeur suivante de la séquence commune à chaque modification, l'insertion passant par la valeur par défaut : aucun chemin de code ne peut l'oublier, et un client ne peut pas la fixer. Un test vérifie que toute table ayant une colonne `server_seq` a son trigger.
+
+- **2026-11-03 · Tests de l'import CIQUAL isolés** : en CI, les fichiers de test tournent en parallèle sur la même base Postgres, et l'import marque supprimés tous les aliments CIQUAL absents de ses fichiers, y compris ceux que les tests de recherche venaient d'insérer. Ça passait par chance d'ordonnancement jusqu'à la PR #30. Chaque test d'import tourne désormais dans une transaction annulée à la fin (l'import y prend un point de sauvegarde).
 
 ## Rétros
 
