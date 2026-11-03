@@ -16,7 +16,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   setSyncDatabase(db);
   useSyncState.setState({ status: 'idle', pending: 0, lastSyncedAt: null });
-  jest.mocked(syncNow).mockResolvedValue({ pushed: 0, pulled: 0 });
+  jest.mocked(syncNow).mockResolvedValue({ pushed: 0, pulled: 0, cached: 0 });
 });
 
 describe('requestSync', () => {
@@ -37,7 +37,7 @@ describe('requestSync', () => {
         new Promise(
           (resolve) =>
             (finish = () => {
-              resolve({ pushed: 0, pulled: 0 });
+              resolve({ pushed: 0, pulled: 0, cached: 0 });
             }),
         ),
     );
