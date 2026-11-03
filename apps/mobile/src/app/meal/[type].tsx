@@ -36,7 +36,7 @@ export default function MealSheet() {
   const totalKcal = entries.reduce((total, entry) => total + entry.kcal, 0);
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.header}>
         <View style={styles.titles}>
           <Text variant="title" accessibilityRole="header">
@@ -63,51 +63,49 @@ export default function MealSheet() {
         </Pressable>
       </View>
 
-      <ScrollView contentContainerStyle={styles.content}>
-        {entries.length === 0 ? (
-          <EmptyState message={t('meal.empty')} />
-        ) : (
-          <Card style={styles.card}>
-            {entries.map((entry, index) => {
-              const macros = {
-                protein: formatDecimal(entry.proteinG),
-                carbs: formatDecimal(entry.carbsG),
-                fat: formatDecimal(entry.fatG),
-              };
-              const details =
-                entry.grams === null
-                  ? t('meal.entryDetailsNoGrams', macros)
-                  : t('meal.entryDetails', { grams: formatGrams(entry.grams), ...macros });
-              return (
-                <EntryRow
-                  key={entry.id}
-                  title={entry.label}
-                  details={details}
-                  value={formatInteger(Math.round(entry.kcal))}
-                  separator={index > 0}
-                  accessibilityLabel={t('meal.entryLabel', {
-                    name: entry.label,
-                    details,
-                    kcal: formatKcal(Math.round(entry.kcal)),
-                  })}
-                  accessibilityHint={t('meal.entryHint')}
-                  onPress={() => {
-                    router.push({ pathname: '/entry/[id]', params: { id: entry.id } });
-                  }}
-                />
-              );
-            })}
-          </Card>
-        )}
-        <PrimaryButton
-          label={t('meal.add')}
-          variant="outline"
-          onPress={() => {
-            router.push({ pathname: '/add', params: { meal: mealType } });
-          }}
-        />
-      </ScrollView>
-    </View>
+      {entries.length === 0 ? (
+        <EmptyState message={t('meal.empty')} />
+      ) : (
+        <Card style={styles.card}>
+          {entries.map((entry, index) => {
+            const macros = {
+              protein: formatDecimal(entry.proteinG),
+              carbs: formatDecimal(entry.carbsG),
+              fat: formatDecimal(entry.fatG),
+            };
+            const details =
+              entry.grams === null
+                ? t('meal.entryDetailsNoGrams', macros)
+                : t('meal.entryDetails', { grams: formatGrams(entry.grams), ...macros });
+            return (
+              <EntryRow
+                key={entry.id}
+                title={entry.label}
+                details={details}
+                value={formatInteger(Math.round(entry.kcal))}
+                separator={index > 0}
+                accessibilityLabel={t('meal.entryLabel', {
+                  name: entry.label,
+                  details,
+                  kcal: formatKcal(Math.round(entry.kcal)),
+                })}
+                accessibilityHint={t('meal.entryHint')}
+                onPress={() => {
+                  router.push({ pathname: '/entry/[id]', params: { id: entry.id } });
+                }}
+              />
+            );
+          })}
+        </Card>
+      )}
+      <PrimaryButton
+        label={t('meal.add')}
+        variant="outline"
+        onPress={() => {
+          router.push({ pathname: '/add', params: { meal: mealType } });
+        }}
+      />
+    </ScrollView>
   );
 }
 
@@ -117,8 +115,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
-    paddingHorizontal: space.screen,
-    paddingTop: space[24],
+    gap: space[12],
   },
   titles: { flex: 1, gap: space[4] },
   close: {
@@ -129,6 +126,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  content: { padding: space.screen, gap: space[16] },
+  content: {
+    paddingHorizontal: space.screen,
+    paddingTop: space[24],
+    paddingBottom: space.screen,
+    gap: space[16],
+  },
   card: { paddingVertical: space[4], backgroundColor: colors.bg },
 });

@@ -45,15 +45,13 @@ export default function EntrySheet() {
 
   if (!entry) {
     return (
-      <View style={styles.container}>
+      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
         <View style={styles.header}>
           <View style={styles.titles} />
           {close}
         </View>
-        <View style={styles.content}>
-          <EmptyState message={t('entry.missing')} />
-        </View>
-      </View>
+        <EmptyState message={t('entry.missing')} />
+      </ScrollView>
     );
   }
 
@@ -104,7 +102,11 @@ export default function EntrySheet() {
   }
 
   return (
-    <View style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      keyboardShouldPersistTaps="handled"
+    >
       <View style={styles.header}>
         <View style={styles.titles}>
           <Text variant="title" accessibilityRole="header">
@@ -122,65 +124,57 @@ export default function EntrySheet() {
         {close}
       </View>
 
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        {entry.grams === null ? null : (
-          <TextField
-            label={t('entry.quantity')}
-            value={typed}
-            onChangeText={(text) => {
-              setGramsText(text);
-              setError(null);
-            }}
-            keyboardType="decimal-pad"
-            placeholder={formatGrams(entry.grams)}
-          />
-        )}
-
-        <View style={styles.meals}>
-          <Text variant="caption" weight={600} color="textMuted">
-            {t('entry.move')}
-          </Text>
-          <View
-            accessibilityRole="radiogroup"
-            accessibilityLabel={t('entry.move')}
-            style={styles.chips}
-          >
-            {MEAL_TYPES.map((type) => (
-              <Chip
-                key={type}
-                label={t(`add.mealShort.${type}`)}
-                accessibilityLabel={t(`meals.${type}`)}
-                selected={meal === type}
-                onPress={() => {
-                  setMealType(type);
-                  setError(null);
-                }}
-              />
-            ))}
-          </View>
-        </View>
-
-        {error ? (
-          <Text
-            variant="label"
-            weight={500}
-            color="danger"
-            align="center"
-            accessibilityRole="alert"
-          >
-            {t(`entry.${error}`)}
-          </Text>
-        ) : null}
-
-        <PrimaryButton
-          label={t('entry.save')}
-          disabled={!changed}
-          onPress={save}
-          {...(changed ? {} : { accessibilityHint: t('entry.saveHint') })}
+      {entry.grams === null ? null : (
+        <TextField
+          label={t('entry.quantity')}
+          value={typed}
+          onChangeText={(text) => {
+            setGramsText(text);
+            setError(null);
+          }}
+          keyboardType="decimal-pad"
+          placeholder={formatGrams(entry.grams)}
         />
-        <LinkButton label={t('entry.delete')} tone="danger" onPress={confirmDelete} />
-      </ScrollView>
-    </View>
+      )}
+
+      <View style={styles.meals}>
+        <Text variant="caption" weight={600} color="textMuted">
+          {t('entry.move')}
+        </Text>
+        <View
+          accessibilityRole="radiogroup"
+          accessibilityLabel={t('entry.move')}
+          style={styles.chips}
+        >
+          {MEAL_TYPES.map((type) => (
+            <Chip
+              key={type}
+              label={t(`add.mealShort.${type}`)}
+              accessibilityLabel={t(`meals.${type}`)}
+              selected={meal === type}
+              onPress={() => {
+                setMealType(type);
+                setError(null);
+              }}
+            />
+          ))}
+        </View>
+      </View>
+
+      {error ? (
+        <Text variant="label" weight={500} color="danger" align="center" accessibilityRole="alert">
+          {t(`entry.${error}`)}
+        </Text>
+      ) : null}
+
+      <PrimaryButton
+        label={t('entry.save')}
+        disabled={!changed}
+        onPress={save}
+        {...(changed ? {} : { accessibilityHint: t('entry.saveHint') })}
+      />
+      <LinkButton label={t('entry.delete')} tone="danger" onPress={confirmDelete} />
+    </ScrollView>
   );
 }
 
@@ -191,8 +185,6 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     justifyContent: 'space-between',
     gap: space[12],
-    paddingHorizontal: space.screen,
-    paddingTop: space[24],
   },
   titles: { flex: 1, gap: space[4] },
   close: {
@@ -203,7 +195,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  content: { padding: space.screen, gap: space[20] },
+  content: {
+    paddingHorizontal: space.screen,
+    paddingTop: space[24],
+    paddingBottom: space.screen,
+    gap: space[20],
+  },
   meals: { gap: space[8] },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space[8] },
 });
