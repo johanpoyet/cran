@@ -2,14 +2,14 @@
 
 ## Sprint en cours : S3 — Journal du jour
 
-| Story                                            | État     | PR                       |
-| ------------------------------------------------ | -------- | ------------------------ |
-| S3-1 Écran Aujourd'hui                           | fait     | #23                      |
-| S3-2 Feuille d'ajout                             | fait     | #24                      |
-| S3-3 Fiche quantité                              | à faire  |                          |
-| S3-4 Modifier / supprimer une saisie             | en revue | `feat/S3-4-edit-entries` |
-| S3-5 Ajout rapide kcal et copier un repas d'hier | à faire  |                          |
-| S3-6 Eau                                         | à faire  |                          |
+| Story                                            | État     | PR                         |
+| ------------------------------------------------ | -------- | -------------------------- |
+| S3-1 Écran Aujourd'hui                           | fait     | #23                        |
+| S3-2 Feuille d'ajout                             | fait     | #24                        |
+| S3-3 Fiche quantité                              | en revue | `feat/S3-3-quantity-sheet` |
+| S3-4 Modifier / supprimer une saisie             | fait     | #25                        |
+| S3-5 Ajout rapide kcal et copier un repas d'hier | à faire  |                            |
+| S3-6 Eau                                         | à faire  |                            |
 
 ## Sprints terminés
 
@@ -175,6 +175,12 @@ Petites décisions prises sans changer le modèle de données, l'API ou l'UX. Le
 - **2026-11-02 · Modifier une saisie** (non dessiné) : sur « Ta journée », un repas rempli ouvre la feuille du repas (liste des aliments avec quantité, macros et calories, bouton « Ajouter un aliment ») ; un repas vide ouvre directement la feuille d'ajout. Toucher un aliment ouvre sa fiche : quantité en grammes (valeurs recalculées en direct), repas (pour le déplacer, le même jour), « Enregistrer » (actif seulement s'il y a un changement), « Supprimer de ce repas » avec une confirmation. Les nouvelles valeurs sont calculées à partir de celles copiées à la saisie (proportionnelles à la quantité), pas depuis l'aliment, qui a pu changer depuis. Une saisie rapide sans quantité (S3-5) ne montre que le repas et la suppression.
 - **2026-11-02 · Suppression** : logique (`deleted_at` et `updated_at`), pour que la synchro (S4) la propage ; la saisie disparaît du journal, des totaux et des récents. Toutes les fonctions ne touchent que les saisies de l'utilisateur connecté.
 - **2026-11-02 · Feuilles** : `add`, `meal/[type]` et `entry/[id]` partagent les mêmes options (`formSheet`, 90 % de hauteur). Dans les feuilles du repas et de la saisie, l'en-tête est dans la zone qui défile (un seul `ScrollView` à la racine) : sur l'iPhone de Johan, avec l'en-tête à côté du `ScrollView`, la liste se plaçait par-dessus le titre. Nouveau composant `EntryRow` ; `LinkButton` a un ton `danger` (contraste vérifié sur fond blanc).
+
+- **2026-11-03 · S3-4 vérifiée sur iPhone** : checklist validée par Johan. Le premier build plaçait la liste par-dessus le titre de la fiche (titre sur deux lignes) ; corrigé dans la même PR en mettant l'en-tête dans le `ScrollView`, puis vérifié sur un second build.
+- **2026-11-03 · Fiche quantité** (« B · Ajouter (fiche) », absente de `docs/design`) : feuille `food/[id]`, ouverte en touchant le nom ou la pastille de quantité d'un aliment dans la feuille d'ajout. Titre, marque et kcal pour 100 g ; carte des valeurs pour la quantité (kcal en grand, protéines, glucides, lipides avec leur pastille de couleur), recalculées en direct ; champ en grammes, prérempli avec la quantité déjà sélectionnée, sinon la dernière utilisée, sinon la portion habituelle, sinon 100 g ; puces de portions : portions nommées du téléphone (catalogue et celles de l'utilisateur, de la plus petite à la plus grande), « 1 portion » si l'aliment a une portion par défaut, et « 100 g » ; étoile favori ; « Valider » sélectionne l'aliment avec cette quantité dans la feuille d'ajout et revient à elle. Taper des grammes oublie la portion choisie.
+- **2026-11-03 · Portion gardée dans la saisie** : la portion choisie est enregistrée dans `log_entries.portion_label` ; la pastille de la feuille d'ajout l'affiche (« 1 bol »), et la feuille du repas écrit « 1 bol (150 g) ».
+- **2026-11-03 · Sélection partagée** : la sélection de la feuille d'ajout est dans un store Zustand (`useAddSelection`), comme le prévoit la spec pour l'état d'interface, pour que la fiche quantité ouverte par-dessus puisse la lire et la modifier. Le store garde aussi les aliments affichés (dont les résultats du serveur, absents de SQLite) et se vide quand la feuille d'ajout se ferme.
+- **2026-11-03 · Favoris d'aliments globaux** : mettre en favori un aliment CIQUAL ou Open Food Facts le copie d'abord dans le catalogue du téléphone (`cacheGlobalFood`, partagé avec l'ajout au journal), pour qu'il apparaisse hors ligne dans l'onglet « Favoris » ; retirer l'étoile supprime logiquement la ligne de favori.
 
 ## Rétros
 
