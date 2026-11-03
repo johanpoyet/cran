@@ -1,4 +1,6 @@
+export { cacheGlobalFood } from './cache';
 export { createFood } from './create-food';
+export { isFavorite, setFavorite } from './favorite';
 export {
   canSave,
   emptyNewFoodForm,
@@ -12,9 +14,11 @@ export {
 } from './form';
 export { searchable, toFood } from './local-food';
 export { searchLocalFoods } from './local-search';
+export { type Portion, readPortions } from './portions';
 export {
   defaultGrams,
   readFavoriteFoods,
+  readFood,
   readLastGrams,
   readRecentFoods,
   type RecentFood,

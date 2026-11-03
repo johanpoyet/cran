@@ -7,6 +7,7 @@ export {
   scaleEntry,
   updateEntry,
 } from './entries';
+export { type SelectedFood, useAddSelection } from './selection-store';
 export {
   type MealSummary,
   type MealType,

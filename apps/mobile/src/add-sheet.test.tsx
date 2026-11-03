@@ -5,6 +5,7 @@ import { renderRouter } from 'expo-router/testing-library';
 import AddSheet from './app/add';
 import { readFavoriteFoods, readLastGrams, readRecentFoods } from './foods/recents';
 import { addEntries } from './journal/add-entries';
+import { useAddSelection } from './journal/selection-store';
 import { setSession, signedIn } from './test/fake-auth-client';
 import { mockFetchResponse } from './test/fetch';
 import { basmati, complet, galettes } from './test/foods';
@@ -35,7 +36,7 @@ beforeEach(() => {
 async function openSheet(url: Href = '/add') {
   setSession(signedIn);
   await renderRouter(
-    { index: () => null, add: AddSheet, 'food/new': () => null },
+    { index: () => null, add: AddSheet, 'food/new': () => null, 'food/[id]': () => null },
     { initialUrl: '/' },
   );
   await act(() => {
@@ -59,10 +60,29 @@ describe('Ajouter un aliment', () => {
 
     expect(addEntries).toHaveBeenCalledWith(expect.anything(), userId, {
       mealType: expect.any(String) as string,
-      items: [{ food: basmati, grams: 250 }],
+      items: [{ food: basmati, grams: 250, portionLabel: null }],
       at: expect.any(Date) as Date,
     });
     expect(screen).toHavePathname('/');
+  });
+
+  it('opens the quantity sheet from the name of a food', async () => {
+    await openSheet();
+    await fireEvent.press(
+      screen.getByRole('button', { name: 'Choisir la quantité de Riz basmati cuit' }),
+    );
+
+    expect(screen).toHavePathname(`/food/${basmati.id}`);
+  });
+
+  it('shows the portion chosen in the quantity sheet', async () => {
+    await openSheet();
+    await act(() => {
+      useAddSelection.getState().select({ food: basmati, grams: 150, portionLabel: '1 bol' });
+    });
+
+    expect(screen.getByText('1 bol')).toBeOnTheScreen();
+    expect(screen.getByText('+ 195 kcal')).toBeOnTheScreen();
   });
 
   it('preselects the meal touched on Today', async () => {

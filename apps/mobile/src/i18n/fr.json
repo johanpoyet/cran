@@ -63,14 +63,15 @@
     "per100g": "{{kcal}} · P {{protein}} · G {{carbs}} / 100 g",
     "withBrand": "{{brand}} · {{values}}",
     "select": "Ajouter {{name}}",
-    "quantity": "Quantité de {{name}} : {{grams}}",
+    "quantity": "Quantité de {{name}} : {{grams}}, touche pour la changer",
     "createFood": "Créer un aliment",
     "createNamed": "Créer « {{query}} »",
     "selected_one": "1 aliment sélectionné",
     "selected_other": "{{count}} aliments sélectionnés",
     "total": "+ {{kcal}}",
     "action": "Ajouter",
-    "error": "Les aliments n’ont pas pu être ajoutés. Réessaie."
+    "error": "Les aliments n’ont pas pu être ajoutés. Réessaie.",
+    "open": "Choisir la quantité de {{name}}"
   },
   "macros": {
     "protein": "Protéines",
@@ -287,7 +288,8 @@
     "entryHint": "Ouvre l’aliment pour changer la quantité, le déplacer ou le supprimer",
     "empty": "Plus rien dans ce repas.",
     "add": "Ajouter un aliment",
-    "close": "Fermer"
+    "close": "Fermer",
+    "entryDetailsPortion": "{{portion}} ({{grams}}) · P {{protein}} · G {{carbs}} · L {{fat}}"
   },
   "entry": {
     "close": "Fermer",
@@ -304,5 +306,20 @@
     "invalidQuantity": "La quantité doit être un nombre de grammes supérieur à 0 (5 000 au plus).",
     "missing": "Cet aliment n’est plus dans ton journal.",
     "error": "La modification n’a pas pu être enregistrée. Réessaie."
+  },
+  "quantity": {
+    "close": "Fermer",
+    "per100g": "{{kcal}} pour 100 g",
+    "grams": "Quantité en grammes",
+    "portions": "Portions",
+    "portion": "{{label}} · {{grams}}",
+    "defaultPortion": "1 portion",
+    "hundred": "100 g",
+    "values": "Pour cette quantité",
+    "favorite": "Favori",
+    "confirm": "Valider",
+    "confirmHint": "Sélectionne l’aliment avec cette quantité dans la feuille d’ajout",
+    "invalid": "La quantité doit être un nombre de grammes supérieur à 0 (5 000 au plus).",
+    "missing": "Cet aliment n’est plus disponible."
   }
 }

@@ -23,6 +23,11 @@ function foodsById(db: LocalDatabase, ids: string[]): Map<string, Food> {
   return new Map(rows.map((row) => [row.id, toFood(row)]));
 }
 
+/** A food of the phone by id (the user's own or a cached global one), null if absent. */
+export function readFood(db: LocalDatabase, foodId: string): Food | null {
+  return foodsById(db, [foodId]).get(foodId) ?? null;
+}
+
 /** Last quantity logged for each food, from the latest entries. */
 export function readLastGrams(db: LocalDatabase, userId: string): Map<string, number> {
   const entries = db

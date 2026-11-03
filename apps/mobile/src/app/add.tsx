@@ -11,7 +11,7 @@ import {
 import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
 import { X } from 'lucide-react-native';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -25,7 +25,7 @@ import {
   readRecentFoods,
   useFoodSearch,
 } from '../foods';
-import { addEntries } from '../journal';
+import { addEntries, useAddSelection } from '../journal';
 import { Sentry } from '../lib/sentry';
 import { colors, radius, space, touch } from '../theme/tokens';
 import {
@@ -57,9 +57,8 @@ export default function AddSheet() {
   );
   const [query, setQuery] = useState('');
   const [tab, setTab] = useState<Tab>('recent');
-  const [selection, setSelection] = useState<Map<string, { food: Food; grams: number }>>(
-    () => new Map(),
-  );
+  const selection = useAddSelection((state) => state.selected);
+  const { show, select, unselect, clear } = useAddSelection.getState();
   const [error, setError] = useState(false);
 
   const recents = useLocalQuery(
@@ -69,6 +68,9 @@ export default function AddSheet() {
   const lastGrams = useLocalQuery(useCallback(() => readLastGrams(localDb, userId), [userId]));
   const search = useFoodSearch(localDb, userId, query);
 
+  // The selection lives as long as the sheet.
+  useEffect(() => clear, [clear]);
+
   const searching = query.trim() !== '';
   const listed = searching
     ? search.foods.map((food) => ({ food, lastGrams: lastGrams.get(food.id) ?? null }))
@@ -76,14 +78,19 @@ export default function AddSheet() {
       ? recents
       : favorites;
 
+  // The quantity sheet reads the foods shown here (server results included).
+  useEffect(() => {
+    show(listed.map(({ food }) => food));
+  }, [listed, show]);
+
   function toggle(food: Food, last: number | null) {
     setError(false);
-    setSelection((current) => {
-      const next = new Map(current);
-      if (next.has(food.id)) next.delete(food.id);
-      else next.set(food.id, { food, grams: defaultGrams(food, last) });
-      return next;
-    });
+    if (selection.has(food.id)) unselect(food.id);
+    else select({ food, grams: defaultGrams(food, last), portionLabel: null });
+  }
+
+  function openQuantity(food: Food) {
+    router.push({ pathname: '/food/[id]', params: { id: food.id } });
   }
 
   function add() {
@@ -199,16 +206,20 @@ export default function AddSheet() {
               selected={selected !== undefined}
               {...(selected
                 ? {
-                    quantity: formatGrams(selected.grams),
+                    quantity: selected.portionLabel ?? formatGrams(selected.grams),
                     quantityLabel: t('add.quantity', {
                       name: food.name,
-                      grams: formatGrams(selected.grams),
+                      grams: selected.portionLabel ?? formatGrams(selected.grams),
                     }),
                   }
                 : {})}
               toggleLabel={t('add.select', { name: food.name })}
               onToggle={() => {
                 toggle(food, last);
+              }}
+              openLabel={t('add.open', { name: food.name })}
+              onOpen={() => {
+                openQuantity(food);
               }}
             />
           );
