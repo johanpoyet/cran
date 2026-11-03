@@ -4,16 +4,20 @@ import { notifyLocalChange } from '../db/changes';
 import type { LocalDatabase } from '../db/types';
 import { apiFetch } from '../lib/api';
 import { applyPull, readCursor } from './apply-pull';
+import { cacheMissingFoods } from './food-cache';
 import { readBatch, settle } from './queue';
 
 export interface SyncReport {
   pushed: number;
   pulled: number;
+  /** Global foods copied to the phone. */
+  cached: number;
 }
 
 /**
  * One synchronisation (spec section 5): push the queued changes by batches of 500, then pull the
- * server's changes since the cursor, page by page. Rejects when the server cannot be reached; what
+ * server's changes since the cursor, page by page, then copy the global foods the pulled rows use.
+ * Rejects when the server cannot be reached; what
  * was done before stays done (each batch and page is saved on its own).
  */
 export async function syncNow(db: LocalDatabase): Promise<SyncReport> {
@@ -41,6 +45,8 @@ export async function syncNow(db: LocalDatabase): Promise<SyncReport> {
     if (!page.hasMore) break;
   }
 
-  if (pushed > 0 || pulled > 0) notifyLocalChange();
-  return { pushed, pulled };
+  const cached = await cacheMissingFoods(db);
+
+  if (pushed > 0 || pulled > 0 || cached > 0) notifyLocalChange();
+  return { pushed, pulled, cached };
 }

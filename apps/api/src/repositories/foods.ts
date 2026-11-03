@@ -1,8 +1,8 @@
-import type { Food } from '@cran/shared';
+import type { Food, FoodDetail } from '@cran/shared';
 import { and, asc, desc, eq, isNull, or, type SQL, sql } from 'drizzle-orm';
 
 import type { AppDatabase } from '../db/client';
-import { type FoodRow, foods, unaccented } from '../db/schema';
+import { foodPortions, type FoodRow, foods, unaccented } from '../db/schema';
 
 /** Words that say nothing about the food ("flocons d'avoine", "pâtes au beurre"). */
 const STOP_WORDS = new Set([
@@ -101,7 +101,32 @@ export function createFoodRepository(db: AppDatabase) {
     });
   }
 
-  return { search };
+  /**
+   * A food of the catalogue or of the user, with its portions; null for another user's food or an
+   * unknown id. A global food removed from CIQUAL is still returned: entries may use it.
+   */
+  async function find(userId: string, id: string): Promise<FoodDetail | null> {
+    const [row] = await db
+      .select()
+      .from(foods)
+      .where(and(eq(foods.id, id), or(isNull(foods.ownerId), eq(foods.ownerId, userId))))
+      .limit(1);
+    if (!row) return null;
+    const portions = await db
+      .select({ label: foodPortions.label, grams: foodPortions.grams })
+      .from(foodPortions)
+      .where(
+        and(
+          eq(foodPortions.foodId, id),
+          isNull(foodPortions.deletedAt),
+          or(isNull(foodPortions.ownerId), eq(foodPortions.ownerId, userId)),
+        ),
+      )
+      .orderBy(asc(foodPortions.grams));
+    return { food: toFood(row), portions };
+  }
+
+  return { search, find };
 }
 
 export type FoodRepository = ReturnType<typeof createFoodRepository>;

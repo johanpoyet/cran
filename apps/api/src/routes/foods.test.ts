@@ -1,7 +1,7 @@
 import type { FoodSearchResult } from '@cran/shared';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
-import { foods } from '../db/schema';
+import { foodPortions, foods } from '../db/schema';
 import { searchWords } from '../repositories/foods';
 import { buildTestApp } from '../test/app';
 import { createTestDatabase, type TestDatabase } from '../test/database';
@@ -206,5 +206,51 @@ describe('searchWords', () => {
 
   it('keeps at most 6 words', () => {
     expect(searchWords('un1 deux trois quatre cinq six sept')).toHaveLength(6);
+  });
+});
+
+describe('GET /v1/foods/:id', () => {
+  async function getFood(id: string, cookie: string | null = alice.cookie) {
+    return app.request(`/v1/foods/${id}`, cookie ? { headers: { cookie } } : {});
+  }
+
+  function idOf(name: string): string {
+    return [...inserted.entries()].find(([, value]) => value === name)?.[0] ?? '';
+  }
+
+  it("returns a global food with the catalogue's portions and the user's own", async () => {
+    const id = idOf('Riz blanc, cru');
+    await database.db.insert(foodPortions).values([
+      { foodId: id, ownerId: null, label: '1 verre', grams: 180 },
+      { foodId: id, ownerId: alice.id, label: '1 bol', grams: 150 },
+      { foodId: id, ownerId: bob.id, label: '1 assiette', grams: 300 },
+    ]);
+
+    const res = await getFood(id);
+
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({
+      food: expect.objectContaining({ id, name: 'Riz blanc, cru', source: 'ciqual' }) as object,
+      portions: [
+        { label: '1 bol', grams: 150 },
+        { label: '1 verre', grams: 180 },
+      ],
+    });
+  });
+
+  it("returns the user's own food, never another user's", async () => {
+    const mine = idOf('Poulet rôti maison');
+
+    expect((await getFood(mine)).status).toBe(200);
+    expect((await getFood(mine, bob.cookie)).status).toBe(404);
+  });
+
+  it('answers 404 for an unknown food and 400 for an invalid id', async () => {
+    expect((await getFood('019a4b2c-1d2e-7f30-8a41-000000000000')).status).toBe(404);
+    expect((await getFood('not-a-uuid')).status).toBe(400);
+  });
+
+  it('requires a session', async () => {
+    expect((await getFood(idOf('Riz blanc, cru'), null)).status).toBe(401);
   });
 });

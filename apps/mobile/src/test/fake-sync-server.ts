@@ -1,6 +1,6 @@
 // A sync server in memory, following the protocol of docs/SPEC.md section 5 closely enough to test
 // the engine of the app: last write wins on updatedAt, a cursor over a global write sequence.
-import type { SyncPullResult, SyncPushResult } from '@cran/shared';
+import type { Food, SyncPullResult, SyncPushResult } from '@cran/shared';
 
 interface Stored {
   table: string;
@@ -8,8 +8,12 @@ interface Stored {
   seq: number;
 }
 
-export function createFakeSyncServer() {
+/** `catalogue`: the global foods the server knows (CIQUAL, Open Food Facts). */
+export function createFakeSyncServer(catalogue: readonly Food[] = []) {
   const rows = new Map<string, Stored>();
+  const foods = new Map(catalogue.map((food) => [food.id, food]));
+  /** Ids asked to GET /v1/foods/:id, in order. */
+  const foodRequests: string[] = [];
   let seq = 0;
 
   function push(changes: { table: string; row: Stored['row'] }[]): SyncPushResult {
@@ -45,7 +49,7 @@ export function createFakeSyncServer() {
     };
   }
 
-  /** Answers the app's fetch calls to /v1/sync/push and /v1/sync/pull. */
+  /** Answers the app's fetch calls to /v1/sync/push, /v1/sync/pull and /v1/foods/:id. */
   function fetch(input: string | URL | Request, init?: RequestInit): Promise<Response> {
     const url = new URL(input instanceof Request ? input.url : input.toString());
     if (url.pathname === '/v1/sync/push') {
@@ -59,8 +63,21 @@ export function createFakeSyncServer() {
       const limit = Number(url.searchParams.get('limit') ?? 500);
       return Promise.resolve(Response.json(pull(cursor, limit)));
     }
+    const food = /^\/v1\/foods\/([^/]+)$/.exec(url.pathname);
+    if (food?.[1]) {
+      foodRequests.push(food[1]);
+      const found = foods.get(food[1]);
+      return Promise.resolve(
+        found
+          ? Response.json({ food: found, portions: [] })
+          : Response.json(
+              { error: { code: 'not_found', message: 'Food not found' } },
+              { status: 404 },
+            ),
+      );
+    }
     return Promise.resolve(new Response(null, { status: 404 }));
   }
 
-  return { rows, push, pull, fetch };
+  return { rows, foodRequests, push, pull, fetch };
 }

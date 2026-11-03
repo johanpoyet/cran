@@ -103,3 +103,16 @@ export const quickEntrySchema = z.object({
 });
 
 export type QuickEntry = z.infer<typeof quickEntrySchema>;
+
+/** A named portion of a food ("1 pot" = 125 g). */
+export const foodPortionSchema = z.object({ label: z.string(), grams: z.number() });
+
+/** `GET /v1/foods/:id`: the food and its portions (the catalogue's and the user's own). */
+export const foodDetailSchema = z.object({
+  food: foodSchema,
+  portions: z.array(foodPortionSchema),
+});
+
+export type FoodDetail = z.infer<typeof foodDetailSchema>;
+
+export const foodIdParamsSchema = z.object({ id: z.uuid() });

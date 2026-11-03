@@ -3,6 +3,7 @@ import { syncRowSchemas } from '@cran/shared';
 import * as schema from '../db/schema';
 import type { LocalDatabase } from '../db/types';
 import { createFood } from '../foods/create-food';
+import { readRecentFoods } from '../foods/recents';
 import { addEntries } from '../journal/add-entries';
 import { deleteEntry, readMealEntries, updateEntry } from '../journal/entries';
 import { addWater } from '../journal/water';
@@ -13,6 +14,7 @@ import { createLocalDatabase } from '../test/local-database';
 import { insertProfile, me } from '../test/me';
 import { applyPull, readCursor } from './apply-pull';
 import { syncNow } from './engine';
+import { cacheMissingFoods, missingFoodIds } from './food-cache';
 import { MAX_ATTEMPTS, pendingCount, readBatch, settle } from './queue';
 
 jest.mock('../auth/client', () => jest.requireActual<object>('../test/fake-auth-client'));
@@ -228,7 +230,7 @@ describe('applyPull', () => {
 
 describe('syncNow between two phones', () => {
   it('brings a day typed offline on one phone to the other (criterion of S4-3)', async () => {
-    const server = createFakeSyncServer();
+    const server = createFakeSyncServer([basmati]);
     jest.spyOn(globalThis, 'fetch').mockImplementation(server.fetch);
     const phone = db;
     const other = await createLocalDatabase();
@@ -249,23 +251,28 @@ describe('syncNow between two phones', () => {
     deleteEntry(phone, alice, dinner?.id ?? '');
 
     // Back online.
-    expect(await syncNow(phone)).toEqual({ pushed: 3, pulled: 3 });
+    expect(await syncNow(phone)).toEqual({ pushed: 3, pulled: 3, cached: 0 });
     expect(pendingCount(phone)).toBe(0);
 
     const report = await syncNow(other);
-    expect(report.pulled).toBe(3);
+    expect(report).toEqual({ pushed: 0, pulled: 3, cached: 1 });
     expect(readMealEntries(other, alice, '2026-11-03', 'lunch').map(({ kcal }) => kcal)).toEqual([
       325,
     ]);
     expect(readMealEntries(other, alice, '2026-11-03', 'dinner')).toEqual([]);
     expect(pendingCount(other)).toBe(0);
 
+    // The CIQUAL rice of the entries was copied: the recents show it on the other phone too.
+    expect(readRecentFoods(other, alice, 20).map(({ food }) => food.name)).toEqual([
+      'Riz basmati cuit',
+    ]);
+
     // Nothing new: nothing exchanged.
-    expect(await syncNow(other)).toEqual({ pushed: 0, pulled: 0 });
+    expect(await syncNow(other)).toEqual({ pushed: 0, pulled: 0, cached: 0 });
   });
 
   it('keeps the latest change made on two phones', async () => {
-    const server = createFakeSyncServer();
+    const server = createFakeSyncServer([basmati]);
     jest.spyOn(globalThis, 'fetch').mockImplementation(server.fetch);
     const other = await createLocalDatabase();
     addEntries(db, alice, { mealType: 'lunch', items: [{ food: basmati, grams: 250 }], at: lunch });
@@ -290,5 +297,57 @@ describe('syncNow between two phones', () => {
 
     await expect(syncNow(db)).rejects.toThrow(TypeError);
     expect(pendingCount(db)).toBe(1);
+  });
+});
+
+describe('global food cache', () => {
+  it('copies the foods used on the phone but missing from it, once', async () => {
+    const server = createFakeSyncServer([basmati]);
+    jest.spyOn(globalThis, 'fetch').mockImplementation(server.fetch);
+    db.insert(schema.logEntries)
+      .values({
+        id: 'e1',
+        userId: alice,
+        date: '2026-11-03',
+        mealType: 'lunch',
+        foodId: basmati.id,
+        label: 'Riz basmati cuit',
+        grams: 250,
+        kcal: 325,
+        proteinG: 6.75,
+        carbsG: 70,
+        fatG: 1,
+        loggedAt: lunch,
+      })
+      .run();
+    db.insert(schema.favorites).values({ id: 'f1', userId: alice, foodId: basmati.id }).run();
+    expect(missingFoodIds(db)).toEqual([basmati.id]);
+
+    expect(await cacheMissingFoods(db)).toBe(1);
+
+    expect(db.select().from(schema.foods).all()).toEqual([
+      expect.objectContaining({ id: basmati.id, ownerId: null, name: 'Riz basmati cuit' }),
+    ]);
+    // Copied, not queued: the server already has it.
+    expect(pendingCount(db)).toBe(2);
+    expect(missingFoodIds(db)).toEqual([]);
+    expect(await cacheMissingFoods(db)).toBe(0);
+    expect(server.foodRequests).toEqual([basmati.id]);
+  });
+
+  it('skips a food the server no longer has', async () => {
+    const server = createFakeSyncServer();
+    jest.spyOn(globalThis, 'fetch').mockImplementation(server.fetch);
+    db.insert(schema.favorites).values({ id: 'f1', userId: alice, foodId: basmati.id }).run();
+
+    expect(await cacheMissingFoods(db)).toBe(0);
+  });
+
+  it('ignores the foods of deleted entries', () => {
+    db.insert(schema.favorites)
+      .values({ id: 'f1', userId: alice, foodId: basmati.id, deletedAt: new Date() })
+      .run();
+
+    expect(missingFoodIds(db)).toEqual([]);
   });
 });
