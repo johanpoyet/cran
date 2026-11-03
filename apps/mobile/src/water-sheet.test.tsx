@@ -5,7 +5,6 @@ import { renderRouter } from 'expo-router/testing-library';
 import WaterSheet from './app/water';
 import { readToday } from './journal/today';
 import { addWater, deleteWater, readWater } from './journal/water';
-import { refreshLocalCopy } from './profile/local-copy';
 import { setWaterGoal } from './profile/settings';
 import { setSession, signedIn } from './test/fake-auth-client';
 
@@ -17,9 +16,6 @@ jest.mock('./journal/water', () => ({
 }));
 jest.mock('./journal/today', () => ({ readToday: jest.fn() }));
 jest.mock('./profile/settings', () => ({ setWaterGoal: jest.fn() }));
-jest.mock('./profile/local-copy', () => ({
-  refreshLocalCopy: jest.fn(() => Promise.resolve(true)),
-}));
 
 const userId = signedIn.data?.user.id;
 const glass = (id: string, hours: number, minutes: number) => ({
@@ -80,7 +76,7 @@ describe('water sheet', () => {
     expect(deleteWater).toHaveBeenCalledWith(expect.anything(), userId, 'g1');
   });
 
-  it('changes the daily goal by 250 ml and sends it to the server', async () => {
+  it('changes the daily goal by 250 ml', async () => {
     await openSheet();
     expect(screen.getByRole('adjustable', { name: 'Objectif par jour' })).toHaveAccessibilityValue({
       text: '3 L',
@@ -89,7 +85,6 @@ describe('water sheet', () => {
     await fireEvent.press(screen.getByRole('button', { name: 'Augmenter l’objectif' }));
 
     expect(setWaterGoal).toHaveBeenCalledWith(expect.anything(), userId, 3250);
-    expect(refreshLocalCopy).toHaveBeenCalled();
   });
 
   it('says when no water has been drunk yet', async () => {

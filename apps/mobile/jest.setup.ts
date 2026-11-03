@@ -8,5 +8,9 @@ jest.mock('./src/db/client', () => ({ localDb: {} }));
 // The Sentry SDK ships ES modules Jest does not load; Sentry is disabled in tests anyway.
 jest.mock('./src/lib/sentry', () => ({
   initSentry: jest.fn(),
-  Sentry: { wrap: <T>(component: T) => component, captureException: jest.fn() },
+  Sentry: {
+    wrap: <T>(component: T) => component,
+    captureException: jest.fn(),
+    captureMessage: jest.fn(),
+  },
 }));

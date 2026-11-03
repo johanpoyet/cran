@@ -14,7 +14,7 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSessionUserId } from '../auth';
 import { localDb, useLocalQuery } from '../db';
 import { addWater, deleteWater, readToday, readWater } from '../journal';
-import { refreshLocalCopy, setWaterGoal } from '../profile';
+import { setWaterGoal } from '../profile';
 import { colors, radius, space, touch } from '../theme/tokens';
 import { Card, Chip, Overline, PrimaryButton, ProgressBar, Stepper, Text } from '../ui';
 
@@ -117,9 +117,8 @@ export default function WaterSheet() {
             decrementLabel={t('water.decreaseGoal')}
             incrementLabel={t('water.increaseGoal')}
             onChange={(value) => {
+              // Queued for the server by the sync, like any other change.
               setWaterGoal(localDb, userId, value);
-              // Sent now if online; otherwise at the next refresh (launch, foreground).
-              void refreshLocalCopy(localDb);
             }}
           />
         </View>

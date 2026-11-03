@@ -1,13 +1,11 @@
 import * as schema from '../db/schema';
 import type { LocalDatabase } from '../db/types';
-import { saveMe } from '../profile/local-copy';
 import { setWaterGoal } from '../profile/settings';
 import { createLocalDatabase } from '../test/local-database';
-import { me } from '../test/me';
+import { insertProfile, me } from '../test/me';
 import { readToday } from './today';
 import { addWater, deleteWater, readWater } from './water';
 
-jest.mock('../auth/client', () => jest.requireActual<object>('../test/fake-auth-client'));
 jest.mock('expo-crypto', () => ({
   getRandomBytes: (count: number) =>
     Uint8Array.from({ length: count }, () => Math.floor(Math.random() * 256)),
@@ -51,14 +49,14 @@ describe('water', () => {
   });
 
   it('shows the water and the goal on "Ta journée"', () => {
-    saveMe(db, me);
+    insertProfile(db);
     addWater(db, alice, 250, morning);
 
     expect(readToday(db, alice, morning).water).toEqual({ totalMl: 250, goalMl: 3000 });
   });
 
   it('changes the goal on the phone, newer than the server copy', () => {
-    saveMe(db, me);
+    insertProfile(db);
     setWaterGoal(db, alice, 3500);
 
     const profile = db.select().from(schema.profiles).get();

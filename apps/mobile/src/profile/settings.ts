@@ -5,8 +5,8 @@ import * as schema from '../db/schema';
 import type { LocalDatabase } from '../db/types';
 
 /**
- * Changes the daily water goal on the phone. The profile's `updated_at` moves, so that the next
- * refresh sends it to the server instead of overwriting it (last write wins).
+ * Changes the daily water goal on the phone; the sync sends the profile to the server (its
+ * `updated_at` moves, so it wins over the server's older version).
  */
 export function setWaterGoal(db: LocalDatabase, userId: string, waterGoalMl: number): void {
   db.update(schema.profiles)

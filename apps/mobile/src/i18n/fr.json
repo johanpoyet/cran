@@ -137,7 +137,12 @@
       "providerFailed": "La connexion n'a pas abouti. Réessaie.",
       "unknown": "Une erreur est survenue. Réessaie."
     },
-    "signOut": "Se déconnecter"
+    "signOut": "Se déconnecter",
+    "signOutPendingTitle": "Changements non envoyés",
+    "signOutPending_one": "1 changement n’a pas encore été envoyé au serveur. Si tu te déconnectes maintenant, il sera perdu.",
+    "signOutPending_other": "{{count}} changements n’ont pas encore été envoyés au serveur. Si tu te déconnectes maintenant, ils seront perdus.",
+    "signOutAnyway": "Se déconnecter",
+    "signOutCancel": "Annuler"
   },
   "onboarding": {
     "back": "Retour",
@@ -364,5 +369,16 @@
     "decreaseGoal": "Baisser l’objectif",
     "increaseGoal": "Augmenter l’objectif",
     "removeHint": "Touche un verre pour le retirer."
+  },
+  "sync": {
+    "idle": "Synchronisé",
+    "pending_one": "1 changement à envoyer",
+    "pending_other": "{{count}} changements à envoyer",
+    "syncing": "Synchronisation en cours",
+    "offline": "Hors ligne, les changements partiront au retour du réseau",
+    "offlinePending_one": "Hors ligne, 1 changement partira au retour du réseau",
+    "offlinePending_other": "Hors ligne, {{count}} changements partiront au retour du réseau",
+    "error": "Synchronisation impossible pour l’instant",
+    "hint": "Touche pour synchroniser maintenant"
   }
 }

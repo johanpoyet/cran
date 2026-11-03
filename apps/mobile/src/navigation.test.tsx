@@ -1,5 +1,6 @@
 import { act, fireEvent, screen } from '@testing-library/react-native';
 import { renderRouter } from 'expo-router/testing-library';
+import { Alert } from 'react-native';
 
 import RootLayout from './app/_layout';
 import AuthLayout from './app/(auth)/_layout';
@@ -21,6 +22,7 @@ import AddSheet from './app/add';
 import NewFoodScreen from './app/food/new';
 import { clearLocalData } from './db/local-data';
 import { useLocalDatabase } from './db/use-local-database';
+import { pendingCount } from './sync/queue';
 import {
   authClient,
   onboarding,
@@ -34,7 +36,9 @@ import { mockFetchFailure, mockFetchResponse } from './test/fetch';
 jest.mock('./auth/client', () => jest.requireActual<object>('./test/fake-auth-client'));
 jest.mock('./db/use-local-database', () => ({ useLocalDatabase: jest.fn(() => 'ready') }));
 jest.mock('./db/local-data', () => ({ clearLocalData: jest.fn(), claimLocalData: jest.fn() }));
-jest.mock('./profile/use-local-copy', () => ({ useLocalCopy: jest.fn() }));
+jest.mock('./sync/use-sync', () => ({ useSync: jest.fn() }));
+jest.mock('./sync/queue', () => ({ pendingCount: jest.fn(() => 0) }));
+jest.mock('./sync/scheduler', () => ({ requestSync: jest.fn(() => Promise.resolve()) }));
 jest.mock('./journal/entries', () => ({
   ...jest.requireActual<object>('./journal/entries'),
   readMealEntries: jest.fn(() => []),
@@ -136,6 +140,25 @@ describe('navigation guard', () => {
     expect(clearLocalData).toHaveBeenCalled();
     expect(authClient.signOut).toHaveBeenCalled();
     expect(screen).toHavePathname('/sign-in');
+  });
+
+  it('warns before signing out with changes not sent yet', async () => {
+    const alert = jest.spyOn(Alert, 'alert');
+    jest.mocked(pendingCount).mockReturnValue(2);
+    setSession(signedIn);
+    await renderApp('/profile');
+
+    await fireEvent.press(screen.getByRole('button', { name: 'Se déconnecter' }));
+
+    expect(alert.mock.calls[0]?.[1]).toBe(
+      '2 changements n’ont pas encore été envoyés au serveur. Si tu te déconnectes maintenant, ils seront perdus.',
+    );
+    expect(authClient.signOut).not.toHaveBeenCalled();
+    await act(() => {
+      alert.mock.calls[0]?.[2]?.find((button) => button.style === 'destructive')?.onPress?.();
+    });
+    expect(authClient.signOut).toHaveBeenCalled();
+    jest.mocked(pendingCount).mockReturnValue(0);
   });
 
   it('explains when the local database cannot be opened', async () => {

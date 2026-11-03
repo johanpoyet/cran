@@ -22,6 +22,7 @@ const TABLES = [
   schema.weeklyTargets,
   schema.progressPhotos,
   schema.profiles,
+  schema.pendingChanges,
   schema.localMeta,
 ];
 
