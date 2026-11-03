@@ -2,14 +2,14 @@
 
 ## Sprint en cours : S3 — Journal du jour
 
-| Story                                            | État     | PR                         |
-| ------------------------------------------------ | -------- | -------------------------- |
-| S3-1 Écran Aujourd'hui                           | fait     | #23                        |
-| S3-2 Feuille d'ajout                             | fait     | #24                        |
-| S3-3 Fiche quantité                              | fait     | #26                        |
-| S3-4 Modifier / supprimer une saisie             | fait     | #25                        |
-| S3-5 Ajout rapide kcal et copier un repas d'hier | en revue | `feat/S3-5-quick-add-copy` |
-| S3-6 Eau                                         | à faire  |                            |
+| Story                                            | État     | PR                |
+| ------------------------------------------------ | -------- | ----------------- |
+| S3-1 Écran Aujourd'hui                           | fait     | #23               |
+| S3-2 Feuille d'ajout                             | fait     | #24               |
+| S3-3 Fiche quantité                              | fait     | #26               |
+| S3-4 Modifier / supprimer une saisie             | fait     | #25               |
+| S3-5 Ajout rapide kcal et copier un repas d'hier | fait     | #27               |
+| S3-6 Eau                                         | en revue | `feat/S3-6-water` |
 
 ## Sprints terminés
 
@@ -185,6 +185,11 @@ Petites décisions prises sans changer le modèle de données, l'API ou l'UX. Le
 - **2026-11-03 · S3-3 vérifiée sur iPhone** : checklist de 8 points validée par Johan (ouverture, valeurs en direct, validation, portion nommée, 100 g, favori, quantité pré-remplie, quantité refusée).
 - **2026-11-03 · Ajout rapide** (non dessiné) : puce « Ajout rapide » sous la recherche de la feuille d'ajout ; elle remplace la feuille par la feuille `quick-add` (son enregistrement ramène directement à « Ta journée »). Nom facultatif (« Ajout rapide » par défaut), calories obligatoires (1 à 9 999 kcal), protéines, glucides et lipides facultatifs (vides = 0, 999 g au plus, `quickEntrySchema` dans `shared`), repas présélectionné. La saisie a `food_id` null et pas de quantité (spec section 4) : sa fiche ne propose que le repas et la suppression, et elle n'apparaît pas dans les Récents.
 - **2026-11-03 · Copier un repas d'hier** (non dessiné) : si le même repas de la veille contient des aliments, la feuille d'ajout montre « Copier le dîner d'hier · 2 aliments · 780 » au-dessus des onglets ; la toucher recopie ses saisies (aliment, quantité, portion, valeurs copiées) dans le repas d'aujourd'hui et ferme la feuille : 2 touches depuis le +. La ligne suit le repas choisi dans les puces. Les saisies d'hier ne changent pas.
+
+- **2026-11-03 · S3-5 vérifiée sur iPhone** : checklist validée par Johan (ajout rapide, calories seules, nom et macros, fiche sans quantité, copie d'hier, copie selon le repas).
+- **2026-11-03 · Eau sur « Ta journée »** : carte de la maquette entre les macros et les repas : « Eau », « 1,5 / 3 L », huit segments et un + qui ajoute un verre de 250 ml (`WATER_GLASS_ML`, une ligne `water_logs` par verre). Les segments montrent la part de l'objectif (huitièmes, arrondis) : la maquette en remplit 6 sur 8 pour 1,5 / 3 L, ce qui ne correspond à aucune règle ; 1,5 / 3 L en remplit donc 4. Toucher la carte ouvre la feuille de l'eau.
+- **2026-11-03 · Feuille de l'eau** (non dessinée) : quantité du jour sur l'objectif, barre de progression, « Ajouter un verre de 250 ml », les verres du jour (toucher un verre le retire, suppression logique), et l'objectif par jour réglable de 500 ml à 10 L par pas de 250 ml (`Stepper` gagne `step` et `format`). `formatLiters` dans `shared` (« 1,5 L »).
+- **2026-11-03 · Objectif d'eau hors ligne** : l'objectif est modifié dans le profil du téléphone, dont l'`updated_at` avance. À la copie suivante depuis le serveur (lancement, retour au premier plan, ou juste après le changement si le réseau est là), si le profil du téléphone est plus récent que celui du serveur, l'app envoie d'abord `PATCH /v1/me` avec l'objectif, puis garde la réponse : la dernière modification gagne, sans écraser un changement fait en mode avion. Les verres d'eau restent sur le téléphone jusqu'à la synchro (S4). Toute la story fonctionne en mode avion (critère de S3-6).
 
 ## Rétros
 
