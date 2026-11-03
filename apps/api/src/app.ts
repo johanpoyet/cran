@@ -14,11 +14,13 @@ import { requireSession, type SessionVariables } from './middleware/session';
 import { createFoodRepository } from './repositories/foods';
 import { createOnboardingRepository } from './repositories/onboarding';
 import { createProfileRepository } from './repositories/profiles';
+import { createSyncRepository } from './repositories/sync';
 import { createWeeklyTargetRepository } from './repositories/weekly-targets';
 import { foodRoutes } from './routes/foods';
 import { healthRoutes } from './routes/health';
 import { meRoutes } from './routes/me';
 import { onboardingRoutes } from './routes/onboarding';
+import { syncRoutes } from './routes/sync';
 
 export const MAX_BODY_BYTES = 1024 * 1024;
 
@@ -84,6 +86,7 @@ export function createApp({ logger, auth, db, version, pingDatabase, databaseTim
   v1.route('/', meRoutes(createProfileRepository(db), createWeeklyTargetRepository(db)));
   v1.route('/', onboardingRoutes(createOnboardingRepository(db)));
   v1.route('/', foodRoutes(createFoodRepository(db)));
+  v1.route('/', syncRoutes(createSyncRepository(db)));
   app.route('/v1', v1);
 
   app.doc31('/openapi.json', {

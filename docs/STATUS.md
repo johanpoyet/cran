@@ -2,13 +2,13 @@
 
 ## Sprint en cours : S4 — Synchronisation
 
-| Story                           | État     | PR                       |
-| ------------------------------- | -------- | ------------------------ |
-| S4-1 Colonnes de synchro        | en revue | `feat/S4-1-sync-columns` |
-| S4-2 Endpoints push et pull     | à faire  |                          |
-| S4-3 Moteur de synchro client   | à faire  |                          |
-| S4-4 Cache des aliments globaux | à faire  |                          |
-| S4-5 ADR synchro local-first    | à faire  |                          |
+| Story                           | État     | PR                         |
+| ------------------------------- | -------- | -------------------------- |
+| S4-1 Colonnes de synchro        | fait     | #30                        |
+| S4-2 Endpoints push et pull     | en revue | `feat/S4-2-sync-endpoints` |
+| S4-3 Moteur de synchro client   | à faire  |                            |
+| S4-4 Cache des aliments globaux | à faire  |                            |
+| S4-5 ADR synchro local-first    | à faire  |                            |
 
 ## Sprints terminés
 
@@ -212,6 +212,11 @@ Petites décisions prises sans changer le modèle de données, l'API ou l'UX. Le
 - **2026-11-03 · `server_seq` par trigger** : la spec laissait le choix entre triggers et couche repository. Un trigger `BEFORE UPDATE` (`bump_server_seq`) sur chacune des 13 tables synchronisées prend la valeur suivante de la séquence commune à chaque modification, l'insertion passant par la valeur par défaut : aucun chemin de code ne peut l'oublier, et un client ne peut pas la fixer. Un test vérifie que toute table ayant une colonne `server_seq` a son trigger.
 
 - **2026-11-03 · Tests de l'import CIQUAL isolés** : en CI, les fichiers de test tournent en parallèle sur la même base Postgres, et l'import marque supprimés tous les aliments CIQUAL absents de ses fichiers, y compris ceux que les tests de recherche venaient d'insérer. Ça passait par chance d'ordonnancement jusqu'à la PR #30. Chaque test d'import tourne désormais dans une transaction annulée à la fin (l'import y prend un point de sauvegarde).
+
+- **2026-11-03 · Staging avec les tables synchronisées** : après le merge de #30, migration `0004_sync_tables` appliquée ; vérifié en lecture seule : 7 nouvelles tables, 13 triggers `server_seq`.
+- **2026-11-03 · Format de synchro** : une ligne complète par changement, dans la forme de la base du téléphone (camelCase), instants en ISO, jours en `YYYY-MM-DD` ; une suppression est une ligne avec `deletedAt`. Un schéma Zod strict par table dans `shared` (`syncRowSchemas`), partagé par l'API et le moteur de synchro de l'app (S4-3). `server_seq` ne voyage pas dans les lignes : seul le curseur du pull le porte.
+- **2026-11-03 · `POST /v1/sync/push`** : au plus 500 changements ; chaque ligne est validée et appliquée seule (une ligne invalide ne bloque pas le lot), dans l'ordre parents puis enfants (`SYNC_TABLES` : aliments avant portions et saisies, recettes avant ingrédients…). Dernière écriture gagnante sur `updatedAt` : une version plus ancienne que celle du serveur est refusée (`stale`), la même version renvoyée est acceptée sans rien changer (idempotence). Raisons de refus : `unknown_table`, `read_only` (cibles hebdomadaires, écrites par le serveur seulement), `invalid`, `forbidden` (ligne ou identifiant d'un autre utilisateur, aliment CIQUAL ou Open Food Facts), `future_timestamp` (plus de 5 minutes d'avance), `stale`, `unknown_reference` (aliment ou recette absent du serveur), `conflict` (second profil, deux cibles pour une semaine). L'upsert ne touche jamais une ligne d'un autre utilisateur, ni une version plus récente arrivée entre-temps.
+- **2026-11-03 · `GET /v1/sync/pull?cursor=&limit=`** : les lignes de l'utilisateur dont `server_seq` dépasse le curseur, toutes tables confondues, dans l'ordre d'écriture, par pages de 500 au plus, avec le nouveau curseur et `hasMore`. Le catalogue global n'y est pas (ses aliments utilisés seront copiés par S4-4) ; le profil, la première pesée et la cible créés par l'onboarding y sont.
 
 ## Rétros
 
