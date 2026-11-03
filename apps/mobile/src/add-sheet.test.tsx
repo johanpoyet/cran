@@ -5,6 +5,8 @@ import { renderRouter } from 'expo-router/testing-library';
 import AddSheet from './app/add';
 import { readFavoriteFoods, readLastGrams, readRecentFoods } from './foods/recents';
 import { addEntries } from './journal/add-entries';
+import { type Entry, readMealEntries } from './journal/entries';
+import { copyEntries } from './journal/quick-entry';
 import { useAddSelection } from './journal/selection-store';
 import { setSession, signedIn } from './test/fake-auth-client';
 import { mockFetchResponse } from './test/fetch';
@@ -12,6 +14,14 @@ import { basmati, complet, galettes } from './test/foods';
 
 jest.mock('./auth/client', () => jest.requireActual<object>('./test/fake-auth-client'));
 jest.mock('./journal/add-entries', () => ({ addEntries: jest.fn() }));
+jest.mock('./journal/quick-entry', () => ({
+  ...jest.requireActual<object>('./journal/quick-entry'),
+  copyEntries: jest.fn(),
+}));
+jest.mock('./journal/entries', () => ({
+  ...jest.requireActual<object>('./journal/entries'),
+  readMealEntries: jest.fn(() => []),
+}));
 jest.mock('./foods/recents', () => ({
   ...jest.requireActual<object>('./foods/recents'),
   readRecentFoods: jest.fn(),
@@ -36,7 +46,13 @@ beforeEach(() => {
 async function openSheet(url: Href = '/add') {
   setSession(signedIn);
   await renderRouter(
-    { index: () => null, add: AddSheet, 'food/new': () => null, 'food/[id]': () => null },
+    {
+      index: () => null,
+      add: AddSheet,
+      'food/new': () => null,
+      'food/[id]': () => null,
+      'quick-add': () => null,
+    },
     { initialUrl: '/' },
   );
   await act(() => {
@@ -83,6 +99,44 @@ describe('Ajouter un aliment', () => {
 
     expect(screen.getByText('1 bol')).toBeOnTheScreen();
     expect(screen.getByText('+ 195 kcal')).toBeOnTheScreen();
+  });
+
+  it("copies yesterday's meal in two touches", async () => {
+    const entry = { id: 'yesterday-rice', label: 'Riz basmati cuit', kcal: 325 } as Entry;
+    jest
+      .mocked(readMealEntries)
+      .mockReturnValue([entry, { ...entry, id: 'yesterday-2', kcal: 455 }]);
+    await openSheet({ pathname: '/add', params: { meal: 'dinner' } });
+
+    await fireEvent.press(
+      screen.getByRole('button', { name: 'Copier le dîner d’hier, 2 aliments, 780\u00a0kcal' }),
+    );
+
+    expect(copyEntries).toHaveBeenCalledWith(
+      expect.anything(),
+      userId,
+      [entry, expect.anything()],
+      {
+        mealType: 'dinner',
+        at: expect.any(Date) as Date,
+      },
+    );
+    expect(screen).toHavePathname('/');
+    jest.mocked(readMealEntries).mockReturnValue([]);
+  });
+
+  it('hides the copy when yesterday has nothing for this meal', async () => {
+    await openSheet();
+
+    expect(screen.queryByText(/d’hier/)).not.toBeOnTheScreen();
+  });
+
+  it('opens the quick add on the same meal', async () => {
+    await openSheet({ pathname: '/add', params: { meal: 'snack' } });
+    await fireEvent.press(screen.getByRole('button', { name: 'Ajout rapide' }));
+
+    expect(screen).toHavePathname('/quick-add');
+    expect(screen).toHaveSearchParams({ meal: 'snack' });
   });
 
   it('preselects the meal touched on Today', async () => {

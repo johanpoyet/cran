@@ -2,6 +2,7 @@ import {
   type Food,
   formatDecimal,
   formatGrams,
+  formatInteger,
   formatKcal,
   MEAL_TYPES,
   mealForTime,
@@ -10,7 +11,7 @@ import {
 } from '@cran/shared';
 import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
-import { X } from 'lucide-react-native';
+import { X, Zap } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
@@ -25,12 +26,19 @@ import {
   readRecentFoods,
   useFoodSearch,
 } from '../foods';
-import { addEntries, useAddSelection } from '../journal';
+import {
+  addEntries,
+  copyEntries,
+  readMealEntries,
+  useAddSelection,
+  yesterdayKey,
+} from '../journal';
 import { Sentry } from '../lib/sentry';
 import { colors, radius, space, touch } from '../theme/tokens';
 import {
   Chip,
   EmptyState,
+  EntryRow,
   FoodRow,
   LinkButton,
   SearchField,
@@ -66,6 +74,13 @@ export default function AddSheet() {
   );
   const favorites = useLocalQuery(useCallback(() => readFavoriteFoods(localDb, userId), [userId]));
   const lastGrams = useLocalQuery(useCallback(() => readLastGrams(localDb, userId), [userId]));
+  const [today] = useState(() => new Date());
+  const yesterday = useLocalQuery(
+    useCallback(
+      () => readMealEntries(localDb, userId, yesterdayKey(today), meal),
+      [userId, today, meal],
+    ),
+  );
   const search = useFoodSearch(localDb, userId, query);
 
   // The selection lives as long as the sheet.
@@ -109,6 +124,23 @@ export default function AddSheet() {
     router.back();
   }
 
+  function copyYesterday() {
+    try {
+      copyEntries(localDb, userId, yesterday, { mealType: meal, at: new Date() });
+    } catch (copyError) {
+      Sentry.captureException(copyError);
+      setError(true);
+      return;
+    }
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    router.back();
+  }
+
+  function quickAdd() {
+    // Replaces the sheet: saving the quick add goes back to Today.
+    router.replace({ pathname: '/quick-add', params: { meal } });
+  }
+
   function createFood() {
     router.back();
     router.push(
@@ -116,6 +148,7 @@ export default function AddSheet() {
     );
   }
 
+  const yesterdayKcal = yesterday.reduce((total, entry) => total + entry.kcal, 0);
   const totalKcal = [...selection.values()].reduce(
     (total, { food, grams }) => total + nutritionFor(food, grams).kcal,
     0,
@@ -181,6 +214,32 @@ export default function AddSheet() {
             {t('add.results', { query: query.trim() })}
           </Text>
         ) : (
+          <View style={styles.shortcuts}>
+            {yesterday.length > 0 ? (
+              <EntryRow
+                title={t(`add.copyYesterday.${meal}`)}
+                details={t('add.copySummary', { count: yesterday.length })}
+                value={formatInteger(Math.round(yesterdayKcal))}
+                accessibilityLabel={t('add.copyLabel', {
+                  action: t(`add.copyYesterday.${meal}`),
+                  summary: t('add.copySummary', { count: yesterday.length }),
+                  kcal: formatKcal(Math.round(yesterdayKcal)),
+                })}
+                accessibilityHint={t('add.copyHint')}
+                onPress={copyYesterday}
+              />
+            ) : null}
+            <View style={styles.quickAdd}>
+              <Chip
+                label={t('add.quickAdd')}
+                icon={Zap}
+                accessibilityHint={t('add.quickAddHint')}
+                onPress={quickAdd}
+              />
+            </View>
+          </View>
+        )}
+        {searching ? null : (
           <Segmented
             options={[
               { value: 'recent', label: t('add.recent') },
@@ -280,4 +339,6 @@ const styles = StyleSheet.create({
   meals: { flexDirection: 'row', flexWrap: 'wrap', gap: space[8] },
   list: { flex: 1 },
   listContent: { padding: space.screen, gap: space[4] },
+  shortcuts: { gap: space[8], marginBottom: space[8] },
+  quickAdd: { flexDirection: 'row' },
 });

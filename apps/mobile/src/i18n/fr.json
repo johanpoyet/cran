@@ -71,7 +71,19 @@
     "total": "+ {{kcal}}",
     "action": "Ajouter",
     "error": "Les aliments n’ont pas pu être ajoutés. Réessaie.",
-    "open": "Choisir la quantité de {{name}}"
+    "open": "Choisir la quantité de {{name}}",
+    "quickAdd": "Ajout rapide",
+    "quickAddHint": "Ajoute des calories sans choisir d’aliment",
+    "copyYesterday": {
+      "breakfast": "Copier le petit-déjeuner d’hier",
+      "lunch": "Copier le déjeuner d’hier",
+      "snack": "Copier la collation d’hier",
+      "dinner": "Copier le dîner d’hier"
+    },
+    "copySummary_one": "1 aliment",
+    "copySummary_other": "{{count}} aliments",
+    "copyLabel": "{{action}}, {{summary}}, {{kcal}}",
+    "copyHint": "Ajoute les mêmes aliments à ce repas aujourd’hui"
   },
   "macros": {
     "protein": "Protéines",
@@ -321,5 +333,20 @@
     "confirmHint": "Sélectionne l’aliment avec cette quantité dans la feuille d’ajout",
     "invalid": "La quantité doit être un nombre de grammes supérieur à 0 (5 000 au plus).",
     "missing": "Cet aliment n’est plus disponible."
+  },
+  "quickAdd": {
+    "title": "Ajout rapide",
+    "close": "Fermer",
+    "name": "Nom (optionnel)",
+    "namePlaceholder": "Ex. resto, apéro",
+    "defaultLabel": "Ajout rapide",
+    "values": "Valeurs",
+    "macrosOptional": "Les macros sont facultatives.",
+    "fieldLabel": "{{nutrient}}, en {{unit}}",
+    "meal": "Repas",
+    "save": "Ajouter",
+    "saveHint": "Renseigne au moins les calories",
+    "invalid": "Les calories doivent être un nombre entre 1 et 9 999 kcal, chaque macro entre 0 et 999 g.",
+    "error": "L’ajout n’a pas pu être enregistré. Réessaie."
   }
 }

@@ -7,6 +7,7 @@ export {
   scaleEntry,
   updateEntry,
 } from './entries';
+export { addQuickEntry, copyEntries, yesterdayKey } from './quick-entry';
 export { type SelectedFood, useAddSelection } from './selection-store';
 export {
   type MealSummary,
