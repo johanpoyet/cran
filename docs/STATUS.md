@@ -6,9 +6,9 @@
 | ------------------------------------------------ | -------- | -------------------------- |
 | S3-1 Écran Aujourd'hui                           | fait     | #23                        |
 | S3-2 Feuille d'ajout                             | fait     | #24                        |
-| S3-3 Fiche quantité                              | en revue | `feat/S3-3-quantity-sheet` |
+| S3-3 Fiche quantité                              | fait     | #26                        |
 | S3-4 Modifier / supprimer une saisie             | fait     | #25                        |
-| S3-5 Ajout rapide kcal et copier un repas d'hier | à faire  |                            |
+| S3-5 Ajout rapide kcal et copier un repas d'hier | en revue | `feat/S3-5-quick-add-copy` |
 | S3-6 Eau                                         | à faire  |                            |
 
 ## Sprints terminés
@@ -181,6 +181,10 @@ Petites décisions prises sans changer le modèle de données, l'API ou l'UX. Le
 - **2026-11-03 · Portion gardée dans la saisie** : la portion choisie est enregistrée dans `log_entries.portion_label` ; la pastille de la feuille d'ajout l'affiche (« 1 bol »), et la feuille du repas écrit « 1 bol (150 g) ».
 - **2026-11-03 · Sélection partagée** : la sélection de la feuille d'ajout est dans un store Zustand (`useAddSelection`), comme le prévoit la spec pour l'état d'interface, pour que la fiche quantité ouverte par-dessus puisse la lire et la modifier. Le store garde aussi les aliments affichés (dont les résultats du serveur, absents de SQLite) et se vide quand la feuille d'ajout se ferme.
 - **2026-11-03 · Favoris d'aliments globaux** : mettre en favori un aliment CIQUAL ou Open Food Facts le copie d'abord dans le catalogue du téléphone (`cacheGlobalFood`, partagé avec l'ajout au journal), pour qu'il apparaisse hors ligne dans l'onglet « Favoris » ; retirer l'étoile supprime logiquement la ligne de favori.
+
+- **2026-11-03 · S3-3 vérifiée sur iPhone** : checklist de 8 points validée par Johan (ouverture, valeurs en direct, validation, portion nommée, 100 g, favori, quantité pré-remplie, quantité refusée).
+- **2026-11-03 · Ajout rapide** (non dessiné) : puce « Ajout rapide » sous la recherche de la feuille d'ajout ; elle remplace la feuille par la feuille `quick-add` (son enregistrement ramène directement à « Ta journée »). Nom facultatif (« Ajout rapide » par défaut), calories obligatoires (1 à 9 999 kcal), protéines, glucides et lipides facultatifs (vides = 0, 999 g au plus, `quickEntrySchema` dans `shared`), repas présélectionné. La saisie a `food_id` null et pas de quantité (spec section 4) : sa fiche ne propose que le repas et la suppression, et elle n'apparaît pas dans les Récents.
+- **2026-11-03 · Copier un repas d'hier** (non dessiné) : si le même repas de la veille contient des aliments, la feuille d'ajout montre « Copier le dîner d'hier · 2 aliments · 780 » au-dessus des onglets ; la toucher recopie ses saisies (aliment, quantité, portion, valeurs copiées) dans le repas d'aujourd'hui et ferme la feuille : 2 touches depuis le +. La ligne suit le repas choisi dans les puces. Les saisies d'hier ne changent pas.
 
 ## Rétros
 
