@@ -27,6 +27,7 @@ describe.each([
   ['warning on warningSoft (coherence warning)', colors.warning, colors.warningSoft],
   ['text on bg-filled fields', colors.text, colors.bg],
   ['danger on bg (form errors)', colors.danger, colors.bg],
+  ['danger on surface (delete in sheets)', colors.danger, colors.surface],
   ['onAccent on text (selected chip)', colors.onAccent, colors.text],
 ])('%s', (_, foreground, background) => {
   it('reaches 4.5:1', () => {

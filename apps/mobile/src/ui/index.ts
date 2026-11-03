@@ -5,6 +5,7 @@ export { Chip, type ChipProps } from './chip';
 export { ChoiceButton, type ChoiceButtonProps } from './choice-button';
 export { DayPicker, type DayPickerProps } from './day-picker';
 export { EmptyState } from './empty-state';
+export { EntryRow, type EntryRowProps } from './entry-row';
 export { FoodRow, type FoodRowProps } from './food-row';
 export { HeroCard } from './hero-card';
 export { IconTile, type IconTileProps } from './icon-tile';

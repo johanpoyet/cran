@@ -2,14 +2,14 @@
 
 ## Sprint en cours : S3 — Journal du jour
 
-| Story                                            | État     | PR                    |
-| ------------------------------------------------ | -------- | --------------------- |
-| S3-1 Écran Aujourd'hui                           | fait     | #23                   |
-| S3-2 Feuille d'ajout                             | en revue | `feat/S3-2-add-sheet` |
-| S3-3 Fiche quantité                              | à faire  |                       |
-| S3-4 Modifier / supprimer une saisie             | à faire  |                       |
-| S3-5 Ajout rapide kcal et copier un repas d'hier | à faire  |                       |
-| S3-6 Eau                                         | à faire  |                       |
+| Story                                            | État     | PR                       |
+| ------------------------------------------------ | -------- | ------------------------ |
+| S3-1 Écran Aujourd'hui                           | fait     | #23                      |
+| S3-2 Feuille d'ajout                             | fait     | #24                      |
+| S3-3 Fiche quantité                              | à faire  |                          |
+| S3-4 Modifier / supprimer une saisie             | en revue | `feat/S3-4-edit-entries` |
+| S3-5 Ajout rapide kcal et copier un repas d'hier | à faire  |                          |
+| S3-6 Eau                                         | à faire  |                          |
 
 ## Sprints terminés
 
@@ -169,6 +169,12 @@ Petites décisions prises sans changer le modèle de données, l'API ou l'UX. Le
 - **2026-11-02 · Feuille d'ajout : sélection** : « + » sélectionne l'aliment avec la dernière quantité saisie pour lui, sinon sa portion par défaut, sinon 100 g ; ✓ le retire. La barre du bas montre le nombre d'aliments et le total des calories, et « Ajouter » enregistre tout dans le repas choisi, avec un retour haptique léger. Ajouter un aliment récent prend 3 touches (le +, son +, « Ajouter ») : critère de S3-2. Modifier la quantité se fera dans la fiche quantité (S3-3), ouverte en touchant la pastille.
 - **2026-11-02 · Saisies du journal** : `addEntries` écrit les saisies dans une transaction SQLite, avec les valeurs copiées pour la quantité (`nutritionFor` dans `shared`, non arrondi), le libellé « nom (marque) » et l'heure. Un aliment global (CIQUAL, Open Food Facts) ajouté est copié dans la table `foods` du téléphone avec son id serveur : il reste disponible hors ligne dans les Récents et la recherche locale (anticipe S4-4).
 - **2026-11-02 · Nouveaux composants** : `SearchField`, `Segmented`, `FoodRow`, `SelectionBar`. `formatDecimal` dans `shared` (« 2,7 »). La recherche par code-barres (S5) et les modèles de repas (S6) de la maquette viendront avec leurs stories.
+
+- **2026-11-02 · S3-2 vérifiée sur iPhone** : checklist de 9 points validée par Johan (recherche, sélection, total, ajout, récents en 3 touches, repas présélectionné, favoris, création, mode avion).
+- **2026-11-02 · S3-4 avant S3-3** : à la demande de Johan (« fais au mieux »), après sa remarque qu'une fausse manipulation ne pouvait pas être corrigée : modifier et supprimer une saisie passe avant la fiche quantité.
+- **2026-11-02 · Modifier une saisie** (non dessiné) : sur « Ta journée », un repas rempli ouvre la feuille du repas (liste des aliments avec quantité, macros et calories, bouton « Ajouter un aliment ») ; un repas vide ouvre directement la feuille d'ajout. Toucher un aliment ouvre sa fiche : quantité en grammes (valeurs recalculées en direct), repas (pour le déplacer, le même jour), « Enregistrer » (actif seulement s'il y a un changement), « Supprimer de ce repas » avec une confirmation. Les nouvelles valeurs sont calculées à partir de celles copiées à la saisie (proportionnelles à la quantité), pas depuis l'aliment, qui a pu changer depuis. Une saisie rapide sans quantité (S3-5) ne montre que le repas et la suppression.
+- **2026-11-02 · Suppression** : logique (`deleted_at` et `updated_at`), pour que la synchro (S4) la propage ; la saisie disparaît du journal, des totaux et des récents. Toutes les fonctions ne touchent que les saisies de l'utilisateur connecté.
+- **2026-11-02 · Feuilles** : `add`, `meal/[type]` et `entry/[id]` partagent les mêmes options (`formSheet`, 90 % de hauteur). Dans les feuilles du repas et de la saisie, l'en-tête est dans la zone qui défile (un seul `ScrollView` à la racine) : sur l'iPhone de Johan, avec l'en-tête à côté du `ScrollView`, la liste se plaçait par-dessus le titre. Nouveau composant `EntryRow` ; `LinkButton` a un ton `danger` (contraste vérifié sur fond blanc).
 
 ## Rétros
 
