@@ -2,13 +2,13 @@
 
 ## Sprint en cours : S4 — Synchronisation
 
-| Story                           | État     | PR                         |
-| ------------------------------- | -------- | -------------------------- |
-| S4-1 Colonnes de synchro        | fait     | #30                        |
-| S4-2 Endpoints push et pull     | en revue | `feat/S4-2-sync-endpoints` |
-| S4-3 Moteur de synchro client   | à faire  |                            |
-| S4-4 Cache des aliments globaux | à faire  |                            |
-| S4-5 ADR synchro local-first    | à faire  |                            |
+| Story                           | État     | PR                      |
+| ------------------------------- | -------- | ----------------------- |
+| S4-1 Colonnes de synchro        | fait     | #30                     |
+| S4-2 Endpoints push et pull     | fait     | #31                     |
+| S4-3 Moteur de synchro client   | en revue | `feat/S4-3-sync-engine` |
+| S4-4 Cache des aliments globaux | à faire  |                         |
+| S4-5 ADR synchro local-first    | à faire  |                         |
 
 ## Sprints terminés
 
@@ -217,6 +217,13 @@ Petites décisions prises sans changer le modèle de données, l'API ou l'UX. Le
 - **2026-11-03 · Format de synchro** : une ligne complète par changement, dans la forme de la base du téléphone (camelCase), instants en ISO, jours en `YYYY-MM-DD` ; une suppression est une ligne avec `deletedAt`. Un schéma Zod strict par table dans `shared` (`syncRowSchemas`), partagé par l'API et le moteur de synchro de l'app (S4-3). `server_seq` ne voyage pas dans les lignes : seul le curseur du pull le porte.
 - **2026-11-03 · `POST /v1/sync/push`** : au plus 500 changements ; chaque ligne est validée et appliquée seule (une ligne invalide ne bloque pas le lot), dans l'ordre parents puis enfants (`SYNC_TABLES` : aliments avant portions et saisies, recettes avant ingrédients…). Dernière écriture gagnante sur `updatedAt` : une version plus ancienne que celle du serveur est refusée (`stale`), la même version renvoyée est acceptée sans rien changer (idempotence). Raisons de refus : `unknown_table`, `read_only` (cibles hebdomadaires, écrites par le serveur seulement), `invalid`, `forbidden` (ligne ou identifiant d'un autre utilisateur, aliment CIQUAL ou Open Food Facts), `future_timestamp` (plus de 5 minutes d'avance), `stale`, `unknown_reference` (aliment ou recette absent du serveur), `conflict` (second profil, deux cibles pour une semaine). L'upsert ne touche jamais une ligne d'un autre utilisateur, ni une version plus récente arrivée entre-temps.
 - **2026-11-03 · `GET /v1/sync/pull?cursor=&limit=`** : les lignes de l'utilisateur dont `server_seq` dépasse le curseur, toutes tables confondues, dans l'ordre d'écriture, par pages de 500 au plus, avec le nouveau curseur et `hasMore`. Le catalogue global n'y est pas (ses aliments utilisés seront copiés par S4-4) ; le profil, la première pesée et la cible créés par l'onboarding y sont.
+
+- **2026-11-03 · File de synchro du téléphone** : table `pending_changes` (table, identifiant de ligne, version, tentatives, date), remplie par des triggers SQLite à chaque insertion ou modification des 12 tables envoyées (comme le trigger `server_seq` du serveur : aucun écran ne peut l'oublier). La spec parlait de stocker l'opération et les données : la file garde seulement la référence de la ligne, et l'envoi lit la ligne à jour, ce qui évite de renvoyer des versions intermédiaires. Exclus : les aliments globaux copiés sur le téléphone (sans propriétaire), les cibles hebdomadaires (écrites par le serveur), les photos. La migration met une fois dans la file les données saisies avant la synchro.
+- **2026-11-03 · Moteur de synchro** : envoi par lots de 500, puis récupération page par page depuis le curseur (gardé dans `local_meta`). Une ligne modifiée pendant l'envoi reste dans la file (sa version a avancé). Refus : `stale` retire la ligne de la file (la récupération ramène la version du serveur) ; `unknown_reference` et `future_timestamp` sont retentés jusqu'à 5 fois ; les autres sont signalés à Sentry et retirés. Une ligne récupérée est écrite sans repasser par la file (drapeau `applying_pull` lu par les triggers) ; si la même ligne attend d'être envoyée avec une version plus récente, la version du téléphone est gardée, sinon celle du serveur la remplace.
+- **2026-11-03 · Déclenchement** : à l'ouverture, au retour au premier plan, au retour du réseau (`expo-network`), toutes les 5 minutes au premier plan, et 3 secondes après une modification du téléphone (ajout à la spec, pour qu'un second appareil voie vite une saisie). Une seule synchro à la fois ; une demande pendant une synchro en relance une seule à la fin.
+- **2026-11-03 · Fin de la copie provisoire** : la synchro amène le profil et les cibles hebdomadaires ; la copie de `/v1/me` au lancement (S3-1) et l'envoi de l'objectif d'eau par `PATCH /v1/me` (S3-6) sont retirés. Changer l'objectif d'eau modifie le profil local, que la synchro envoie.
+- **2026-11-03 · Indicateur de synchro** (non dessiné) : petite icône ronde à gauche de « Semaine » sur « Ta journée » : nuage coché (synchronisé), nuage avec flèche (changements à envoyer), flèches (en cours), nuage barré (hors ligne), nuage avec alerte (erreur du serveur). VoiceOver lit l'état et le nombre de changements en attente ; la toucher relance une synchro.
+- **2026-11-03 · Déconnexion** : elle tente d'abord une synchro ; s'il reste des changements non envoyés, une alerte prévient qu'ils seront perdus (« Annuler » / « Se déconnecter »). La file et le curseur sont effacés avec les autres données locales.
 
 ## Rétros
 
