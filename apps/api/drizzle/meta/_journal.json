@@ -29,6 +29,13 @@
       "when": 1793460330780,
       "tag": "0003_foods",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793713792418,
+      "tag": "0004_sync_tables",
+      "breakpoints": true
     }
   ]
 }
