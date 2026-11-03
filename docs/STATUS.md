@@ -1,17 +1,31 @@
 # Avancement
 
-## Sprint en cours : S3 — Journal du jour
+## Sprint en cours : S4 — Synchronisation
 
-| Story                                            | État     | PR                |
-| ------------------------------------------------ | -------- | ----------------- |
-| S3-1 Écran Aujourd'hui                           | fait     | #23               |
-| S3-2 Feuille d'ajout                             | fait     | #24               |
-| S3-3 Fiche quantité                              | fait     | #26               |
-| S3-4 Modifier / supprimer une saisie             | fait     | #25               |
-| S3-5 Ajout rapide kcal et copier un repas d'hier | fait     | #27               |
-| S3-6 Eau                                         | en revue | `feat/S3-6-water` |
+| Story                           | État    | PR  |
+| ------------------------------- | ------- | --- |
+| S4-1 Colonnes de synchro        | à faire |     |
+| S4-2 Endpoints push et pull     | à faire |     |
+| S4-3 Moteur de synchro client   | à faire |     |
+| S4-4 Cache des aliments globaux | à faire |     |
+| S4-5 ADR synchro local-first    | à faire |     |
 
 ## Sprints terminés
+
+### S3 — Journal du jour (clos le 2026-11-03)
+
+| Story                                            | État | PR  |
+| ------------------------------------------------ | ---- | --- |
+| S3-1 Écran Aujourd'hui                           | fait | #23 |
+| S3-2 Feuille d'ajout                             | fait | #24 |
+| S3-4 Modifier / supprimer une saisie             | fait | #25 |
+| S3-3 Fiche quantité                              | fait | #26 |
+| S3-5 Ajout rapide kcal et copier un repas d'hier | fait | #27 |
+| S3-6 Eau                                         | fait | #28 |
+
+S3-4 a été faite avant S3-3, à la demande de Johan.
+
+Démo : checklists validées par Johan sur son iPhone, story par story (builds `preview`, API staging). Une journée se saisit entièrement sur le téléphone : recherche CIQUAL et aliments perso, récents en 3 touches, quantité en grammes ou en portion, ajout rapide, copie d'un repas d'hier, modification et suppression, eau ; « Ta journée » montre le reste à manger, les macros et les repas. Tout fonctionne en mode avion (critère de S3-6), la cible venant d'une copie du serveur au lancement en attendant la synchro.
 
 ### S2 — Base d'aliments (clos le 2026-11-02)
 
@@ -191,7 +205,15 @@ Petites décisions prises sans changer le modèle de données, l'API ou l'UX. Le
 - **2026-11-03 · Feuille de l'eau** (non dessinée) : quantité du jour sur l'objectif, barre de progression, « Ajouter un verre de 250 ml », les verres du jour (toucher un verre le retire, suppression logique), et l'objectif par jour réglable de 500 ml à 10 L par pas de 250 ml (`Stepper` gagne `step` et `format`). `formatLiters` dans `shared` (« 1,5 L »).
 - **2026-11-03 · Objectif d'eau hors ligne** : l'objectif est modifié dans le profil du téléphone, dont l'`updated_at` avance. À la copie suivante depuis le serveur (lancement, retour au premier plan, ou juste après le changement si le réseau est là), si le profil du téléphone est plus récent que celui du serveur, l'app envoie d'abord `PATCH /v1/me` avec l'objectif, puis garde la réponse : la dernière modification gagne, sans écraser un changement fait en mode avion. Les verres d'eau restent sur le téléphone jusqu'à la synchro (S4). Toute la story fonctionne en mode avion (critère de S3-6).
 
+- **2026-11-03 · S3-6 vérifiée sur iPhone** : checklist de 7 points validée par Johan, dont le mode avion et l'objectif changé hors ligne conservé au retour du réseau.
+
 ## Rétros
+
+### S3 — Journal du jour
+
+- **Bien** : l'app est utilisable au quotidien, hors ligne, et chaque story a été validée sur l'iPhone ; l'ordre a pu changer (S3-4 avant S3-3) dès le premier besoin réel ; le local-first tient avec une simple notification de changement sur SQLite.
+- **À améliorer** : un défaut d'affichage des feuilles (en-tête recouvert) n'a été vu que sur l'iPhone, faute de vérification visuelle automatique ; plusieurs écrans sans maquette (feuilles du repas, de la saisie, de l'eau, fiche quantité, ajout rapide) ont été dessinés au fil de l'eau.
+- **À essayer** : installer Java pour faire tourner Maestro et avoir des captures avant le build (décision de Johan) ; dessiner les écrans manquants avant de les coder quand c'est possible.
 
 ### S2 — Base d'aliments
 
