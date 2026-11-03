@@ -35,6 +35,10 @@ jest.mock('./auth/client', () => jest.requireActual<object>('./test/fake-auth-cl
 jest.mock('./db/use-local-database', () => ({ useLocalDatabase: jest.fn(() => 'ready') }));
 jest.mock('./db/local-data', () => ({ clearLocalData: jest.fn(), claimLocalData: jest.fn() }));
 jest.mock('./profile/use-local-copy', () => ({ useLocalCopy: jest.fn() }));
+jest.mock('./journal/entries', () => ({
+  ...jest.requireActual<object>('./journal/entries'),
+  readMealEntries: jest.fn(() => []),
+}));
 jest.mock('./foods/recents', () => ({
   ...jest.requireActual<object>('./foods/recents'),
   readRecentFoods: jest.fn(() => []),
