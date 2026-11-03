@@ -1,5 +1,8 @@
 import type { Me } from '@cran/shared';
 
+import * as schema from '../db/schema';
+import type { LocalDatabase } from '../db/types';
+
 /** Answer of GET /v1/me after the onboarding of the mockups. */
 export const me: Me = {
   user: { id: '0192f0c0-0000-7000-8000-00000000a11c', email: 'johan@example.com' },
@@ -35,3 +38,18 @@ export const me: Me = {
     status: 'insufficient_data',
   },
 };
+
+/** The profile of `me` in the local database, as the sync would have written it. */
+export function insertProfile(db: LocalDatabase): void {
+  const profile = me.profile;
+  if (!profile) return;
+  const { updatedAt, healthDataConsentAt, ...fields } = profile;
+  db.insert(schema.profiles)
+    .values({
+      ...fields,
+      userId: me.user.id,
+      updatedAt: new Date(updatedAt),
+      healthDataConsentAt: healthDataConsentAt === null ? null : new Date(healthDataConsentAt),
+    })
+    .run();
+}

@@ -1,4 +1,4 @@
-export { notifyLocalChange, useLocalQuery } from './changes';
+export { notifyLocalChange, onLocalChange, useLocalQuery } from './changes';
 export { localDb } from './client';
 export { newId } from './id';
 export { claimLocalData, clearLocalData } from './local-data';

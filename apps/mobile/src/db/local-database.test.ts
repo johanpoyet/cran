@@ -161,6 +161,7 @@ describe('local database', () => {
       'meal_template_items',
       'meal_templates',
       'measurements',
+      'pending_changes',
       'profiles',
       'progress_photos',
       'recipe_ingredients',

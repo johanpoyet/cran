@@ -11,6 +11,11 @@ export function notifyLocalChange(): void {
   for (const listener of listeners) listener();
 }
 
+/** Calls `listener` after each local change; returns the unsubscribe function. */
+export function onLocalChange(listener: () => void): () => void {
+  return subscribe(listener);
+}
+
 function subscribe(listener: () => void): () => void {
   listeners.add(listener);
   return () => {

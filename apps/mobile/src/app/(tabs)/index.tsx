@@ -16,6 +16,7 @@ import { StyleSheet, View } from 'react-native';
 import { useSessionUserId } from '../../auth';
 import { localDb, useLocalQuery } from '../../db';
 import { addWater, type MealType, readToday } from '../../journal';
+import { requestSync, useSyncState } from '../../sync';
 import { type ColorToken, space } from '../../theme/tokens';
 import {
   Badge,
@@ -26,6 +27,8 @@ import {
   MealRow,
   ProgressBar,
   Screen,
+  SyncBadge,
+  type SyncBadgeState,
   Text,
   WaterCard,
 } from '../../ui';
@@ -56,18 +59,46 @@ export default function TodayScreen() {
   );
   const summary = useLocalQuery(read);
 
+  const sync = useSyncState();
+  const badgeState: SyncBadgeState =
+    sync.status === 'syncing'
+      ? 'syncing'
+      : sync.status === 'offline'
+        ? 'offline'
+        : sync.status === 'error'
+          ? 'error'
+          : sync.pending > 0
+            ? 'pending'
+            : 'synced';
+  const badgeLabel = {
+    synced: t('sync.idle'),
+    pending: t('sync.pending', { count: sync.pending }),
+    syncing: t('sync.syncing'),
+    offline:
+      sync.pending > 0 ? t('sync.offlinePending', { count: sync.pending }) : t('sync.offline'),
+    error: t('sync.error'),
+  }[badgeState];
+
   const header = {
     title: t('today.title'),
     overline: formatDayLabel(today),
     accessory: (
-      <Chip
-        label={t('today.week')}
-        icon={CalendarDays}
-        accessibilityHint={t('today.weekHint')}
-        onPress={() => {
-          router.navigate('/journal');
-        }}
-      />
+      <View style={styles.accessory}>
+        <SyncBadge
+          state={badgeState}
+          accessibilityLabel={badgeLabel}
+          accessibilityHint={t('sync.hint')}
+          onPress={() => void requestSync()}
+        />
+        <Chip
+          label={t('today.week')}
+          icon={CalendarDays}
+          accessibilityHint={t('today.weekHint')}
+          onPress={() => {
+            router.navigate('/journal');
+          }}
+        />
+      </View>
     ),
   };
 
@@ -206,6 +237,7 @@ export default function TodayScreen() {
 }
 
 const styles = StyleSheet.create({
+  accessory: { flexDirection: 'row', alignItems: 'center', gap: space[8] },
   hero: { gap: space[16] },
   heroTop: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
   heroTexts: { flex: 1, gap: space[4] },

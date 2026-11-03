@@ -31,6 +31,7 @@ export { StepHeader, type StepHeaderProps } from './step-header';
 export { StepScreen, type StepScreenProps } from './step-screen';
 export { Stepper, type StepperProps } from './stepper';
 export { SwitchRow, type SwitchRowProps } from './switch-row';
+export { SyncBadge, type SyncBadgeProps, type SyncBadgeState } from './sync-badge';
 export {
   TAB_ROUTES,
   TabBar,

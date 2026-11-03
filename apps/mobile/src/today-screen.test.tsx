@@ -1,14 +1,17 @@
-import { fireEvent, screen } from '@testing-library/react-native';
+import { act, fireEvent, screen } from '@testing-library/react-native';
 import { renderRouter } from 'expo-router/testing-library';
 
 import TodayScreen from './app/(tabs)/index';
 import { readToday, type TodaySummary } from './journal/today';
 import { addWater } from './journal/water';
+import { requestSync } from './sync/scheduler';
+import { useSyncState } from './sync/store';
 import { setSession, signedIn } from './test/fake-auth-client';
 
 jest.mock('./auth/client', () => jest.requireActual<object>('./test/fake-auth-client'));
 jest.mock('./journal/today', () => ({ readToday: jest.fn() }));
 jest.mock('./journal/water', () => ({ addWater: jest.fn() }));
+jest.mock('./sync/scheduler', () => ({ requestSync: jest.fn(() => Promise.resolve()) }));
 
 // Values of the "Aujourd'hui" mockup.
 const mockup: TodaySummary = {
@@ -106,6 +109,23 @@ describe('Ta journée', () => {
     await fireEvent.press(screen.getByRole('button', { name: 'Eau : 1,5\u00a0L sur 3\u00a0L' }));
 
     expect(screen).toHavePathname('/water');
+  });
+
+  it('shows the state of the sync and synchronises when touched', async () => {
+    useSyncState.setState({ status: 'offline', pending: 3, lastSyncedAt: null });
+    await renderToday(mockup);
+
+    await fireEvent.press(
+      screen.getByRole('button', {
+        name: 'Hors ligne, 3 changements partiront au retour du réseau',
+      }),
+    );
+    expect(requestSync).toHaveBeenCalled();
+
+    await act(() => {
+      useSyncState.setState({ status: 'idle', pending: 0 });
+    });
+    expect(screen.getByRole('button', { name: 'Synchronisé' })).toBeOnTheScreen();
   });
 
   it('opens the entries of a filled meal', async () => {
