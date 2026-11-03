@@ -4,10 +4,13 @@ import { notifyLocalChange } from '../db/changes';
 import { newId } from '../db/id';
 import * as schema from '../db/schema';
 import type { LocalDatabase } from '../db/types';
+import { cacheGlobalFood } from '../foods/cache';
 
 export interface EntryToAdd {
   food: Food;
   grams: number;
+  /** Named portion chosen in the quantity sheet ("1 galette"), kept with the entry. */
+  portionLabel?: string | null;
 }
 
 /**
@@ -22,14 +25,8 @@ export function addEntries(
 ): void {
   const date = localDateKey(at);
   db.transaction((tx) => {
-    for (const { food, grams } of items) {
-      if (food.source !== 'user') {
-        const { id, ...values } = food;
-        tx.insert(schema.foods)
-          .values({ id, ownerId: null, ...values })
-          .onConflictDoUpdate({ target: schema.foods.id, set: { ...values, updatedAt: at } })
-          .run();
-      }
+    for (const { food, grams, portionLabel = null } of items) {
+      cacheGlobalFood(tx, food, at);
       tx.insert(schema.logEntries)
         .values({
           id: newId(),
@@ -39,6 +36,7 @@ export function addEntries(
           foodId: food.id,
           label: food.brand ? `${food.name} (${food.brand})` : food.name,
           grams,
+          portionLabel,
           ...nutritionFor(food, grams),
           loggedAt: at,
           createdAt: at,

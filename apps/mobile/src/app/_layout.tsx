@@ -86,6 +86,7 @@ function RootLayout() {
             <Stack.Screen name="add" options={SHEET} />
             <Stack.Screen name="meal/[type]" options={SHEET} />
             <Stack.Screen name="entry/[id]" options={SHEET} />
+            <Stack.Screen name="food/[id]" options={SHEET} />
             <Stack.Screen name="food/new" />
           </Stack.Protected>
           <Stack.Protected guard={authStatus === 'onboarding'} redirectTo={home}>

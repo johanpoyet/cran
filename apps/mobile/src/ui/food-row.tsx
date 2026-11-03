@@ -14,8 +14,10 @@ export interface FoodRowProps {
   onToggle: () => void;
   /** "Ajouter Riz basmati cuit" / "Retirer Riz basmati cuit" */
   toggleLabel: string;
-  /** Touching the quantity pill (opens the quantity sheet). */
-  onQuantityPress?: () => void;
+  /** Touching the name or the quantity pill: opens the quantity sheet. */
+  onOpen?: () => void;
+  /** "Choisir la quantité de Riz basmati cuit" */
+  openLabel?: string;
   quantityLabel?: string;
 }
 
@@ -27,25 +29,32 @@ export function FoodRow({
   selected,
   onToggle,
   toggleLabel,
-  onQuantityPress,
+  onOpen,
+  openLabel,
   quantityLabel,
 }: FoodRowProps) {
   return (
     <View style={styles.row}>
-      <View style={styles.texts}>
+      <Pressable
+        accessibilityRole="button"
+        {...(openLabel ? { accessibilityLabel: openLabel } : {})}
+        disabled={!onOpen}
+        onPress={onOpen}
+        style={styles.texts}
+      >
         <Text variant="lead" weight={700} numberOfLines={2}>
           {name}
         </Text>
         <Text variant="caption" color="textMuted" numberOfLines={1}>
           {details}
         </Text>
-      </View>
+      </Pressable>
       {quantity ? (
         <Pressable
           accessibilityRole="button"
           {...(quantityLabel ? { accessibilityLabel: quantityLabel } : {})}
-          disabled={!onQuantityPress}
-          onPress={onQuantityPress}
+          disabled={!onOpen}
+          onPress={onOpen}
           style={styles.quantity}
         >
           <Text variant="label" weight={700} color="accent">
