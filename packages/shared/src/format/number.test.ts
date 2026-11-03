@@ -6,6 +6,7 @@ import {
   formatInteger,
   formatKcal,
   formatKg,
+  formatLiters,
   parseDecimal,
 } from './number';
 
@@ -70,5 +71,20 @@ describe('formatDecimal', () => {
     [1234.56, '1 234,6'],
   ])('writes %d as %s', (value, expected) => {
     expect(plain(formatDecimal(value))).toBe(expected);
+  });
+});
+
+describe('formatLiters', () => {
+  it.each([
+    [1500, '1,5 L'],
+    [3000, '3 L'],
+    [250, '0,25 L'],
+    [10_000, '10 L'],
+  ])('writes %d ml as %s', (ml, expected) => {
+    expect(plain(formatLiters(ml))).toBe(expected);
+  });
+
+  it('can leave out the unit', () => {
+    expect(formatLiters(1500, { unit: false })).toBe('1,5');
   });
 });

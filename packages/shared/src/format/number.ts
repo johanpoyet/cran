@@ -16,6 +16,14 @@ export function formatDecimal(value: number): string {
   return decimalFormat.format(value);
 }
 
+const litersFormat = new Intl.NumberFormat(LOCALE, { maximumFractionDigits: 2 });
+
+/** Millilitres as litres: "1,5 L", "3 L", "0,25 L"; without the unit for "1,5 / 3 L". */
+export function formatLiters(ml: number, { unit = true }: { unit?: boolean } = {}): string {
+  const liters = litersFormat.format(ml / 1000);
+  return unit ? `${liters}\u00a0L` : liters;
+}
+
 export function formatInteger(value: number): string {
   return integerFormat.format(value);
 }

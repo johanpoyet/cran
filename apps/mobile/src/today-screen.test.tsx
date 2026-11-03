@@ -3,10 +3,12 @@ import { renderRouter } from 'expo-router/testing-library';
 
 import TodayScreen from './app/(tabs)/index';
 import { readToday, type TodaySummary } from './journal/today';
+import { addWater } from './journal/water';
 import { setSession, signedIn } from './test/fake-auth-client';
 
 jest.mock('./auth/client', () => jest.requireActual<object>('./test/fake-auth-client'));
 jest.mock('./journal/today', () => ({ readToday: jest.fn() }));
+jest.mock('./journal/water', () => ({ addWater: jest.fn() }));
 
 // Values of the "Aujourd'hui" mockup.
 const mockup: TodaySummary = {
@@ -19,6 +21,7 @@ const mockup: TodaySummary = {
     trainingDay: false,
   },
   eaten: { kcal: 2140, proteinG: 128.4, carbsG: 265, fatG: 62 },
+  water: { totalMl: 1500, goalMl: 3000 },
   meals: [
     { mealType: 'breakfast', count: 3, kcal: 640, firstLoggedAt: new Date(2026, 9, 27, 8, 10) },
     { mealType: 'lunch', count: 3, kcal: 820, firstLoggedAt: new Date(2026, 9, 27, 12, 45) },
@@ -31,7 +34,13 @@ async function renderToday(summary: TodaySummary) {
   jest.mocked(readToday).mockReturnValue(summary);
   setSession(signedIn);
   await renderRouter(
-    { index: TodayScreen, add: () => null, 'meal/[type]': () => null, journal: () => null },
+    {
+      index: TodayScreen,
+      add: () => null,
+      'meal/[type]': () => null,
+      journal: () => null,
+      water: () => null,
+    },
     { initialUrl: '/' },
   );
 }
@@ -76,6 +85,27 @@ describe('Ta journée', () => {
 
     expect(screen).toHavePathname('/add');
     expect(screen).toHaveSearchParams({ meal: 'dinner' });
+  });
+
+  it('shows the water of the day and adds a glass with the +', async () => {
+    await renderToday(mockup);
+
+    expect(screen.getByText('1,5 / 3\u00a0L')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('button', { name: 'Ajouter un verre de 250 ml' }));
+
+    expect(addWater).toHaveBeenCalledWith(
+      expect.anything(),
+      signedIn.data?.user.id,
+      250,
+      expect.any(Date),
+    );
+  });
+
+  it('opens the water sheet from the card', async () => {
+    await renderToday(mockup);
+    await fireEvent.press(screen.getByRole('button', { name: 'Eau : 1,5\u00a0L sur 3\u00a0L' }));
+
+    expect(screen).toHavePathname('/water');
   });
 
   it('opens the entries of a filled meal', async () => {

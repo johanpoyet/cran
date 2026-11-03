@@ -16,3 +16,4 @@ export {
   readToday,
   type TodaySummary,
 } from './today';
+export { addWater, deleteWater, readWater, type WaterDay, type WaterLog } from './water';

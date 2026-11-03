@@ -25,3 +25,6 @@ export const PROFILE_DEFAULTS = {
   trainingBonusKcal: 150,
   waterGoalMl: 3000,
 } as const;
+
+/** One glass of water, added by the + of the "Eau" card (docs/SPEC.md S3-6). */
+export const WATER_GLASS_ML = 250;

@@ -1,4 +1,5 @@
 import { type Me, meSchema } from '@cran/shared';
+import { eq } from 'drizzle-orm';
 
 import { notifyLocalChange } from '../db/changes';
 import * as schema from '../db/schema';
@@ -37,10 +38,25 @@ export function saveMe(db: LocalDatabase, me: Me): void {
   notifyLocalChange();
 }
 
-/** Fetches /v1/me and saves it locally. Offline or failing: the previous copy stays. */
+/**
+ * Fetches /v1/me and saves it locally. A profile changed on the phone since the server's version
+ * (water goal set offline) is sent to the server first: the latest change wins. Offline or
+ * failing: the previous copy stays.
+ */
 export async function refreshLocalCopy(db: LocalDatabase): Promise<boolean> {
   try {
-    saveMe(db, await apiFetch('/v1/me', meSchema));
+    let me = await apiFetch('/v1/me', meSchema);
+    const local = me.profile
+      ? db.select().from(schema.profiles).where(eq(schema.profiles.id, me.profile.id)).get()
+      : undefined;
+    if (me.profile && local && local.updatedAt.getTime() > Date.parse(me.profile.updatedAt)) {
+      // Settings the app lets the user change so far.
+      me = await apiFetch('/v1/me', meSchema, {
+        method: 'PATCH',
+        body: { waterGoalMl: local.waterGoalMl },
+      });
+    }
+    saveMe(db, me);
     return true;
   } catch {
     return false;

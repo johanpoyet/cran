@@ -1,4 +1,12 @@
-import { formatDayLabel, formatGrams, formatInteger, formatKcal, formatTime } from '@cran/shared';
+import {
+  formatDayLabel,
+  formatGrams,
+  formatInteger,
+  formatKcal,
+  formatLiters,
+  formatTime,
+  WATER_GLASS_ML,
+} from '@cran/shared';
 import { router } from 'expo-router';
 import { CalendarDays } from 'lucide-react-native';
 import { useCallback, useState } from 'react';
@@ -7,7 +15,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { useSessionUserId } from '../../auth';
 import { localDb, useLocalQuery } from '../../db';
-import { type MealType, readToday } from '../../journal';
+import { addWater, type MealType, readToday } from '../../journal';
 import { type ColorToken, space } from '../../theme/tokens';
 import {
   Badge,
@@ -19,6 +27,7 @@ import {
   ProgressBar,
   Screen,
   Text,
+  WaterCard,
 } from '../../ui';
 
 const MEAL_COLORS: Record<MealType, { color: ColorToken; background: ColorToken }> = {
@@ -70,7 +79,8 @@ export default function TodayScreen() {
     );
   }
 
-  const { target, eaten, meals } = summary;
+  const { target, eaten, meals, water } = summary;
+  const waterGoal = water.goalMl ?? 0;
   const eatenKcal = Math.round(eaten.kcal);
   const left = target.kcal - eatenKcal;
 
@@ -127,6 +137,27 @@ export default function TodayScreen() {
           );
         })}
       </View>
+
+      <WaterCard
+        label={t('water.title')}
+        amount={t('water.amount', {
+          drunk: formatLiters(water.totalMl, { unit: false }),
+          goal: formatLiters(waterGoal),
+        })}
+        progress={waterGoal > 0 ? water.totalMl / waterGoal : 0}
+        addLabel={t('water.addGlass', { ml: WATER_GLASS_ML })}
+        onAdd={() => {
+          if (userId) addWater(localDb, userId, WATER_GLASS_ML, new Date());
+        }}
+        accessibilityLabel={t('water.cardLabel', {
+          drunk: formatLiters(water.totalMl),
+          goal: formatLiters(waterGoal),
+        })}
+        accessibilityHint={t('water.cardHint')}
+        onPress={() => {
+          router.push('/water');
+        }}
+      />
 
       <Text variant="heading" weight={800} accessibilityRole="header">
         {t('today.meals')}

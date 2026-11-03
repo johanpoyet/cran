@@ -41,3 +41,4 @@ export {
 } from './tab-bar';
 export { Text, type TextProps } from './text';
 export { TextField, type TextFieldProps } from './text-field';
+export { WATER_SEGMENTS, WaterCard, type WaterCardProps } from './water-card';

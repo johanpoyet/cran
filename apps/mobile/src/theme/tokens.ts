@@ -17,6 +17,8 @@ export const colors = {
   fat: '#9B6BE0',
   fatSoft: '#F2ECFC',
   water: '#3FA9F5',
+  /** Background of the + of the "Eau" card. */
+  waterSoft: '#E8F5FE',
   success: '#0E6B58',
   /** Background of the "Cohérent" banner. */
   successSoft: '#E6F6F2',
@@ -104,6 +106,8 @@ export const control = {
   dayHeight: 48,
   /** Letter tile of a meal row ("P" for petit-déjeuner). */
   mealTile: 44,
+  /** Glass segments of the "Eau" card. */
+  waterSegment: { width: 14, height: 28 },
   macroRing: 64,
 } as const;
 
