@@ -2,13 +2,13 @@
 
 ## Sprint en cours : S4 — Synchronisation
 
-| Story                           | État     | PR                            |
-| ------------------------------- | -------- | ----------------------------- |
-| S4-1 Colonnes de synchro        | fait     | #30                           |
-| S4-2 Endpoints push et pull     | fait     | #31                           |
-| S4-3 Moteur de synchro client   | fait     | #32                           |
-| S4-4 Cache des aliments globaux | en revue | `feat/S4-4-global-food-cache` |
-| S4-5 ADR synchro local-first    | à faire  |                               |
+| Story                           | État     | PR                               |
+| ------------------------------- | -------- | -------------------------------- |
+| S4-1 Colonnes de synchro        | fait     | #30                              |
+| S4-2 Endpoints push et pull     | fait     | #31                              |
+| S4-3 Moteur de synchro client   | fait     | #32                              |
+| S4-4 Cache des aliments globaux | fait     | #33                              |
+| S4-5 ADR synchro local-first    | en revue | `feat/S4-5-adr-sync-local-first` |
 
 ## Sprints terminés
 
@@ -228,6 +228,8 @@ Petites décisions prises sans changer le modèle de données, l'API ou l'UX. Le
 - **2026-11-03 · S4-3 vérifiée sur iPhone** : checklist de 6 points validée par Johan : envoi des données existantes, saisie en mode avion, retour du réseau sans geste, « second appareil » simulé par déconnexion puis reconnexion (journée retrouvée à l'identique, suppression comprise), alerte de déconnexion avec un changement non envoyé, relance manuelle. Vérifié ensuite en lecture seule sur la base du staging : saisies, suppression, verres d'eau, aliments perso et favori du compte de Johan y sont. Critère du sprint (journée saisie hors ligne retrouvée sur un autre appareil) atteint.
 - **2026-11-03 · `GET /v1/foods/:id`** (spec section 5) : un aliment du catalogue ou de l'utilisateur, avec ses portions (celles du catalogue et les siennes, de la plus petite à la plus grande) ; 404 pour un aliment inconnu ou d'un autre utilisateur. Un aliment global retiré de CIQUAL est encore renvoyé, car des saisies peuvent l'utiliser.
 - **2026-11-03 · Cache des aliments globaux** : à la fin de chaque synchro, l'app cherche les aliments utilisés par le journal, les favoris, les recettes et les modèles mais absents du téléphone (aliments CIQUAL ou Open Food Facts, jamais synchronisés), et les copie par `GET /v1/foods/:id` (100 au plus par synchro, 4 requêtes à la fois) : récents, favoris et recherche locale marchent sur un second appareil ou après une reconnexion. Un aliment que le serveur n'a plus est ignoré. Seul l'aliment est copié : les portions de l'utilisateur arrivent par la synchro, et le catalogue n'a pas encore de portions propres (Open Food Facts, S5).
+- **2026-11-03 · S4-4 vérifiée sur iPhone** : après le merge de #33, `GET /v1/foods/{id}` publiée sur le staging (doc OpenAPI, 401 sans session). Checklist de 3 points validée par Johan : aliments CIQUAL retrouvés dans les récents après déconnexion puis reconnexion, favori CIQUAL retrouvé, recherche de ces aliments en mode avion.
+- **2026-11-03 · Synchro local-first** : choix de la dernière écriture gagnante par ligne, écarts à la spec et limites connues (granularité de la ligne, horloge des appareils, suppression puis modification, écritures concurrentes et curseur, pas encore de purge à 90 jours) dans l'[ADR 0002](adr/0002-sync-local-first.md).
 
 ## Rétros
 
