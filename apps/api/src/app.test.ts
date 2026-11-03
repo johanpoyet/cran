@@ -72,6 +72,8 @@ describe('API documentation', () => {
     expect(Object.keys(doc.paths['/v1/me'] ?? {})).toEqual(['get', 'patch']);
     expect(Object.keys(doc.paths['/v1/onboarding'] ?? {})).toEqual(['post']);
     expect(Object.keys(doc.paths['/v1/foods/search'] ?? {})).toEqual(['get']);
+    expect(Object.keys(doc.paths['/v1/sync/push'] ?? {})).toEqual(['post']);
+    expect(Object.keys(doc.paths['/v1/sync/pull'] ?? {})).toEqual(['get']);
     expect(doc.components.schemas).toHaveProperty('Me');
     expect(doc.components.schemas).toHaveProperty('ProfileUpdate');
   });
