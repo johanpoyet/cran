@@ -395,6 +395,16 @@
     "offline": "Pas de réseau : le produit ne peut pas être cherché pour l’instant.",
     "unavailable": "Open Food Facts ne répond pas. Réessaie dans un instant.",
     "retry": "Réessayer",
-    "again": "Scanner un autre produit"
+    "again": "Scanner un autre produit",
+    "quantity": "Quantité",
+    "other": "Autre…",
+    "kcal": "kcal",
+    "protein": "prot. g",
+    "carbs": "gluc. g",
+    "fat": "lip. g",
+    "macro": "{{name}} : {{grams}} g",
+    "addTo": "Ajouter à",
+    "cancel": "Annuler",
+    "add": "Ajouter · {{kcal}}"
   }
 }

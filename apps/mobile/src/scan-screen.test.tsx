@@ -4,17 +4,21 @@ import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { renderRouter } from 'expo-router/testing-library';
 import type { ReactNode } from 'react';
-import { Linking } from 'react-native';
+import { ActionSheetIOS, Keyboard, type KeyboardEvent, Linking } from 'react-native';
 
 import ScanScreen from './app/scan';
+import { addEntries } from './journal/add-entries';
 import { setSession, signedIn } from './test/fake-auth-client';
 import { mockFetchFailure, mockFetchResponse } from './test/fetch';
 import { skyr } from './test/foods';
 
 jest.mock('./auth/client', () => jest.requireActual<object>('./test/fake-auth-client'));
+jest.mock('./journal/add-entries', () => ({ addEntries: jest.fn() }));
 jest.mock('expo-haptics', () => ({
   notificationAsync: jest.fn(() => Promise.resolve()),
+  impactAsync: jest.fn(() => Promise.resolve()),
   NotificationFeedbackType: { Success: 'success' },
+  ImpactFeedbackStyle: { Light: 'light' },
 }));
 
 interface CameraProps {
@@ -54,11 +58,15 @@ beforeEach(() => {
   permission(true);
 });
 
-async function openScan() {
+/** Opens the scan from the add sheet, as the barcode button does. */
+async function openScan(meal = 'snack') {
   setSession(signedIn);
-  await renderRouter({ index: () => null, scan: ScanScreen }, { initialUrl: '/' });
+  await renderRouter({ index: () => null, add: () => null, scan: ScanScreen }, { initialUrl: '/' });
   await act(() => {
-    router.push('/scan');
+    router.push({ pathname: '/add', params: { meal } });
+  });
+  await act(() => {
+    router.push({ pathname: '/scan', params: { meal } });
   });
   await screen.findByText('Vise le code-barres du produit');
 }
@@ -79,7 +87,7 @@ describe('Scan code-barres', () => {
     await read(EAN);
     await read(EAN);
 
-    expect(await screen.findByText('Skyr nature 0 % · Siggi’s')).toBeOnTheScreen();
+    expect(await screen.findByRole('header', { name: 'Skyr nature 0 %' })).toBeOnTheScreen();
     expect(screen.getByText('Trouvé sur Open Food Facts')).toBeOnTheScreen();
     expect(Haptics.notificationAsync).toHaveBeenCalledTimes(1);
     expect(fetch).toHaveBeenCalledTimes(1);
@@ -127,7 +135,7 @@ describe('Scan code-barres', () => {
     // Same spy: the failed call, then the new try.
     const fetch = mockFetchResponse(200, { food: skyr, portions: [] });
     await fireEvent.press(screen.getByRole('button', { name: 'Réessayer' }));
-    expect(await screen.findByText('Skyr nature 0 % · Siggi’s')).toBeOnTheScreen();
+    expect(await screen.findByRole('header', { name: 'Skyr nature 0 %' })).toBeOnTheScreen();
     expect(fetch).toHaveBeenCalledTimes(2);
   });
 
@@ -153,12 +161,12 @@ describe('Scan code-barres', () => {
     expect(camera?.enableTorch).toBe(true);
   });
 
-  it('closes', async () => {
+  it('closes back to the add sheet', async () => {
     await openScan();
 
     await fireEvent.press(screen.getByRole('button', { name: 'Fermer le scan' }));
 
-    expect(screen).toHavePathname('/');
+    expect(screen).toHavePathname('/add');
   });
 
   it('asks for the camera the first time', async () => {
@@ -183,5 +191,143 @@ describe('Scan code-barres', () => {
 
     await fireEvent.press(screen.getByRole('button', { name: 'Ouvrir les réglages' }));
     expect(openSettings).toHaveBeenCalled();
+  });
+});
+
+const userId = signedIn.data?.user.id;
+
+/** Scans the skyr of the mockup (1 pot of 150 g) and waits for its sheet. */
+async function scanSkyr(
+  detail = { food: skyr, portions: [] as { label: string; grams: number }[] },
+) {
+  mockFetchResponse(200, detail);
+  await openScan();
+  await read(EAN);
+  await screen.findByRole('header', { name: detail.food.name });
+}
+
+const button = (name: string | RegExp) => screen.getByRole('button', { name });
+
+describe('Feuille produit', () => {
+  it('adds the serving to the meal of the add sheet in one touch after the detection', async () => {
+    await scanSkyr();
+
+    // Values of the mockup for 150 g.
+    expect(button('1 portion · 150\u00a0g')).toBeSelected();
+    expect(screen.getByLabelText('95\u00a0kcal')).toBeOnTheScreen();
+    expect(screen.getByLabelText('Protéines : 16,5 g')).toBeOnTheScreen();
+    expect(screen.getByLabelText('Glucides : 6 g')).toBeOnTheScreen();
+    expect(screen.getByLabelText('Lipides : 0,3 g')).toBeOnTheScreen();
+    expect(button('Ajouter à : Collation')).toBeOnTheScreen();
+
+    await fireEvent.press(button('Ajouter · 95\u00a0kcal')); // the only touch
+
+    expect(addEntries).toHaveBeenCalledWith(expect.anything(), userId, {
+      mealType: 'snack',
+      items: [{ food: skyr, grams: 150, portionLabel: '1 portion' }],
+      at: expect.any(Date) as Date,
+    });
+    // Back to Today, past the add sheet.
+    expect(screen).toHavePathname('/');
+  });
+
+  it('adds 100 g', async () => {
+    await scanSkyr();
+
+    await fireEvent.press(button('100 g'));
+    await fireEvent.press(button('Ajouter · 63\u00a0kcal'));
+
+    expect(jest.mocked(addEntries).mock.calls[0]?.[2].items).toEqual([
+      { food: skyr, grams: 100, portionLabel: null },
+    ]);
+  });
+
+  it('adds another quantity typed in grams', async () => {
+    await scanSkyr();
+
+    await fireEvent.press(button('Autre…'));
+    const field = screen.getByLabelText('Quantité en grammes');
+    await fireEvent.changeText(field, '0');
+    expect(button(/^Ajouter ·/)).toBeDisabled();
+
+    await fireEvent.changeText(field, '200');
+    await fireEvent.press(button('Ajouter · 126\u00a0kcal'));
+
+    expect(jest.mocked(addEntries).mock.calls[0]?.[2].items).toEqual([
+      { food: skyr, grams: 200, portionLabel: null },
+    ]);
+  });
+
+  it('offers the named portions of the user', async () => {
+    await scanSkyr({ food: skyr, portions: [{ label: '1 bol', grams: 250 }] });
+
+    await fireEvent.press(button('1 bol · 250\u00a0g'));
+    await fireEvent.press(button(/^Ajouter ·/));
+
+    expect(jest.mocked(addEntries).mock.calls[0]?.[2].items).toEqual([
+      { food: skyr, grams: 250, portionLabel: '1 bol' },
+    ]);
+  });
+
+  it('preselects 100 g without a serving', async () => {
+    await scanSkyr({ food: { ...skyr, defaultPortionG: null }, portions: [] });
+
+    expect(button('100 g')).toBeSelected();
+    expect(screen.queryByText(/1 portion/)).toBeNull();
+  });
+
+  it('changes the meal', async () => {
+    const sheet = jest
+      .spyOn(ActionSheetIOS, 'showActionSheetWithOptions')
+      .mockImplementation((options, callback) => {
+        expect(options.options).toEqual(['Petit-déj', 'Déjeuner', 'Collation', 'Dîner', 'Annuler']);
+        callback(3);
+      });
+    await scanSkyr();
+
+    await fireEvent.press(button('Ajouter à : Collation'));
+    expect(sheet).toHaveBeenCalled();
+    await fireEvent.press(button(/^Ajouter ·/));
+
+    expect(jest.mocked(addEntries).mock.calls[0]?.[2].mealType).toBe('dinner');
+  });
+
+  it('keeps only what is needed to add while the keyboard is open', async () => {
+    const listeners = new Map<string, (event: KeyboardEvent) => void>();
+    const addListener = Keyboard.addListener.bind(Keyboard);
+    jest.spyOn(Keyboard, 'addListener').mockImplementation((name, listener, context) => {
+      listeners.set(name, listener);
+      return addListener(name, listener, context);
+    });
+    await scanSkyr();
+    await fireEvent.press(button('Autre…'));
+    await fireEvent.changeText(screen.getByLabelText('Quantité en grammes'), '50');
+
+    await act(() => {
+      listeners.get('keyboardWillShow')?.({ endCoordinates: { height: 336 } } as KeyboardEvent);
+    });
+
+    expect(screen.queryByText('Vise le code-barres du produit')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Scanner un autre produit' })).toBeNull();
+    expect(button('Ajouter · 32\u00a0kcal')).toBeOnTheScreen();
+
+    await act(() => {
+      listeners.get('keyboardWillHide')?.({} as KeyboardEvent);
+    });
+    expect(screen.getByText('Vise le code-barres du produit')).toBeOnTheScreen();
+  });
+
+  it('says when the entry could not be saved', async () => {
+    jest.mocked(addEntries).mockImplementationOnce(() => {
+      throw new Error('disk full');
+    });
+    await scanSkyr();
+
+    await fireEvent.press(button(/^Ajouter ·/));
+
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'Les aliments n’ont pas pu être ajoutés. Réessaie.',
+    );
+    expect(screen).toHavePathname('/scan');
   });
 });
