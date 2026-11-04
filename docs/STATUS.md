@@ -1,16 +1,27 @@
 # Avancement
 
-## Sprint en cours : S5 — Scan code-barres
+## Sprint en cours : S6 — Recettes et modèles
 
-| Story                                  | État     | PR                       |
-| -------------------------------------- | -------- | ------------------------ |
-| S5-1 Proxy Open Food Facts             | fait     | #36                      |
-| S5-2 Écran Scan                        | fait     | #37                      |
-| S5-3 Feuille produit                   | fait     | #38                      |
-| S5-4 Produit introuvable ou incohérent | fait     | #39                      |
-| S5-5 Hors-ligne                        | en revue | `feat/S5-5-offline-scan` |
+| Story                               | État    | PR  |
+| ----------------------------------- | ------- | --- |
+| S6-1 Recettes                       | à faire |     |
+| S6-2 Ajouter une recette au journal | à faire |     |
+| S6-3 Modèles de repas               | à faire |     |
+| S6-4 Favoris                        | à faire |     |
 
 ## Sprints terminés
+
+### S5 — Scan code-barres (clos le 2026-11-04)
+
+| Story                                  | État | PR  |
+| -------------------------------------- | ---- | --- |
+| S5-1 Proxy Open Food Facts             | fait | #36 |
+| S5-2 Écran Scan                        | fait | #37 |
+| S5-3 Feuille produit                   | fait | #38 |
+| S5-4 Produit introuvable ou incohérent | fait | #39 |
+| S5-5 Hors-ligne                        | fait | #40 |
+
+Démo : checklists validées par Johan sur son iPhone, story par story (build `preview` de S5-3, puis mises à jour `eas update`, API staging). Un produit scanné s'ajoute en une touche après la détection, avec sa portion et le repas de la feuille d'ajout. Un produit inconnu ou aux valeurs douteuses devient un aliment perso qui garde son code-barres et sort en premier aux scans suivants. Un produit déjà scanné est reconnu en mode avion. Critère du sprint (scanner un produit et l'ajouter ; produit inconnu → création) atteint.
 
 ### S4 — Synchronisation (clos le 2026-11-04)
 
@@ -267,7 +278,15 @@ Petites décisions prises sans changer le modèle de données, l'API ou l'UX. Le
 - **2026-11-04 · S5-4 vérifiée** : checklist de 8 points validée par Johan sur iPhone (mise à jour `eas update`). Après le merge de #39, vérifié en lecture seule sur la base du staging : migration `0005` appliquée, index `foods_source_ref_idx` partiel et `foods_owner_barcode_idx` en place.
 - **2026-11-04 · Scan hors ligne** : chaque produit trouvé par le serveur est copié sur le téléphone (table `foods`, sans propriétaire), même s'il n'est pas ajouté. Quand le serveur est injoignable ou qu'Open Food Facts ne répond pas (503), le scan utilise cette copie, avec la mention « Hors ligne : produit déjà scanné, valeurs gardées sur ton téléphone ». Un 404 du serveur l'emporte sur la copie. Ordre complet : aliment de l'utilisateur sur le téléphone, serveur, copie du téléphone. Les produits scannés sortent aussi dans la recherche locale (« déjà utilisés » s'entend désormais « déjà utilisés ou scannés »).
 
+- **2026-11-04 · S5-5 vérifiée sur iPhone** : checklist de 6 points validée par Johan (produit scanné reconnu et ajouté en mode avion, produit jamais scanné toujours « Pas de réseau », retour en ligne, recherche locale).
+
 ## Rétros
+
+### S5 — Scan code-barres
+
+- **Bien** : la route Open Food Facts a été testée contre le vrai service et depuis le conteneur du staging avant l'iPhone ; le scan suit la maquette et ajoute en une touche ; la question du code-barres des aliments perso a été posée avant de coder, et la réponse est consignée dans l'ADR 0005 ; le premier bug d'affichage (clavier) a été diagnostiqué depuis la vidéo de Johan et corrigé le jour même.
+- **À améliorer** : un build iOS par story a consommé 12 des 15 builds gratuits du mois avant qu'on le remarque, sur le mail d'Expo envoyé à Johan ; le bug du clavier n'était couvert par aucun test (la mise en page avec clavier ne se voit que sur l'appareil) ; un test de migration supposait que la migration des triggers était la dernière.
+- **À essayer** : un build seulement pour un changement natif, `eas update` sinon (déjà en place depuis S5-3) ; pour chaque champ de saisie dans une feuille du bas, vérifier sur la checklist le cas « clavier ouvert » ; le build simulateur pour Maestro, toujours à faire, à garder pour le prochain changement natif.
 
 ### S4 — Synchronisation
 
