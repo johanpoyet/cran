@@ -145,6 +145,48 @@ describe('GET /v1/foods/barcode/:ean', () => {
     expect((await scan(ean)).status).toBe(400);
   });
 
+  it("finds the user's own food created from the barcode before Open Food Facts", async () => {
+    const ean = known();
+    const values = { kcal100g: 520, protein100g: 6, carbs100g: 58, fat100g: 29 };
+    await database.db.insert(foods).values([
+      { ...values, source: 'user', ownerId: alice.id, sourceRef: ean, name: 'Ma pâte à tartiner' },
+      {
+        ...values,
+        source: 'user',
+        ownerId: alice.id,
+        sourceRef: ean,
+        name: 'Ancienne',
+        deletedAt: new Date(),
+      },
+    ]);
+
+    const mine = (await (await scan(ean)).json()) as FoodDetail;
+    expect(mine.food).toEqual(
+      expect.objectContaining({ source: 'user', name: 'Ma pâte à tartiner', sourceRef: ean }),
+    );
+    expect(callsFor(ean)).toBe(0);
+
+    // Another user still gets the Open Food Facts product.
+    const his = (await (await scan(ean, bob.cookie)).json()) as FoodDetail;
+    expect(his.food).toEqual(expect.objectContaining({ source: 'off', name: 'Nutella' }));
+    expect(callsFor(ean)).toBe(1);
+  });
+
+  it('keeps one food per barcode and per user, while two users may each have theirs', async () => {
+    const ean = uniqueEan();
+    const values = { kcal100g: 100, protein100g: 10, carbs100g: 10, fat100g: 1 };
+    await database.db.insert(foods).values([
+      { ...values, source: 'user', ownerId: alice.id, sourceRef: ean, name: 'Alice' },
+      { ...values, source: 'user', ownerId: bob.id, sourceRef: ean, name: 'Bob' },
+    ]);
+
+    await expect(
+      database.db
+        .insert(foods)
+        .values({ ...values, source: 'user', ownerId: alice.id, sourceRef: ean, name: 'Doublon' }),
+    ).rejects.toThrow();
+  });
+
   it('requires a session', async () => {
     const ean = known();
 

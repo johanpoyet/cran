@@ -11,7 +11,10 @@ const alice = '0192f0c0-0000-7000-8000-00000000a11c';
 const beforeSync = {
   journal: {
     ...migrations.journal,
-    entries: migrations.journal.entries.filter(({ tag }) => !tag.includes('sync_triggers')),
+    entries: migrations.journal.entries.slice(
+      0,
+      migrations.journal.entries.findIndex(({ tag }) => tag.includes('sync_triggers')),
+    ),
   },
   migrations: migrations.migrations,
 };

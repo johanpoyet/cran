@@ -7,6 +7,8 @@ import type { ReactNode } from 'react';
 import { ActionSheetIOS, Keyboard, type KeyboardEvent, Linking } from 'react-native';
 
 import ScanScreen from './app/scan';
+import { cacheGlobalFood } from './foods/cache';
+import { readOwnBarcodeFood } from './foods/own-barcode';
 import { addEntries } from './journal/add-entries';
 import { setSession, signedIn } from './test/fake-auth-client';
 import { mockFetchFailure, mockFetchResponse } from './test/fetch';
@@ -14,6 +16,8 @@ import { skyr } from './test/foods';
 
 jest.mock('./auth/client', () => jest.requireActual<object>('./test/fake-auth-client'));
 jest.mock('./journal/add-entries', () => ({ addEntries: jest.fn() }));
+jest.mock('./foods/own-barcode', () => ({ readOwnBarcodeFood: jest.fn(() => null) }));
+jest.mock('./foods/cache', () => ({ cacheGlobalFood: jest.fn() }));
 jest.mock('expo-haptics', () => ({
   notificationAsync: jest.fn(() => Promise.resolve()),
   impactAsync: jest.fn(() => Promise.resolve()),
@@ -55,13 +59,17 @@ beforeEach(() => {
   jest.clearAllMocks();
   jest.restoreAllMocks();
   camera = null;
+  jest.mocked(readOwnBarcodeFood).mockReturnValue(null);
   permission(true);
 });
 
 /** Opens the scan from the add sheet, as the barcode button does. */
 async function openScan(meal = 'snack') {
   setSession(signedIn);
-  await renderRouter({ index: () => null, add: () => null, scan: ScanScreen }, { initialUrl: '/' });
+  await renderRouter(
+    { index: () => null, add: () => null, scan: ScanScreen, 'food/new': () => null },
+    { initialUrl: '/' },
+  );
   await act(() => {
     router.push({ pathname: '/add', params: { meal } });
   });
@@ -329,5 +337,76 @@ describe('Feuille produit', () => {
       'Les aliments n’ont pas pu être ajoutés. Réessaie.',
     );
     expect(screen).toHavePathname('/scan');
+  });
+});
+
+describe('Produit introuvable ou incohérent', () => {
+  it('creates the food of an unknown barcode, then shows it once saved', async () => {
+    mockFetchResponse(404, { error: { code: 'not_found', message: 'Product not found' } });
+    await openScan();
+    await read(EAN);
+    await screen.findByText(`Produit introuvable sur Open Food Facts (${EAN}).`);
+
+    await fireEvent.press(button('Créer l’aliment'));
+    expect(screen).toHavePathname('/food/new');
+    expect(screen).toHaveSearchParams({ ean: EAN });
+
+    // Saved on the phone with the barcode: back on the scan, the food replaces "introuvable".
+    const mine = { ...skyr, source: 'user' as const, sourceRef: EAN, name: 'Mon skyr' };
+    jest.mocked(readOwnBarcodeFood).mockReturnValue({ food: mine, portions: [] });
+    await act(() => {
+      router.back();
+    });
+
+    expect(await screen.findByRole('header', { name: 'Mon skyr' })).toBeOnTheScreen();
+    expect(screen.getByText('Dans tes aliments')).toBeOnTheScreen();
+  });
+
+  it("finds the user's own food on the phone, without the network", async () => {
+    const fetch = mockFetchFailure();
+    const mine = { ...skyr, source: 'user' as const, sourceRef: EAN, name: 'Mon skyr' };
+    jest.mocked(readOwnBarcodeFood).mockReturnValue({ food: mine, portions: [] });
+    await openScan();
+
+    await read(EAN);
+
+    expect(await screen.findByRole('header', { name: 'Mon skyr' })).toBeOnTheScreen();
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it('offers to create another food when the product is not the right one', async () => {
+    await scanSkyr();
+
+    await fireEvent.press(button('Pas le bon produit ? Créer l’aliment'));
+
+    expect(screen).toHavePathname('/food/new');
+    expect(screen).toHaveSearchParams({ ean: EAN });
+  });
+
+  it.each([
+    [
+      'incoherent',
+      'Valeurs à vérifier : sur Open Food Facts, les calories ne correspondent pas aux macros.',
+    ],
+    [
+      'incomplete',
+      'Valeurs incomplètes : il manque des macros sur Open Food Facts (comptées à 0).',
+    ],
+  ] as const)('flags an %s product and corrects it in a food of the user', async (flag, text) => {
+    const doubtful = { ...skyr, qualityFlag: flag };
+    await scanSkyr({ food: doubtful, portions: [] });
+
+    expect(screen.getByText(text)).toBeOnTheScreen();
+    await fireEvent.press(button('Corriger le produit'));
+
+    expect(cacheGlobalFood).toHaveBeenCalledWith(expect.anything(), doubtful, expect.any(Date));
+    expect(screen).toHavePathname('/food/new');
+    expect(screen).toHaveSearchParams({ ean: EAN, from: skyr.id });
+  });
+
+  it('does not flag a product that is fine', async () => {
+    await scanSkyr();
+
+    expect(screen.queryByRole('button', { name: 'Corriger le produit' })).toBeNull();
   });
 });

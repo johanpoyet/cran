@@ -36,6 +36,13 @@
       "when": 1793713792418,
       "tag": "0004_sync_tables",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793821554594,
+      "tag": "0005_user_food_barcode",
+      "breakpoints": true
     }
   ]
 }

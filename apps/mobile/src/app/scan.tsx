@@ -1,9 +1,9 @@
 import { MEAL_TYPES, mealForTime, type MealType } from '@cran/shared';
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { X, Zap } from 'lucide-react-native';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
@@ -17,9 +17,11 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useSessionUserId } from '../auth';
+import { localDb } from '../db';
 import { type BarcodeScan, useBarcodeScan } from '../foods';
 import { useKeyboardHeight } from '../lib/use-keyboard-height';
-import { ProductPanel } from '../scan/product-panel';
+import { createFromScan, ProductPanel } from '../scan/product-panel';
 import { colors, radius, space, touch } from '../theme/tokens';
 import { CameraButton, LinkButton, PrimaryButton, ScanFrame, Text } from '../ui';
 
@@ -34,14 +36,37 @@ function isMealType(value: string | undefined): value is MealType {
 // the product sheet at the bottom (quantity, meal, "Ajouter").
 export default function ScanScreen() {
   const { t } = useTranslation();
-  const params = useLocalSearchParams<{ meal?: string }>();
+  const params = useLocalSearchParams<{ meal?: string; ean?: string }>();
   const [meal] = useState<MealType>(() =>
     isMealType(params.meal) ? params.meal : mealForTime(new Date()),
   );
   const insets = useSafeAreaInsets();
   const [permission, requestPermission] = useCameraPermissions();
   const [torch, setTorch] = useState(false);
-  const { scan, onScanned, retry, rescan } = useBarcodeScan();
+  const userId = useSessionUserId() ?? '';
+  const { scan, onScanned, retry, rescan, refresh } = useBarcodeScan(localDb, userId, params.ean);
+
+  // The code read is kept in the route: if iOS frees the screen while "Nouvel aliment" is open, it
+  // comes back with the same product.
+  const scannedEan = scan.status === 'scanning' ? '' : scan.ean;
+  const routeEan = params.ean ?? '';
+  useEffect(() => {
+    if (scannedEan !== routeEan) router.setParams({ ean: scannedEan });
+  }, [scannedEan, routeEan]);
+
+  // Back from "Nouvel aliment": the food just created for this barcode replaces the answer. The
+  // latest refresh is read from a ref: the focus effect must run on focus only.
+  const latestRefresh = useRef(refresh);
+  useEffect(() => {
+    latestRefresh.current = refresh;
+  }, [refresh]);
+  const returning = useRef(false);
+  useFocusEffect(
+    useCallback(() => {
+      if (returning.current) latestRefresh.current();
+      returning.current = true;
+    }, []),
+  );
   const keyboardHeight = useKeyboardHeight();
   const typing = keyboardHeight > 0;
   const result = useRef<ScrollViewInstance>(null);
@@ -181,6 +206,12 @@ function ScanResult({
       return (
         <View style={styles.found}>
           <Text accessibilityLiveRegion="polite">{t('scan.notFound', { ean: scan.ean })}</Text>
+          <PrimaryButton
+            label={t('scan.create')}
+            onPress={() => {
+              createFromScan(scan.ean);
+            }}
+          />
           {again}
         </View>
       );

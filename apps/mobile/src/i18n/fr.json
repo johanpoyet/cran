@@ -282,7 +282,8 @@
         "macro": "Chaque macro doit être un nombre entre 0 et 100 g pour 100 g.",
         "macrosTotal": "Protéines, glucides et lipides dépassent 100 g pour 100 g.",
         "save": "L'aliment n'a pas pu être enregistré. Réessaie."
-      }
+      },
+      "barcode": "Code-barres {{ean}}"
     }
   },
   "meals": {
@@ -405,6 +406,13 @@
     "macro": "{{name}} : {{grams}} g",
     "addTo": "Ajouter à",
     "cancel": "Annuler",
-    "add": "Ajouter · {{kcal}}"
+    "add": "Ajouter · {{kcal}}",
+    "foundOwn": "Dans tes aliments",
+    "create": "Créer l’aliment",
+    "wrongProduct": "Pas le bon produit ? Créer l’aliment",
+    "incoherent": "Valeurs à vérifier : sur Open Food Facts, les calories ne correspondent pas aux macros.",
+    "incomplete": "Valeurs incomplètes : il manque des macros sur Open Food Facts (comptées à 0).",
+    "fix": "Corriger le produit",
+    "fixHint": "Crée ton propre aliment avec les bonnes valeurs ; il remplacera ce produit à chaque scan"
   }
 }

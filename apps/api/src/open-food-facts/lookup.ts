@@ -12,8 +12,9 @@ export type BarcodeLookup =
   { status: 'found'; detail: FoodDetail } | { status: 'not_found' } | { status: 'unavailable' };
 
 /**
- * Product of a barcode: the database cache first, otherwise Open Food Facts, normalised and stored.
- * When Open Food Facts fails, an outdated cached product is better than nothing and is served.
+ * Product of a barcode: the user's own food created from this barcode first (ADR 0005), then the
+ * database cache, otherwise Open Food Facts, normalised and stored. When Open Food Facts fails, an
+ * outdated cached product is better than nothing and is served.
  */
 export function createBarcodeLookup(
   foods: FoodRepository,
@@ -22,6 +23,11 @@ export function createBarcodeLookup(
 ) {
   return async function lookup(userId: string, code: string): Promise<BarcodeLookup> {
     const ean = normalizeBarcode(code);
+    const own = await foods.findOwnBarcodeFood(userId, ean);
+    if (own) {
+      const detail = await foods.find(userId, own);
+      if (detail) return { status: 'found', detail };
+    }
     const cached = await foods.findCachedProduct(ean);
     const fresh = cached?.offSyncedAt && now().getTime() - cached.offSyncedAt.getTime() < CACHE_MS;
 

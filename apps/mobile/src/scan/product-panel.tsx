@@ -11,17 +11,21 @@ import {
 } from '@cran/shared';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
+import { TriangleAlert } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
 import { useSessionUserId } from '../auth';
 import { localDb } from '../db';
+import { cacheGlobalFood } from '../foods';
 import { addEntries } from '../journal';
 import { Sentry } from '../lib/sentry';
 import { space } from '../theme/tokens';
 import {
+  BANNER_TONES,
   Chip,
+  InfoBanner,
   LetterTile,
   LinkButton,
   MenuButton,
@@ -36,9 +40,14 @@ export interface ProductPanelProps {
   detail: FoodDetail;
   /** Meal chosen in the add sheet, or the meal of the hour. */
   meal: MealType;
-  /** The keyboard is open: "Scanner un autre produit" is left out to keep "Ajouter" in view. */
+  /** The keyboard is open: the links are left out to keep "Ajouter" in view. */
   compact?: boolean;
   onRescan: () => void;
+}
+
+/** "Nouvel aliment" from the scan: the food keeps the barcode (ADR 0005). */
+export function createFromScan(ean: string, from?: string) {
+  router.push({ pathname: '/food/new', params: { ean, ...(from ? { from } : {}) } });
 }
 
 /** Index of the chosen quantity, or "other" for grams typed by hand. */
@@ -66,6 +75,16 @@ export function ProductPanel({
   const grams = picked ? picked.grams : typedGrams;
   const valid = grams !== null && grams > 0 && grams <= NEW_FOOD_LIMITS.portionGramsMax;
   const values = nutritionFor(food, valid ? grams : 0);
+
+  // Open Food Facts values judged wrong: the user can correct them in a food of their own.
+  const doubtful = food.source === 'off' && food.qualityFlag !== 'ok' ? food.qualityFlag : null;
+  const ean = food.sourceRef ?? '';
+
+  function correct() {
+    // The form reads the product from the phone.
+    cacheGlobalFood(localDb, food, new Date());
+    createFromScan(ean, food.id);
+  }
 
   function chipLabel(item: ProductChoice): string {
     if (item.kind === 'hundred') return t('quantity.hundred');
@@ -107,10 +126,23 @@ export function ProductPanel({
           </Text>
           {food.brand ? <Text color="textMuted">{food.brand}</Text> : null}
           <Text variant="label" color="success">
-            {t('scan.found')}
+            {t(food.source === 'user' ? 'scan.foundOwn' : 'scan.found')}
           </Text>
         </View>
       </View>
+
+      {doubtful && !compact ? (
+        <InfoBanner icon={TriangleAlert} tone="warning">
+          <Text variant="label" weight={600} color={BANNER_TONES.warning.color}>
+            {t(`scan.${doubtful}`)}
+          </Text>
+          <LinkButton
+            label={t('scan.fix')}
+            accessibilityHint={t('scan.fixHint')}
+            onPress={correct}
+          />
+        </InfoBanner>
+      ) : null}
 
       <View
         accessibilityRole="radiogroup"
@@ -202,7 +234,17 @@ export function ProductPanel({
         disabled={!valid}
         onPress={add}
       />
-      {compact ? null : <LinkButton label={t('scan.again')} onPress={onRescan} />}
+      {compact ? null : (
+        <>
+          <LinkButton
+            label={t('scan.wrongProduct')}
+            onPress={() => {
+              createFromScan(ean);
+            }}
+          />
+          <LinkButton label={t('scan.again')} onPress={onRescan} />
+        </>
+      )}
     </View>
   );
 }
