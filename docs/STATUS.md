@@ -2,13 +2,13 @@
 
 ## Sprint en cours : S5 — Scan code-barres
 
-| Story                                  | État     | PR                                |
-| -------------------------------------- | -------- | --------------------------------- |
-| S5-1 Proxy Open Food Facts             | en revue | `feat/S5-1-open-food-facts-proxy` |
-| S5-2 Écran Scan                        | à faire  |                                   |
-| S5-3 Feuille produit                   | à faire  |                                   |
-| S5-4 Produit introuvable ou incohérent | à faire  |                                   |
-| S5-5 Hors-ligne                        | à faire  |                                   |
+| Story                                  | État     | PR                      |
+| -------------------------------------- | -------- | ----------------------- |
+| S5-1 Proxy Open Food Facts             | fait     | #36                     |
+| S5-2 Écran Scan                        | en revue | `feat/S5-2-scan-screen` |
+| S5-3 Feuille produit                   | à faire  |                         |
+| S5-4 Produit introuvable ou incohérent | à faire  |                         |
+| S5-5 Hors-ligne                        | à faire  |                         |
 
 ## Sprints terminés
 
@@ -247,6 +247,11 @@ Petites décisions prises sans changer le modèle de données, l'API ou l'UX. Le
 - **2026-11-04 · Cache Open Food Facts** : un produit est gardé dans `foods` (`source = off`, `source_ref` = EAN, sans propriétaire) et servi sans appel pendant 30 jours après `off_synced_at`, puis rafraîchi à la demande suivante. Si Open Food Facts échoue ou ne connaît plus le produit, la version gardée est servie même périmée ; le 503 n'arrive que pour un produit jamais vu. Délai de 4 s, `User-Agent: Cran/<version> (contact@johanpoyet.fr)`, champs limités à ceux de la spec.
 - **2026-11-04 · Normalisation Open Food Facts** : nom français, sinon nom générique ; première marque de la liste ; kcal, sinon kJ / 4,184 ; nombres acceptés aussi en texte, arrondis à 2 décimales ; valeur négative ou trop grande pour la base ignorée. Protéines, glucides ou lipides absents : 0 et `incomplete` (comme pour CIQUAL). Calories éloignées des macros (`foodCoherence`) : `incoherent`. `serving_quantity` devient la portion par défaut. Un produit sans nom ou sans énergie n'est pas gardé et répond 404 : l'app proposera de créer l'aliment (S5-4).
 - **2026-11-04 · Limites du proxy Open Food Facts** : un code inconnu n'est pas mis en cache, chaque scan rappelle Open Food Facts ; pas de protection contre sa limite de 100 lectures par minute (sans risque avec un seul utilisateur, à revoir si l'app est ouverte à d'autres) ; une portion en ml est prise pour des grammes ; deux premiers scans simultanés du même code appellent tous deux Open Food Facts (sans doublon en base). Les produits gardés sont communs à tous les utilisateurs et sortent dans la recherche, après CIQUAL.
+
+- **2026-11-04 · S5-1 vérifiée sur le staging** : après le merge de #36, `GET /v1/foods/barcode/{ean}` publiée (doc OpenAPI, 401 sans session), et le conteneur de l'API joint Open Food Facts (Nutella trouvé en lecture depuis le VPS). Pas de compte de test créé : le premier vrai scan se fera depuis l'iPhone (S5-2).
+- **2026-11-04 · Écran Scan** : route `scan` en plein écran (fond sombre), ouverte par le bouton code-barres au bout du champ de recherche de « Ajouter un aliment » (maquette 11), avec le repas choisi en paramètre pour la feuille produit (S5-3). Caméra arrière, codes EAN-13, EAN-8 et UPC-A ; un code dont la clé de contrôle est fausse est ignoré. Le premier code valide arrête la lecture, fait vibrer (succès) et cherche le produit ; « Scanner un autre produit » relance la lecture. Lampe : interrupteur en haut à droite. Couleurs du fond, des boutons et du texte sur la caméra ajoutées aux tokens.
+- **2026-11-04 · Autorisation de la caméra** : demandée à la première ouverture du scan, avec le texte iOS « Cran utilise l’appareil photo pour scanner le code-barres des produits que tu manges. » (pas de micro). Après un refus, l'écran l'explique et propose « Ouvrir les réglages ».
+- **2026-11-04 · Résultat du scan avant S5-3** : en attendant la feuille produit, le bas de l'écran montre le nom et la marque avec « Trouvé sur Open Food Facts », ou « Produit introuvable », « Pas de réseau » (avec « Réessayer ») ou « Open Food Facts ne répond pas ».
 
 ## Rétros
 

@@ -1,11 +1,15 @@
 import { fireEvent, render, screen } from '@testing-library/react-native';
+import { X, Zap } from 'lucide-react-native';
 import { useState } from 'react';
 
 import { ruler } from '../theme/tokens';
+import { CameraButton } from './camera-button';
 import { Checkbox } from './checkbox';
 import { DayPicker } from './day-picker';
 import { OptionCard } from './option-card';
 import { RulerPicker, tickIndexAt } from './ruler-picker';
+import { ScanFrame } from './scan-frame';
+import { SearchField } from './search-field';
 import { StepHeader } from './step-header';
 import { Stepper } from './stepper';
 import { SwitchRow } from './switch-row';
@@ -196,5 +200,55 @@ describe('SwitchRow', () => {
     );
     await fireEvent(screen.getByLabelText('Bonus jour de séance'), 'valueChange', false);
     expect(onValueChange).toHaveBeenCalledWith(false);
+  });
+});
+
+describe('CameraButton', () => {
+  it('is a plain button without a value', async () => {
+    const onPress = jest.fn();
+    await render(<CameraButton icon={X} label="Fermer le scan" onPress={onPress} />);
+
+    await fireEvent.press(screen.getByRole('button', { name: 'Fermer le scan' }));
+    expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('is a switch with a value', async () => {
+    await render(<CameraButton icon={Zap} label="Lampe" value onPress={jest.fn()} />);
+
+    expect(screen.getByRole('switch', { name: 'Lampe' })).toBeChecked();
+  });
+});
+
+describe('ScanFrame', () => {
+  it('draws four corners, hidden from assistive technologies', async () => {
+    await render(<ScanFrame />);
+
+    expect(
+      screen.getAllByTestId('scan-frame-corner', { includeHiddenElements: true }),
+    ).toHaveLength(4);
+  });
+});
+
+describe('SearchField', () => {
+  const field = {
+    value: '',
+    onChangeText: jest.fn(),
+    accessibilityLabel: 'Rechercher un aliment',
+    clearLabel: 'Effacer la recherche',
+    onClear: jest.fn(),
+  };
+
+  it('shows the barcode button when asked', async () => {
+    const onPress = jest.fn();
+    await render(<SearchField {...field} scan={{ label: 'Scanner un code-barres', onPress }} />);
+
+    await fireEvent.press(screen.getByRole('button', { name: 'Scanner un code-barres' }));
+    expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('has no barcode button otherwise', async () => {
+    await render(<SearchField {...field} />);
+
+    expect(screen.queryByRole('button', { name: 'Scanner un code-barres' })).toBeNull();
   });
 });
