@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { isValidBarcode } from '../barcode';
+
 export const FOOD_SOURCES = ['ciqual', 'off', 'user'] as const;
 export const FOOD_QUALITY_FLAGS = ['ok', 'incoherent', 'incomplete'] as const;
 
@@ -116,3 +118,8 @@ export const foodDetailSchema = z.object({
 export type FoodDetail = z.infer<typeof foodDetailSchema>;
 
 export const foodIdParamsSchema = z.object({ id: z.uuid() });
+
+/** `GET /v1/foods/barcode/:ean`: an EAN-8, UPC-A or EAN-13 with a correct check digit. */
+export const barcodeParamsSchema = z.object({
+  ean: z.string().refine(isValidBarcode, { message: 'Not an EAN-8, UPC-A or EAN-13' }),
+});

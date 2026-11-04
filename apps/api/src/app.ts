@@ -11,6 +11,8 @@ import type { AppDatabase } from './db/client';
 import { errorBody } from './errors';
 import type { Logger } from './logger';
 import { requireSession, type SessionVariables } from './middleware/session';
+import type { OpenFoodFacts } from './open-food-facts/client';
+import { createBarcodeLookup } from './open-food-facts/lookup';
 import { createFoodRepository } from './repositories/foods';
 import { createOnboardingRepository } from './repositories/onboarding';
 import { createProfileRepository } from './repositories/profiles';
@@ -28,12 +30,21 @@ export interface AppDeps {
   logger: Logger;
   auth: Auth;
   db: AppDatabase;
+  openFoodFacts: OpenFoodFacts;
   version: string;
   pingDatabase: () => Promise<void>;
   databaseTimeoutMs?: number;
 }
 
-export function createApp({ logger, auth, db, version, pingDatabase, databaseTimeoutMs }: AppDeps) {
+export function createApp({
+  logger,
+  auth,
+  db,
+  openFoodFacts,
+  version,
+  pingDatabase,
+  databaseTimeoutMs,
+}: AppDeps) {
   const app = new OpenAPIHono({
     // Zod validation failures share the common error shape.
     defaultHook: (result, c) => {
@@ -85,7 +96,8 @@ export function createApp({ logger, auth, db, version, pingDatabase, databaseTim
   v1.use(requireSession(auth));
   v1.route('/', meRoutes(createProfileRepository(db), createWeeklyTargetRepository(db)));
   v1.route('/', onboardingRoutes(createOnboardingRepository(db)));
-  v1.route('/', foodRoutes(createFoodRepository(db)));
+  const foods = createFoodRepository(db);
+  v1.route('/', foodRoutes(foods, createBarcodeLookup(foods, openFoodFacts)));
   v1.route('/', syncRoutes(createSyncRepository(db)));
   app.route('/v1', v1);
 

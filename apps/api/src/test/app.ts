@@ -3,6 +3,7 @@ import { pino } from 'pino';
 import { type AppDeps, createApp } from '../app';
 import { type AuthEnv, createAuth } from '../auth';
 import type { AppDatabase } from '../db/client';
+import type { OpenFoodFacts } from '../open-food-facts/client';
 
 export const silentLogger = pino({ level: 'silent' });
 
@@ -11,6 +12,11 @@ export const testAuthEnv: AuthEnv = {
   BETTER_AUTH_SECRET: 'test-secret-that-is-long-enough-for-better-auth',
   APPLE_APP_BUNDLE_IDENTIFIER: 'fr.johanpoyet.cran',
   GOOGLE_CLIENT_IDS: undefined,
+};
+
+/** Tests never call the real Open Food Facts: without a fake, it is unavailable. */
+const offlineOpenFoodFacts: OpenFoodFacts = {
+  product: () => Promise.resolve({ status: 'unavailable' }),
 };
 
 export interface TestAppOptions extends Partial<Omit<AppDeps, 'auth' | 'db'>> {
@@ -24,6 +30,7 @@ export function buildTestApp({ db, rateLimit = false, ...overrides }: TestAppOpt
     logger: silentLogger,
     auth,
     db,
+    openFoodFacts: offlineOpenFoodFacts,
     version: 'test',
     pingDatabase: () => Promise.resolve(),
     ...overrides,

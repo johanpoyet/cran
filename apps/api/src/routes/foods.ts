@@ -1,4 +1,5 @@
 import {
+  barcodeParamsSchema,
   foodDetailSchema,
   foodIdParamsSchema,
   foodSearchQuerySchema,
@@ -8,6 +9,7 @@ import { createRoute, OpenAPIHono } from '@hono/zod-openapi';
 
 import { errorBody, ErrorSchema } from '../errors';
 import type { SessionVariables } from '../middleware/session';
+import type { BarcodeLookupFn } from '../open-food-facts/lookup';
 import type { FoodRepository } from '../repositories/foods';
 
 const FoodSearchQuerySchema = foodSearchQuerySchema.meta({ id: 'FoodSearchQuery' });
@@ -37,6 +39,40 @@ const searchFoods = createRoute({
   },
 });
 
+const FoodDetailSchema = foodDetailSchema.meta({ id: 'FoodDetail' });
+
+const getFoodByBarcode = createRoute({
+  method: 'get',
+  path: '/foods/barcode/{ean}',
+  tags: ['Foods'],
+  summary: 'A product by barcode',
+  description:
+    'The product of an EAN-8, UPC-A or EAN-13, from the Open Food Facts cache of the database when it is less than 30 days old, otherwise from Open Food Facts (normalised and stored). When Open Food Facts fails, an outdated cached product is returned.',
+  request: { params: barcodeParamsSchema.meta({ id: 'BarcodeParams' }) },
+  responses: {
+    200: {
+      description: 'The product and its portions',
+      content: { 'application/json': { schema: FoodDetailSchema } },
+    },
+    400: {
+      description: 'Not a valid barcode',
+      content: { 'application/json': { schema: ErrorSchema } },
+    },
+    401: {
+      description: 'No valid session',
+      content: { 'application/json': { schema: ErrorSchema } },
+    },
+    404: {
+      description: 'Unknown to Open Food Facts, or without a name or energy',
+      content: { 'application/json': { schema: ErrorSchema } },
+    },
+    503: {
+      description: 'Open Food Facts failed or took more than 4 s, and the product is not cached',
+      content: { 'application/json': { schema: ErrorSchema } },
+    },
+  },
+});
+
 const getFood = createRoute({
   method: 'get',
   path: '/foods/{id}',
@@ -48,7 +84,7 @@ const getFood = createRoute({
   responses: {
     200: {
       description: 'The food and its portions',
-      content: { 'application/json': { schema: foodDetailSchema.meta({ id: 'FoodDetail' }) } },
+      content: { 'application/json': { schema: FoodDetailSchema } },
     },
     400: {
       description: 'Not a food id',
@@ -65,11 +101,19 @@ const getFood = createRoute({
   },
 });
 
-export function foodRoutes(foods: FoodRepository) {
+export function foodRoutes(foods: FoodRepository, lookupBarcode: BarcodeLookupFn) {
   return new OpenAPIHono<{ Variables: SessionVariables }>()
     .openapi(searchFoods, async (c) => {
       const { q, limit } = c.req.valid('query');
       return c.json({ foods: await foods.search(c.get('user').id, q, limit) }, 200);
+    })
+    .openapi(getFoodByBarcode, async (c) => {
+      const result = await lookupBarcode(c.get('user').id, c.req.valid('param').ean);
+      if (result.status === 'found') return c.json(result.detail, 200);
+      if (result.status === 'not_found') {
+        return c.json(errorBody('not_found', 'Product not found'), 404);
+      }
+      return c.json(errorBody('off_unavailable', 'Open Food Facts is unavailable'), 503);
     })
     .openapi(getFood, async (c) => {
       const detail = await foods.find(c.get('user').id, c.req.valid('param').id);
