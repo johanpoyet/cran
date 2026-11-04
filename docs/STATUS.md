@@ -2,13 +2,13 @@
 
 ## Sprint en cours : S5 — Scan code-barres
 
-| Story                                  | État     | PR                      |
-| -------------------------------------- | -------- | ----------------------- |
-| S5-1 Proxy Open Food Facts             | fait     | #36                     |
-| S5-2 Écran Scan                        | en revue | `feat/S5-2-scan-screen` |
-| S5-3 Feuille produit                   | à faire  |                         |
-| S5-4 Produit introuvable ou incohérent | à faire  |                         |
-| S5-5 Hors-ligne                        | à faire  |                         |
+| Story                                  | État     | PR                        |
+| -------------------------------------- | -------- | ------------------------- |
+| S5-1 Proxy Open Food Facts             | fait     | #36                       |
+| S5-2 Écran Scan                        | fait     | #37                       |
+| S5-3 Feuille produit                   | en revue | `feat/S5-3-product-sheet` |
+| S5-4 Produit introuvable ou incohérent | à faire  |                           |
+| S5-5 Hors-ligne                        | à faire  |                           |
 
 ## Sprints terminés
 
@@ -252,6 +252,10 @@ Petites décisions prises sans changer le modèle de données, l'API ou l'UX. Le
 - **2026-11-04 · Écran Scan** : route `scan` en plein écran (fond sombre), ouverte par le bouton code-barres au bout du champ de recherche de « Ajouter un aliment » (maquette 11), avec le repas choisi en paramètre pour la feuille produit (S5-3). Caméra arrière, codes EAN-13, EAN-8 et UPC-A ; un code dont la clé de contrôle est fausse est ignoré. Le premier code valide arrête la lecture, fait vibrer (succès) et cherche le produit ; « Scanner un autre produit » relance la lecture. Lampe : interrupteur en haut à droite. Couleurs du fond, des boutons et du texte sur la caméra ajoutées aux tokens.
 - **2026-11-04 · Autorisation de la caméra** : demandée à la première ouverture du scan, avec le texte iOS « Cran utilise l’appareil photo pour scanner le code-barres des produits que tu manges. » (pas de micro). Après un refus, l'écran l'explique et propose « Ouvrir les réglages ».
 - **2026-11-04 · Résultat du scan avant S5-3** : en attendant la feuille produit, le bas de l'écran montre le nom et la marque avec « Trouvé sur Open Food Facts », ou « Produit introuvable », « Pas de réseau » (avec « Réessayer ») ou « Open Food Facts ne répond pas ».
+
+- **2026-11-04 · S5-2 vérifiée sur iPhone** : checklist de 10 points validée par Johan (bouton code-barres, autorisation, lampe, scan avec une seule vibration, nouveau scan, produit inconnu, mode avion puis « Réessayer », fermeture, refus puis réglages).
+- **2026-11-04 · Feuille produit** (maquette 12) : en bas de l'écran Scan, tuile avec l'initiale, nom, marque et « Trouvé sur Open Food Facts ». Quantités proposées : la portion d'Open Food Facts (« 1 portion · 150 g », présélectionnée), les portions nommées de l'utilisateur, « 100 g » (présélectionné s'il n'y a pas de portion), « Autre… » (grammes au clavier). Valeurs de la quantité dans quatre tuiles grises (kcal, prot., gluc., lip.). « Ajouter à » : le repas de la feuille d'ajout, changé par le menu iOS (sur Android, le bouton passe au repas suivant, faute de menu natif). « Ajouter · 95 kcal » enregistre la saisie (copie locale de l'aliment comprise), vibre et revient à « Ta journée » : une seule touche après la détection. La portion choisie est gardée avec la saisie (« 1 portion », « 1 bol »). La maquette nomme la portion d'après Open Food Facts (« 1 pot ») ; seul le poids est gardé en base, d'où « 1 portion ».
+- **2026-11-04 · Lien sous la feuille produit** : « Scanner un autre produit » en attendant S5-4, qui ajoutera « Pas le bon produit ? Créer l'aliment » de la maquette.
 
 ## Rétros
 

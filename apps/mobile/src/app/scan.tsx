@@ -1,23 +1,40 @@
+import { MEAL_TYPES, mealForTime, type MealType } from '@cran/shared';
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { X, Zap } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Linking, StyleSheet, View } from 'react-native';
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Linking,
+  Platform,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { type BarcodeScan, useBarcodeScan } from '../foods';
+import { ProductPanel } from '../scan/product-panel';
 import { colors, radius, space, touch } from '../theme/tokens';
 import { CameraButton, LinkButton, PrimaryButton, ScanFrame, Text } from '../ui';
 
 /** Barcodes of food products (spec section 3). */
 const BARCODE_TYPES = ['ean13', 'ean8', 'upc_a'] as const;
 
-// "Scan code-barres" (mockup 12): camera, aiming frame, torch, a vibration when a code is read. The
-// product found is shown at the bottom; the full product sheet (portions, meal, add) comes in S5-3.
+function isMealType(value: string | undefined): value is MealType {
+  return MEAL_TYPES.some((meal) => meal === value);
+}
+
+// "Scan code-barres" (mockup 12): camera, aiming frame, torch, a vibration when a code is read, then
+// the product sheet at the bottom (quantity, meal, "Ajouter").
 export default function ScanScreen() {
   const { t } = useTranslation();
+  const params = useLocalSearchParams<{ meal?: string }>();
+  const [meal] = useState<MealType>(() =>
+    isMealType(params.meal) ? params.meal : mealForTime(new Date()),
+  );
   const insets = useSafeAreaInsets();
   const [permission, requestPermission] = useCameraPermissions();
   const [torch, setTorch] = useState(false);
@@ -95,9 +112,12 @@ export default function ScanScreen() {
       )}
 
       {scan.status === 'scanning' ? null : (
-        <View style={[styles.result, { paddingBottom: insets.bottom + space[16] }]}>
-          <ScanResult scan={scan} onRetry={retry} onRescan={rescan} />
-        </View>
+        // Grams typed in "Autre…" must stay above the keyboard.
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          <View style={[styles.result, { paddingBottom: insets.bottom + space[16] }]}>
+            <ScanResult scan={scan} meal={meal} onRetry={retry} onRescan={rescan} />
+          </View>
+        </KeyboardAvoidingView>
       )}
     </View>
   );
@@ -105,10 +125,12 @@ export default function ScanScreen() {
 
 function ScanResult({
   scan,
+  meal,
   onRetry,
   onRescan,
 }: {
   scan: Exclude<BarcodeScan, { status: 'scanning' }>;
+  meal: MealType;
   onRetry: () => void;
   onRescan: () => void;
 }) {
@@ -123,20 +145,8 @@ function ScanResult({
           <Text color="textMuted">{t('scan.searching', { ean: scan.ean })}</Text>
         </View>
       );
-    case 'found': {
-      const { food } = scan.detail;
-      return (
-        <View style={styles.found}>
-          <Text variant="heading" accessibilityLiveRegion="polite">
-            {food.brand ? `${food.name} · ${food.brand}` : food.name}
-          </Text>
-          <Text variant="label" color="success">
-            {t('scan.found')}
-          </Text>
-          {again}
-        </View>
-      );
-    }
+    case 'found':
+      return <ProductPanel detail={scan.detail} meal={meal} onRescan={onRescan} />;
     case 'not_found':
       return (
         <View style={styles.found}>
