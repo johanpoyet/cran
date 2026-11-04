@@ -1,8 +1,10 @@
+import { skyr } from '../test/foods';
 import {
   canSave,
   emptyNewFoodForm,
   liveCoherence,
   type NewFoodForm,
+  newFoodFormFrom,
   parsePortion,
   validateNewFood,
 } from './form';
@@ -87,5 +89,26 @@ describe('parsePortion', () => {
     ['1 galette', 'beaucoup'],
   ])('refuses %j = %j', (label, grams) => {
     expect(parsePortion(label, grams)).toBeNull();
+  });
+});
+
+describe('newFoodFormFrom', () => {
+  it('prefills a product to correct, its serving as a named portion', () => {
+    expect(newFoodFormFrom(skyr, '1 portion')).toEqual({
+      name: 'Skyr nature 0 %',
+      brand: 'Siggi’s',
+      kcal: '63',
+      protein: '11',
+      carbs: '4',
+      fat: '0,2',
+      portions: [{ label: '1 portion', grams: 150 }],
+      favorite: false,
+    });
+  });
+
+  it('has no portion without a serving', () => {
+    expect(newFoodFormFrom({ ...skyr, brand: null, defaultPortionG: null }, '1 portion')).toEqual(
+      expect.objectContaining({ brand: '', portions: [] }),
+    );
   });
 });

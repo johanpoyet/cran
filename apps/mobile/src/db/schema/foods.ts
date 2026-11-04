@@ -1,4 +1,5 @@
 import { FOOD_QUALITY_FLAGS, FOOD_SOURCES } from '@cran/shared';
+import { sql } from 'drizzle-orm';
 import { index, real, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
 
 import { catalogueColumns, instant, syncColumns } from './columns';
@@ -9,7 +10,7 @@ export const foods = sqliteTable(
   {
     ...catalogueColumns(),
     source: text('source', { enum: FOOD_SOURCES }).notNull(),
-    /** CIQUAL code or EAN; null for user foods. */
+    /** CIQUAL code or EAN; for a user food, the barcode it was created from, if any (ADR 0005). */
     sourceRef: text('source_ref'),
     name: text('name').notNull(),
     brand: text('brand'),
@@ -24,7 +25,15 @@ export const foods = sqliteTable(
     qualityFlag: text('quality_flag', { enum: FOOD_QUALITY_FLAGS }).notNull().default('ok'),
   },
   (table) => [
-    uniqueIndex('foods_source_ref_idx').on(table.source, table.sourceRef),
+    // Same rule as the server: one catalogue food per code, one user food per barcode and owner.
+    uniqueIndex('foods_source_ref_idx')
+      .on(table.source, table.sourceRef)
+      .where(sql`${table.source} <> 'user'`),
+    uniqueIndex('foods_owner_barcode_idx')
+      .on(table.ownerId, table.sourceRef)
+      .where(
+        sql`${table.source} = 'user' and ${table.sourceRef} is not null and ${table.deletedAt} is null`,
+      ),
     index('foods_owner_id_idx').on(table.ownerId),
   ],
 );

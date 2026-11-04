@@ -1,7 +1,7 @@
 import { and, eq, isNull, notInArray, sql } from 'drizzle-orm';
 
 import type { AppDatabase } from '../db/client';
-import { foods, nextServerSeq } from '../db/schema';
+import { CATALOGUE_REF, foods, nextServerSeq } from '../db/schema';
 import { type CiqualFood, readContents, readRecords, toFood } from './parse';
 
 export interface CiqualFiles {
@@ -63,6 +63,7 @@ export async function importCiqual(
         )
         .onConflictDoUpdate({
           target: [foods.source, foods.sourceRef],
+          targetWhere: CATALOGUE_REF,
           set: {
             name: sql`excluded.name`,
             kcal100g: sql`excluded.kcal_100g`,

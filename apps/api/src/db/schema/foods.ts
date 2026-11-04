@@ -24,6 +24,9 @@ function nutrient(name: string) {
   return numeric(name, { precision: 6, scale: 2, mode: 'number' });
 }
 
+/** Conflict target of the catalogue upserts (CIQUAL import, Open Food Facts cache). */
+export const CATALOGUE_REF = sql`source <> 'user'`;
+
 /** Accent-free text for the trigram indexes; `f_unaccent` is created by migration 0003. */
 export function unaccented(column: AnyPgColumn) {
   return sql`f_unaccent(${column})`;
@@ -51,7 +54,7 @@ export const foods = pgTable(
   {
     ...catalogueColumns(),
     source: foodSourceEnum('source').notNull(),
-    /** CIQUAL code or EAN; null for user foods. */
+    /** CIQUAL code or EAN; for a user food, the barcode it was created from, if any (ADR 0005). */
     sourceRef: text('source_ref'),
     name: text('name').notNull(),
     brand: text('brand'),
@@ -68,7 +71,16 @@ export const foods = pgTable(
     qualityFlag: foodQualityEnum('quality_flag').notNull().default('ok'),
   },
   (table) => [
-    uniqueIndex('foods_source_ref_idx').on(table.source, table.sourceRef),
+    // One catalogue food per CIQUAL code or EAN; a user food keeps the barcode it was created from,
+    // once per user, so that the scan finds it first (ADR 0005).
+    uniqueIndex('foods_source_ref_idx')
+      .on(table.source, table.sourceRef)
+      .where(sql`${table.source} <> 'user'`),
+    uniqueIndex('foods_owner_barcode_idx')
+      .on(table.ownerId, table.sourceRef)
+      .where(
+        sql`${table.source} = 'user' and ${table.sourceRef} is not null and ${table.deletedAt} is null`,
+      ),
     index('foods_owner_id_idx').on(table.ownerId),
     index('foods_server_seq_idx').on(table.serverSeq),
     index('foods_name_trgm_idx').using('gin', sql`${unaccented(table.name)} gin_trgm_ops`),

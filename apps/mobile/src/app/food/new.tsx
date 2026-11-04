@@ -14,8 +14,10 @@ import {
   liveCoherence,
   type NewFoodError,
   type NewFoodForm,
+  newFoodFormFrom,
   type NutrientKey,
   parsePortion,
+  readFood,
   validateNewFood,
 } from '../../foods';
 import { Sentry } from '../../lib/sentry';
@@ -51,12 +53,18 @@ const NUTRIENT_ROWS: { key: NutrientKey; dot: ColorToken }[][] = [
 ];
 
 // "Nouvel aliment": values per 100 g with a live coherence check, named portions and favourite.
-// Saved in the local database; `?name=` prefills the name from a search.
+// Saved in the local database. `?name=` prefills the name from a search; from the scan, `?ean=`
+// keeps the barcode with the food (ADR 0005) and `?from=` prefills a product to correct.
 export default function NewFoodScreen() {
   const { t } = useTranslation();
-  const params = useLocalSearchParams<{ name?: string }>();
+  const params = useLocalSearchParams<{ name?: string; ean?: string; from?: string }>();
   const userId = useSessionUserId();
-  const [form, setForm] = useState<NewFoodForm>(() => emptyNewFoodForm(params.name ?? ''));
+  const [form, setForm] = useState<NewFoodForm>(() => {
+    const product = params.from ? readFood(localDb, params.from) : null;
+    return product
+      ? newFoodFormFrom(product, t('quantity.defaultPortion'))
+      : emptyNewFoodForm(params.name ?? '');
+  });
   const [portionDraft, setPortionDraft] = useState<{ label: string; grams: string } | null>(null);
   const [error, setError] = useState<{ key: SaveError; field: NutrientKey | 'name' | null } | null>(
     null,
@@ -82,7 +90,10 @@ export default function NewFoodScreen() {
       return;
     }
     try {
-      createFood(localDb, userId, result.food, { favorite: form.favorite });
+      createFood(localDb, userId, result.food, {
+        favorite: form.favorite,
+        ...(params.ean ? { barcode: params.ean } : {}),
+      });
       router.back();
     } catch (saveError) {
       Sentry.captureException(saveError);
@@ -143,6 +154,11 @@ export default function NewFoodScreen() {
           }
         : {})}
     >
+      {params.ean ? (
+        <Text variant="label" weight={500} color="textMuted">
+          {t('food.new.barcode', { ean: params.ean })}
+        </Text>
+      ) : null}
       <Card style={styles.card}>
         <TextField
           label={t('food.new.name')}

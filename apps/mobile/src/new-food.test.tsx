@@ -4,10 +4,16 @@ import { renderRouter } from 'expo-router/testing-library';
 
 import NewFoodScreen from './app/food/new';
 import { createFood } from './foods/create-food';
+import { readFood } from './foods/recents';
 import { setSession, signedIn } from './test/fake-auth-client';
+import { skyr } from './test/foods';
 
 jest.mock('./auth/client', () => jest.requireActual<object>('./test/fake-auth-client'));
 jest.mock('./foods/create-food', () => ({ createFood: jest.fn(() => 'food-id') }));
+jest.mock('./foods/recents', () => ({
+  ...jest.requireActual<object>('./foods/recents'),
+  readFood: jest.fn(),
+}));
 
 const userId = signedIn.data?.user.id;
 
@@ -32,6 +38,7 @@ const save = () => screen.getByRole('button', { name: "Enregistrer l'aliment" })
 
 beforeEach(() => {
   jest.clearAllMocks();
+  jest.mocked(readFood).mockReturnValue(skyr);
 });
 
 describe('Nouvel aliment', () => {
@@ -147,5 +154,32 @@ describe('Nouvel aliment', () => {
       "L'aliment n'a pas pu être enregistré. Réessaie.",
     );
     expect(screen).toHavePathname('/food/new');
+  });
+
+  it('keeps the barcode of a scanned product', async () => {
+    await renderForm({ pathname: '/food/new', params: { ean: '3033490004743' } });
+    expect(screen.getByText('Code-barres 3033490004743')).toBeOnTheScreen();
+    await fireEvent.changeText(screen.getByLabelText('Nom'), 'Skyr');
+    await typeValues({ kcal: '63', protein: '11', carbs: '4', fat: '0,2' });
+
+    await fireEvent.press(save());
+
+    expect(createFood).toHaveBeenCalledWith(
+      expect.anything(),
+      userId,
+      expect.objectContaining({ name: 'Skyr', kcal100g: 63 }),
+      { favorite: false, barcode: '3033490004743' },
+    );
+  });
+
+  it('prefills a product to correct', async () => {
+    await renderForm({
+      pathname: '/food/new',
+      params: { ean: '3033490004743', from: skyr.id },
+    });
+
+    expect(screen.getByLabelText('Nom')).toHaveDisplayValue('Skyr nature 0 %');
+    expect(screen.getByLabelText('Lipides, en g pour 100 g')).toHaveDisplayValue('0,2');
+    expect(screen.getByText('1 portion = 150\u00a0g')).toBeOnTheScreen();
   });
 });

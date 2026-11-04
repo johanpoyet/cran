@@ -8,6 +8,7 @@ export {
   liveCoherence,
   type NewFoodError,
   type NewFoodForm,
+  newFoodFormFrom,
   NUTRIENT_KEYS,
   type NutrientKey,
   parsePortion,
@@ -15,6 +16,7 @@ export {
 } from './form';
 export { searchable, toFood } from './local-food';
 export { searchLocalFoods } from './local-search';
+export { readOwnBarcodeFood } from './own-barcode';
 export { type Portion, readPortions } from './portions';
 export {
   defaultGrams,

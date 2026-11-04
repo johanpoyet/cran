@@ -2,13 +2,13 @@
 
 ## Sprint en cours : S5 — Scan code-barres
 
-| Story                                  | État     | PR                        |
-| -------------------------------------- | -------- | ------------------------- |
-| S5-1 Proxy Open Food Facts             | fait     | #36                       |
-| S5-2 Écran Scan                        | fait     | #37                       |
-| S5-3 Feuille produit                   | en revue | `feat/S5-3-product-sheet` |
-| S5-4 Produit introuvable ou incohérent | à faire  |                           |
-| S5-5 Hors-ligne                        | à faire  |                           |
+| Story                                  | État     | PR                           |
+| -------------------------------------- | -------- | ---------------------------- |
+| S5-1 Proxy Open Food Facts             | fait     | #36                          |
+| S5-2 Écran Scan                        | fait     | #37                          |
+| S5-3 Feuille produit                   | fait     | #38                          |
+| S5-4 Produit introuvable ou incohérent | en revue | `feat/S5-4-create-from-scan` |
+| S5-5 Hors-ligne                        | à faire  |                              |
 
 ## Sprints terminés
 
@@ -259,6 +259,10 @@ Petites décisions prises sans changer le modèle de données, l'API ou l'UX. Le
 
 - **2026-11-04 · Feuille produit et clavier** : bug vu par Johan sur iPhone : avec le clavier de « Autre… », le cadre de visée remontait sous la barre d'état et le lien passait sous le clavier, sans moyen de fermer le clavier. Le clavier ouvert, le cadre et la consigne disparaissent, la feuille prend la place restante au-dessus du clavier et défile jusqu'au champ et à « Ajouter » ; « Scanner un autre produit » revient à la fermeture du clavier ; toucher la caméra ferme le clavier.
 - **2026-11-04 · Builds iOS comptés** : le plan gratuit d'Expo limite à 15 builds iOS par mois (12 utilisés le 4 novembre). Un build seulement quand une story change le natif (module, plugin, permission) ; sinon une mise à jour `eas update --channel preview` (variables `EXPO_PUBLIC_*` du profil `preview` passées à la commande), récupérée par les builds `preview` en relançant l'app.
+
+- **2026-11-04 · S5-3 vérifiée sur iPhone** : checklist de 8 points validée par Johan, dont l'ajout en une touche après la détection ; le correctif du clavier, livré par `eas update`, validé à part.
+- **2026-11-04 · Code-barres des aliments perso** : décision de Johan, voir l'[ADR 0005](adr/0005-code-barres-des-aliments-perso.md). Un aliment créé depuis le scan garde le code-barres (une fois par utilisateur) et le scan le trouve en premier, sur le téléphone puis sur le serveur.
+- **2026-11-04 · Créer ou corriger depuis le scan** : produit introuvable → bouton « Créer l’aliment » ; sous la feuille produit, « Pas le bon produit ? Créer l’aliment » (maquette 12) ; produit Open Food Facts `incoherent` ou `incomplete` → bandeau orange « Valeurs à vérifier » ou « Valeurs incomplètes » avec « Corriger le produit », qui ouvre « Nouvel aliment » pré-rempli (nom, marque, valeurs, portion d'Open Food Facts en « 1 portion »). Le formulaire affiche « Code-barres … ». Après l'enregistrement, le retour au scan montre l'aliment créé, « Dans tes aliments », prêt à ajouter. Le code lu est gardé dans la route du scan, pour le retrouver même si iOS libère l'écran.
 
 ## Rétros
 

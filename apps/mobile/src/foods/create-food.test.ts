@@ -69,4 +69,35 @@ describe('createFood', () => {
 
     expect(db.select().from(schema.foods).get()?.qualityFlag).toBe('incoherent');
   });
+
+  it('keeps the barcode it was created from, as an EAN-13', () => {
+    const id = createFood(db, userId, galette, { favorite: false, barcode: '036000291452' });
+
+    expect(db.select().from(schema.foods).all()).toEqual([
+      expect.objectContaining({ id, sourceRef: '0036000291452' }),
+    ]);
+  });
+
+  it('takes the barcode from a previous food of the user', () => {
+    const first = createFood(db, userId, galette, { favorite: false, barcode: '3017620422003' });
+    const second = createFood(
+      db,
+      userId,
+      { ...galette, name: 'Galette corrigée' },
+      {
+        favorite: false,
+        barcode: '3017620422003',
+      },
+    );
+
+    const refs = new Map(
+      db
+        .select()
+        .from(schema.foods)
+        .all()
+        .map((row) => [row.id, row.sourceRef]),
+    );
+    expect(refs.get(first)).toBeNull();
+    expect(refs.get(second)).toBe('3017620422003');
+  });
 });

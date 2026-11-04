@@ -1,8 +1,10 @@
 import {
+  type Food,
   type FoodCoherence,
   foodCoherence,
   type FoodPortionInput,
   foodPortionInputSchema,
+  formatDecimal,
   type NewFood,
   newFoodSchema,
   parseDecimal,
@@ -33,6 +35,24 @@ export function emptyNewFoodForm(name = ''): NewFoodForm {
     carbs: '',
     fat: '',
     portions: [],
+    favorite: false,
+  };
+}
+
+/**
+ * The form prefilled with a product to correct (Open Food Facts values judged wrong): name, brand,
+ * values per 100 g as typed in French, and the serving as a named portion.
+ */
+export function newFoodFormFrom(food: Food, servingLabel: string): NewFoodForm {
+  return {
+    name: food.name,
+    brand: food.brand ?? '',
+    kcal: formatDecimal(food.kcal100g),
+    protein: formatDecimal(food.protein100g),
+    carbs: formatDecimal(food.carbs100g),
+    fat: formatDecimal(food.fat100g),
+    portions:
+      food.defaultPortionG === null ? [] : [{ label: servingLabel, grams: food.defaultPortionG }],
     favorite: false,
   };
 }

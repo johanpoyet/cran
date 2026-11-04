@@ -2,7 +2,7 @@ import type { Food, FoodDetail } from '@cran/shared';
 import { and, asc, desc, eq, isNull, or, type SQL, sql } from 'drizzle-orm';
 
 import type { AppDatabase } from '../db/client';
-import { foodPortions, type FoodRow, foods, unaccented } from '../db/schema';
+import { CATALOGUE_REF, foodPortions, type FoodRow, foods, unaccented } from '../db/schema';
 import type { OffFood } from '../open-food-facts/normalize';
 
 /** Words that say nothing about the food ("flocons d'avoine", "pâtes au beurre"). */
@@ -127,6 +127,23 @@ export function createFoodRepository(db: AppDatabase) {
     return { food: toFood(row), portions };
   }
 
+  /** The user's own food created from a barcode (ADR 0005), if any. */
+  async function findOwnBarcodeFood(userId: string, ean: string): Promise<string | null> {
+    const [row] = await db
+      .select({ id: foods.id })
+      .from(foods)
+      .where(
+        and(
+          eq(foods.source, 'user'),
+          eq(foods.ownerId, userId),
+          eq(foods.sourceRef, ean),
+          isNull(foods.deletedAt),
+        ),
+      )
+      .limit(1);
+    return row?.id ?? null;
+  }
+
   /** The cached Open Food Facts product of a barcode, removed or not. */
   async function findCachedProduct(ean: string): Promise<FoodRow | null> {
     const [row] = await db
@@ -143,13 +160,17 @@ export function createFoodRepository(db: AppDatabase) {
     const [row] = await db
       .insert(foods)
       .values({ ...values, source: 'off' })
-      .onConflictDoUpdate({ target: [foods.source, foods.sourceRef], set: values })
+      .onConflictDoUpdate({
+        target: [foods.source, foods.sourceRef],
+        targetWhere: CATALOGUE_REF,
+        set: values,
+      })
       .returning({ id: foods.id });
     if (!row) throw new Error(`Open Food Facts product ${product.sourceRef} not stored`);
     return row.id;
   }
 
-  return { search, find, findCachedProduct, cacheProduct };
+  return { search, find, findOwnBarcodeFood, findCachedProduct, cacheProduct };
 }
 
 export type FoodRepository = ReturnType<typeof createFoodRepository>;
