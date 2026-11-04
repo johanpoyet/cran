@@ -1,16 +1,28 @@
 # Avancement
 
-## Sprint en cours : S4 — Synchronisation
+## Sprint en cours : S5 — Scan code-barres
 
-| Story                           | État     | PR                               |
-| ------------------------------- | -------- | -------------------------------- |
-| S4-1 Colonnes de synchro        | fait     | #30                              |
-| S4-2 Endpoints push et pull     | fait     | #31                              |
-| S4-3 Moteur de synchro client   | fait     | #32                              |
-| S4-4 Cache des aliments globaux | fait     | #33                              |
-| S4-5 ADR synchro local-first    | en revue | `feat/S4-5-adr-sync-local-first` |
+| Story                                  | État    | PR  |
+| -------------------------------------- | ------- | --- |
+| S5-1 Proxy Open Food Facts             | à faire |     |
+| S5-2 Écran Scan                        | à faire |     |
+| S5-3 Feuille produit                   | à faire |     |
+| S5-4 Produit introuvable ou incohérent | à faire |     |
+| S5-5 Hors-ligne                        | à faire |     |
 
 ## Sprints terminés
+
+### S4 — Synchronisation (clos le 2026-11-04)
+
+| Story                           | État | PR  |
+| ------------------------------- | ---- | --- |
+| S4-1 Colonnes de synchro        | fait | #30 |
+| S4-2 Endpoints push et pull     | fait | #31 |
+| S4-3 Moteur de synchro client   | fait | #32 |
+| S4-4 Cache des aliments globaux | fait | #33 |
+| S4-5 ADR synchro local-first    | fait | #34 |
+
+Démo : sur l'iPhone de Johan (builds `preview`, API staging), une journée saisie en mode avion part seule au retour du réseau ; après déconnexion puis reconnexion, comme sur un second appareil, la journée revient à l'identique (suppression comprise), avec les aliments CIQUAL dans les récents, les favoris et la recherche hors ligne. Vérifié en lecture seule sur la base du staging. Deux téléphones sont aussi simulés dans les tests de synchro. Critère du sprint atteint. Choix et limites dans l'[ADR 0002](adr/0002-sync-local-first.md).
 
 ### S3 — Journal du jour (clos le 2026-11-03)
 
@@ -232,6 +244,12 @@ Petites décisions prises sans changer le modèle de données, l'API ou l'UX. Le
 - **2026-11-03 · Synchro local-first** : choix de la dernière écriture gagnante par ligne, écarts à la spec et limites connues (granularité de la ligne, horloge des appareils, suppression puis modification, écritures concurrentes et curseur, pas encore de purge à 90 jours) dans l'[ADR 0002](adr/0002-sync-local-first.md).
 
 ## Rétros
+
+### S4 — Synchronisation
+
+- **Bien** : la file d'envoi et `server_seq` sont remplis par des triggers, donc aucun écran ne peut les oublier ; les schémas de synchro partagés par l'app et l'API ; le scénario « deux téléphones » tourne dans les tests, contre un faux serveur ; chaque story validée sur l'iPhone et contrôlée sur le staging.
+- **À améliorer** : le cas des écritures concurrentes et du curseur n'a été vu qu'en rédigeant l'ADR, après le code ; la synchro n'est vérifiée sur un vrai second appareil que par déconnexion puis reconnexion ; toujours pas de captures Maestro (il manque un build simulateur).
+- **À essayer** : écrire les limites d'un mécanisme avant de le coder ; faire le build simulateur pour Maestro pendant S5 (le scan lui-même restera vérifié sur l'iPhone : le simulateur n'a pas de caméra).
 
 ### S3 — Journal du jour
 
