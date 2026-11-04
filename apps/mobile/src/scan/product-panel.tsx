@@ -36,6 +36,8 @@ export interface ProductPanelProps {
   detail: FoodDetail;
   /** Meal chosen in the add sheet, or the meal of the hour. */
   meal: MealType;
+  /** The keyboard is open: "Scanner un autre produit" is left out to keep "Ajouter" in view. */
+  compact?: boolean;
   onRescan: () => void;
 }
 
@@ -44,7 +46,12 @@ type Choice = number | 'other';
 
 // Product sheet of the scan screen (mockup 12): quantity, its values, meal, "Ajouter". The likely
 // quantity and the meal are preselected: one touch on "Ajouter" adds the product.
-export function ProductPanel({ detail, meal: initialMeal, onRescan }: ProductPanelProps) {
+export function ProductPanel({
+  detail,
+  meal: initialMeal,
+  compact = false,
+  onRescan,
+}: ProductPanelProps) {
   const { t } = useTranslation();
   const userId = useSessionUserId() ?? '';
   const { food } = detail;
@@ -195,7 +202,7 @@ export function ProductPanel({ detail, meal: initialMeal, onRescan }: ProductPan
         disabled={!valid}
         onPress={add}
       />
-      <LinkButton label={t('scan.again')} onPress={onRescan} />
+      {compact ? null : <LinkButton label={t('scan.again')} onPress={onRescan} />}
     </View>
   );
 }

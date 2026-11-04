@@ -4,7 +4,7 @@ import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { renderRouter } from 'expo-router/testing-library';
 import type { ReactNode } from 'react';
-import { ActionSheetIOS, Linking } from 'react-native';
+import { ActionSheetIOS, Keyboard, type KeyboardEvent, Linking } from 'react-native';
 
 import ScanScreen from './app/scan';
 import { addEntries } from './journal/add-entries';
@@ -290,6 +290,31 @@ describe('Feuille produit', () => {
     await fireEvent.press(button(/^Ajouter ·/));
 
     expect(jest.mocked(addEntries).mock.calls[0]?.[2].mealType).toBe('dinner');
+  });
+
+  it('keeps only what is needed to add while the keyboard is open', async () => {
+    const listeners = new Map<string, (event: KeyboardEvent) => void>();
+    const addListener = Keyboard.addListener.bind(Keyboard);
+    jest.spyOn(Keyboard, 'addListener').mockImplementation((name, listener, context) => {
+      listeners.set(name, listener);
+      return addListener(name, listener, context);
+    });
+    await scanSkyr();
+    await fireEvent.press(button('Autre…'));
+    await fireEvent.changeText(screen.getByLabelText('Quantité en grammes'), '50');
+
+    await act(() => {
+      listeners.get('keyboardWillShow')?.({ endCoordinates: { height: 336 } } as KeyboardEvent);
+    });
+
+    expect(screen.queryByText('Vise le code-barres du produit')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Scanner un autre produit' })).toBeNull();
+    expect(button('Ajouter · 32\u00a0kcal')).toBeOnTheScreen();
+
+    await act(() => {
+      listeners.get('keyboardWillHide')?.({} as KeyboardEvent);
+    });
+    expect(screen.getByText('Vise le code-barres du produit')).toBeOnTheScreen();
   });
 
   it('says when the entry could not be saved', async () => {
