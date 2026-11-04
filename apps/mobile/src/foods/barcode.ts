@@ -4,23 +4,26 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type { LocalDatabase } from '../db/types';
 import { ApiError, apiFetch } from '../lib/api';
-import { readOwnBarcodeFood } from './own-barcode';
+import { cacheGlobalFood } from './cache';
+import { readCachedProduct, readOwnBarcodeFood } from './own-barcode';
 
 /**
  * State of the scan screen: the camera looks for a code, then the product of the code read is
- * fetched. `offline`: the server is unreachable; `unavailable`: Open Food Facts failed.
+ * fetched. `offline`: the server is unreachable; `unavailable`: Open Food Facts failed. `fromPhone`:
+ * the server could not answer, the product comes from its copy on the phone.
  */
 export type BarcodeScan =
   | { status: 'scanning' }
   | { status: 'loading'; ean: string }
-  | { status: 'found'; ean: string; detail: FoodDetail }
+  | { status: 'found'; ean: string; detail: FoodDetail; fromPhone?: boolean }
   | { status: 'not_found' | 'offline' | 'unavailable'; ean: string };
 
 type Lookup = Exclude<BarcodeScan, { status: 'scanning' } | { status: 'loading' }>;
 
 /**
  * Product of a barcode: the user's own food on the phone first, otherwise the API (the user's food
- * on the server, its Open Food Facts cache, otherwise Open Food Facts).
+ * on the server, its Open Food Facts cache, otherwise Open Food Facts). A product found is copied
+ * on the phone; when the server cannot answer, that copy is used (S5-5).
  */
 export async function lookupBarcode(
   db: LocalDatabase,
@@ -31,10 +34,15 @@ export async function lookupBarcode(
   if (own) return { status: 'found', ean, detail: own };
   try {
     const detail = await apiFetch(`/v1/foods/barcode/${ean}`, foodDetailSchema);
+    cacheGlobalFood(db, detail.food, new Date());
     return { status: 'found', ean, detail };
   } catch (error) {
+    // No network, or Open Food Facts down: the copy of a product already scanned is good enough.
+    const notFound = error instanceof ApiError && error.status === 404;
+    const copy = notFound ? null : readCachedProduct(db, userId, ean);
+    if (copy) return { status: 'found', ean, detail: copy, fromPhone: true };
     if (!(error instanceof ApiError)) return { status: 'offline', ean };
-    return { status: error.status === 404 ? 'not_found' : 'unavailable', ean };
+    return { status: notFound ? 'not_found' : 'unavailable', ean };
   }
 }
 

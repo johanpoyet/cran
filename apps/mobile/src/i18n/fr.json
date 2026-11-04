@@ -413,6 +413,7 @@
     "incoherent": "Valeurs à vérifier : sur Open Food Facts, les calories ne correspondent pas aux macros.",
     "incomplete": "Valeurs incomplètes : il manque des macros sur Open Food Facts (comptées à 0).",
     "fix": "Corriger le produit",
-    "fixHint": "Crée ton propre aliment avec les bonnes valeurs ; il remplacera ce produit à chaque scan"
+    "fixHint": "Crée ton propre aliment avec les bonnes valeurs ; il remplacera ce produit à chaque scan",
+    "fromPhone": "Hors ligne : produit déjà scanné, valeurs gardées sur ton téléphone"
   }
 }

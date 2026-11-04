@@ -38,6 +38,8 @@ import { type ProductChoice, productChoices } from './product-choices';
 
 export interface ProductPanelProps {
   detail: FoodDetail;
+  /** The server could not answer: the product comes from its copy on the phone (S5-5). */
+  fromPhone?: boolean;
   /** Meal chosen in the add sheet, or the meal of the hour. */
   meal: MealType;
   /** The keyboard is open: the links are left out to keep "Ajouter" in view. */
@@ -57,6 +59,7 @@ type Choice = number | 'other';
 // quantity and the meal are preselected: one touch on "Ajouter" adds the product.
 export function ProductPanel({
   detail,
+  fromPhone = false,
   meal: initialMeal,
   compact = false,
   onRescan,
@@ -125,9 +128,15 @@ export function ProductPanel({
             {food.name}
           </Text>
           {food.brand ? <Text color="textMuted">{food.brand}</Text> : null}
-          <Text variant="label" color="success">
-            {t(food.source === 'user' ? 'scan.foundOwn' : 'scan.found')}
-          </Text>
+          {fromPhone ? (
+            <Text variant="label" color="textMuted">
+              {t('scan.fromPhone')}
+            </Text>
+          ) : (
+            <Text variant="label" color="success">
+              {t(food.source === 'user' ? 'scan.foundOwn' : 'scan.found')}
+            </Text>
+          )}
         </View>
       </View>
 

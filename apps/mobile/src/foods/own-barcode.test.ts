@@ -1,7 +1,7 @@
 import * as schema from '../db/schema';
 import type { LocalDatabase } from '../db/types';
 import { createLocalDatabase } from '../test/local-database';
-import { readOwnBarcodeFood } from './own-barcode';
+import { readCachedProduct, readOwnBarcodeFood } from './own-barcode';
 
 const userId = '0192f0c0-0000-7000-8000-00000000a11c';
 const otherId = '0192f0c0-0000-7000-8000-0000000b0b00';
@@ -74,5 +74,21 @@ describe('readOwnBarcodeFood', () => {
     ['an unknown code', '3000000000090'],
   ])('ignores %s', (_, ean) => {
     expect(readOwnBarcodeFood(db, userId, ean)).toBeNull();
+  });
+});
+
+describe('readCachedProduct', () => {
+  it('finds a product of Open Food Facts copied on the phone', () => {
+    expect(readCachedProduct(db, userId, '3228857000166')).toEqual({
+      food: expect.objectContaining({ name: 'Produit Open Food Facts', source: 'off' }) as object,
+      portions: [],
+    });
+  });
+
+  it.each([
+    ["the user's own food", '0036000291452'],
+    ['an unknown code', '3000000000090'],
+  ])('ignores %s', (_, ean) => {
+    expect(readCachedProduct(db, userId, ean)).toBeNull();
   });
 });

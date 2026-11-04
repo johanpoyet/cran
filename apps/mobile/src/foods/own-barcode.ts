@@ -29,3 +29,27 @@ export function readOwnBarcodeFood(
     .get();
   return row ? { food: toFood(row), portions: readPortions(db, userId, row.id) } : null;
 }
+
+/**
+ * A product of the catalogue already scanned (or used) on this phone, from its local copy: the scan
+ * recognises it without network (S5-5). The portions are the user's own.
+ */
+export function readCachedProduct(
+  db: LocalDatabase,
+  userId: string,
+  ean: string,
+): FoodDetail | null {
+  const row = db
+    .select()
+    .from(schema.foods)
+    .where(
+      and(
+        isNull(schema.foods.ownerId),
+        eq(schema.foods.source, 'off'),
+        eq(schema.foods.sourceRef, normalizeBarcode(ean)),
+        isNull(schema.foods.deletedAt),
+      ),
+    )
+    .get();
+  return row ? { food: toFood(row), portions: readPortions(db, userId, row.id) } : null;
+}
