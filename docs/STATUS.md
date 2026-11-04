@@ -2,13 +2,13 @@
 
 ## Sprint en cours : S5 — Scan code-barres
 
-| Story                                  | État    | PR  |
-| -------------------------------------- | ------- | --- |
-| S5-1 Proxy Open Food Facts             | à faire |     |
-| S5-2 Écran Scan                        | à faire |     |
-| S5-3 Feuille produit                   | à faire |     |
-| S5-4 Produit introuvable ou incohérent | à faire |     |
-| S5-5 Hors-ligne                        | à faire |     |
+| Story                                  | État     | PR                                |
+| -------------------------------------- | -------- | --------------------------------- |
+| S5-1 Proxy Open Food Facts             | en revue | `feat/S5-1-open-food-facts-proxy` |
+| S5-2 Écran Scan                        | à faire  |                                   |
+| S5-3 Feuille produit                   | à faire  |                                   |
+| S5-4 Produit introuvable ou incohérent | à faire  |                                   |
+| S5-5 Hors-ligne                        | à faire  |                                   |
 
 ## Sprints terminés
 
@@ -242,6 +242,11 @@ Petites décisions prises sans changer le modèle de données, l'API ou l'UX. Le
 - **2026-11-03 · Cache des aliments globaux** : à la fin de chaque synchro, l'app cherche les aliments utilisés par le journal, les favoris, les recettes et les modèles mais absents du téléphone (aliments CIQUAL ou Open Food Facts, jamais synchronisés), et les copie par `GET /v1/foods/:id` (100 au plus par synchro, 4 requêtes à la fois) : récents, favoris et recherche locale marchent sur un second appareil ou après une reconnexion. Un aliment que le serveur n'a plus est ignoré. Seul l'aliment est copié : les portions de l'utilisateur arrivent par la synchro, et le catalogue n'a pas encore de portions propres (Open Food Facts, S5).
 - **2026-11-03 · S4-4 vérifiée sur iPhone** : après le merge de #33, `GET /v1/foods/{id}` publiée sur le staging (doc OpenAPI, 401 sans session). Checklist de 3 points validée par Johan : aliments CIQUAL retrouvés dans les récents après déconnexion puis reconnexion, favori CIQUAL retrouvé, recherche de ces aliments en mode avion.
 - **2026-11-03 · Synchro local-first** : choix de la dernière écriture gagnante par ligne, écarts à la spec et limites connues (granularité de la ligne, horloge des appareils, suppression puis modification, écritures concurrentes et curseur, pas encore de purge à 90 jours) dans l'[ADR 0002](adr/0002-sync-local-first.md).
+
+- **2026-11-04 · `GET /v1/foods/barcode/:ean`** : accepte un EAN-8, un UPC-A ou un EAN-13 dont la clé de contrôle est juste (400 sinon ; validation dans `shared`, réutilisable par l'écran Scan). Un UPC-A est rangé sous son EAN-13 (un 0 devant), comme Open Food Facts, pour qu'un même produit ne soit gardé qu'une fois. Réponse identique à `GET /v1/foods/:id` (l'aliment et les portions de l'utilisateur). Erreurs : 404 `not_found`, 503 `off_unavailable`.
+- **2026-11-04 · Cache Open Food Facts** : un produit est gardé dans `foods` (`source = off`, `source_ref` = EAN, sans propriétaire) et servi sans appel pendant 30 jours après `off_synced_at`, puis rafraîchi à la demande suivante. Si Open Food Facts échoue ou ne connaît plus le produit, la version gardée est servie même périmée ; le 503 n'arrive que pour un produit jamais vu. Délai de 4 s, `User-Agent: Cran/<version> (contact@johanpoyet.fr)`, champs limités à ceux de la spec.
+- **2026-11-04 · Normalisation Open Food Facts** : nom français, sinon nom générique ; première marque de la liste ; kcal, sinon kJ / 4,184 ; nombres acceptés aussi en texte, arrondis à 2 décimales ; valeur négative ou trop grande pour la base ignorée. Protéines, glucides ou lipides absents : 0 et `incomplete` (comme pour CIQUAL). Calories éloignées des macros (`foodCoherence`) : `incoherent`. `serving_quantity` devient la portion par défaut. Un produit sans nom ou sans énergie n'est pas gardé et répond 404 : l'app proposera de créer l'aliment (S5-4).
+- **2026-11-04 · Limites du proxy Open Food Facts** : un code inconnu n'est pas mis en cache, chaque scan rappelle Open Food Facts ; pas de protection contre sa limite de 100 lectures par minute (sans risque avec un seul utilisateur, à revoir si l'app est ouverte à d'autres) ; une portion en ml est prise pour des grammes ; deux premiers scans simultanés du même code appellent tous deux Open Food Facts (sans doublon en base). Les produits gardés sont communs à tous les utilisateurs et sortent dans la recherche, après CIQUAL.
 
 ## Rétros
 

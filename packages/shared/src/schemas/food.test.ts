@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { FOOD_SEARCH_LIMITS, foodSearchQuerySchema, newFoodSchema, quickEntrySchema } from './food';
+import {
+  barcodeParamsSchema,
+  FOOD_SEARCH_LIMITS,
+  foodSearchQuerySchema,
+  newFoodSchema,
+  quickEntrySchema,
+} from './food';
 
 describe('foodSearchQuerySchema', () => {
   it('trims the query and applies the default limit', () => {
@@ -75,5 +81,15 @@ describe('quickEntrySchema', () => {
     ['a label of more than 100 characters', { label: 'a'.repeat(101) }],
   ])('rejects %s', (_, change) => {
     expect(quickEntrySchema.safeParse({ ...quick, ...change }).success).toBe(false);
+  });
+});
+
+describe('barcodeParamsSchema', () => {
+  it('accepts a valid EAN-13', () => {
+    expect(barcodeParamsSchema.parse({ ean: '3017620422003' })).toEqual({ ean: '3017620422003' });
+  });
+
+  it('rejects a wrong check digit', () => {
+    expect(barcodeParamsSchema.safeParse({ ean: '3017620422004' }).success).toBe(false);
   });
 });

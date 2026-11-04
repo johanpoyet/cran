@@ -3,6 +3,7 @@ import { and, asc, desc, eq, isNull, or, type SQL, sql } from 'drizzle-orm';
 
 import type { AppDatabase } from '../db/client';
 import { foodPortions, type FoodRow, foods, unaccented } from '../db/schema';
+import type { OffFood } from '../open-food-facts/normalize';
 
 /** Words that say nothing about the food ("flocons d'avoine", "pâtes au beurre"). */
 const STOP_WORDS = new Set([
@@ -126,7 +127,29 @@ export function createFoodRepository(db: AppDatabase) {
     return { food: toFood(row), portions };
   }
 
-  return { search, find };
+  /** The cached Open Food Facts product of a barcode, removed or not. */
+  async function findCachedProduct(ean: string): Promise<FoodRow | null> {
+    const [row] = await db
+      .select()
+      .from(foods)
+      .where(and(eq(foods.source, 'off'), eq(foods.sourceRef, ean)))
+      .limit(1);
+    return row ?? null;
+  }
+
+  /** Stores or refreshes a product in the Open Food Facts cache; returns its id. */
+  async function cacheProduct(product: OffFood, syncedAt: Date): Promise<string> {
+    const values = { ...product, offSyncedAt: syncedAt, updatedAt: syncedAt, deletedAt: null };
+    const [row] = await db
+      .insert(foods)
+      .values({ ...values, source: 'off' })
+      .onConflictDoUpdate({ target: [foods.source, foods.sourceRef], set: values })
+      .returning({ id: foods.id });
+    if (!row) throw new Error(`Open Food Facts product ${product.sourceRef} not stored`);
+    return row.id;
+  }
+
+  return { search, find, findCachedProduct, cacheProduct };
 }
 
 export type FoodRepository = ReturnType<typeof createFoodRepository>;

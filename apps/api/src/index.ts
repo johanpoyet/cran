@@ -6,6 +6,7 @@ import { createAuth } from './auth';
 import { createDatabase } from './db/client';
 import { loadEnv } from './env';
 import { createLogger } from './logger';
+import { createOpenFoodFacts } from './open-food-facts/client';
 
 const env = loadEnv();
 const logger = createLogger(env.LOG_LEVEL);
@@ -17,6 +18,7 @@ const app = createApp({
   logger,
   auth,
   db: database.db,
+  openFoodFacts: createOpenFoodFacts({ version: env.APP_VERSION }),
   version: env.APP_VERSION,
   pingDatabase: database.ping,
 });
