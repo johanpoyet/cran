@@ -8,7 +8,7 @@ import { ActionSheetIOS, Keyboard, type KeyboardEvent, Linking } from 'react-nat
 
 import ScanScreen from './app/scan';
 import { cacheGlobalFood } from './foods/cache';
-import { readOwnBarcodeFood } from './foods/own-barcode';
+import { readCachedProduct, readOwnBarcodeFood } from './foods/own-barcode';
 import { addEntries } from './journal/add-entries';
 import { setSession, signedIn } from './test/fake-auth-client';
 import { mockFetchFailure, mockFetchResponse } from './test/fetch';
@@ -16,7 +16,10 @@ import { skyr } from './test/foods';
 
 jest.mock('./auth/client', () => jest.requireActual<object>('./test/fake-auth-client'));
 jest.mock('./journal/add-entries', () => ({ addEntries: jest.fn() }));
-jest.mock('./foods/own-barcode', () => ({ readOwnBarcodeFood: jest.fn(() => null) }));
+jest.mock('./foods/own-barcode', () => ({
+  readOwnBarcodeFood: jest.fn(() => null),
+  readCachedProduct: jest.fn(() => null),
+}));
 jest.mock('./foods/cache', () => ({ cacheGlobalFood: jest.fn() }));
 jest.mock('expo-haptics', () => ({
   notificationAsync: jest.fn(() => Promise.resolve()),
@@ -60,6 +63,7 @@ beforeEach(() => {
   jest.restoreAllMocks();
   camera = null;
   jest.mocked(readOwnBarcodeFood).mockReturnValue(null);
+  jest.mocked(readCachedProduct).mockReturnValue(null);
   permission(true);
 });
 
@@ -408,5 +412,52 @@ describe('Produit introuvable ou incohérent', () => {
     await scanSkyr();
 
     expect(screen.queryByRole('button', { name: 'Corriger le produit' })).toBeNull();
+  });
+});
+
+describe('Scan hors ligne', () => {
+  it('keeps a copy of every product found', async () => {
+    await scanSkyr();
+
+    expect(cacheGlobalFood).toHaveBeenCalledWith(expect.anything(), skyr, expect.any(Date));
+  });
+
+  it('recognises a product already scanned without network, and adds it', async () => {
+    mockFetchFailure();
+    jest.mocked(readCachedProduct).mockReturnValue({ food: skyr, portions: [] });
+    await openScan();
+
+    await read(EAN);
+
+    expect(await screen.findByRole('header', { name: 'Skyr nature 0 %' })).toBeOnTheScreen();
+    expect(
+      screen.getByText('Hors ligne : produit déjà scanné, valeurs gardées sur ton téléphone'),
+    ).toBeOnTheScreen();
+    await fireEvent.press(button('Ajouter · 95\u00a0kcal'));
+    expect(jest.mocked(addEntries).mock.calls[0]?.[2].items).toEqual([
+      { food: skyr, grams: 150, portionLabel: '1 portion' },
+    ]);
+  });
+
+  it('uses the copy when Open Food Facts does not answer', async () => {
+    mockFetchResponse(503, { error: { code: 'off_unavailable', message: 'Unavailable' } });
+    jest.mocked(readCachedProduct).mockReturnValue({ food: skyr, portions: [] });
+    await openScan();
+
+    await read(EAN);
+
+    expect(await screen.findByRole('header', { name: 'Skyr nature 0 %' })).toBeOnTheScreen();
+  });
+
+  it('believes the server when it does not know the product', async () => {
+    mockFetchResponse(404, { error: { code: 'not_found', message: 'Product not found' } });
+    jest.mocked(readCachedProduct).mockReturnValue({ food: skyr, portions: [] });
+    await openScan();
+
+    await read(EAN);
+
+    expect(
+      await screen.findByText(`Produit introuvable sur Open Food Facts (${EAN}).`),
+    ).toBeOnTheScreen();
   });
 });

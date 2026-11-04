@@ -2,13 +2,13 @@
 
 ## Sprint en cours : S5 — Scan code-barres
 
-| Story                                  | État     | PR                           |
-| -------------------------------------- | -------- | ---------------------------- |
-| S5-1 Proxy Open Food Facts             | fait     | #36                          |
-| S5-2 Écran Scan                        | fait     | #37                          |
-| S5-3 Feuille produit                   | fait     | #38                          |
-| S5-4 Produit introuvable ou incohérent | en revue | `feat/S5-4-create-from-scan` |
-| S5-5 Hors-ligne                        | à faire  |                              |
+| Story                                  | État     | PR                       |
+| -------------------------------------- | -------- | ------------------------ |
+| S5-1 Proxy Open Food Facts             | fait     | #36                      |
+| S5-2 Écran Scan                        | fait     | #37                      |
+| S5-3 Feuille produit                   | fait     | #38                      |
+| S5-4 Produit introuvable ou incohérent | fait     | #39                      |
+| S5-5 Hors-ligne                        | en revue | `feat/S5-5-offline-scan` |
 
 ## Sprints terminés
 
@@ -263,6 +263,9 @@ Petites décisions prises sans changer le modèle de données, l'API ou l'UX. Le
 - **2026-11-04 · S5-3 vérifiée sur iPhone** : checklist de 8 points validée par Johan, dont l'ajout en une touche après la détection ; le correctif du clavier, livré par `eas update`, validé à part.
 - **2026-11-04 · Code-barres des aliments perso** : décision de Johan, voir l'[ADR 0005](adr/0005-code-barres-des-aliments-perso.md). Un aliment créé depuis le scan garde le code-barres (une fois par utilisateur) et le scan le trouve en premier, sur le téléphone puis sur le serveur.
 - **2026-11-04 · Créer ou corriger depuis le scan** : produit introuvable → bouton « Créer l’aliment » ; sous la feuille produit, « Pas le bon produit ? Créer l’aliment » (maquette 12) ; produit Open Food Facts `incoherent` ou `incomplete` → bandeau orange « Valeurs à vérifier » ou « Valeurs incomplètes » avec « Corriger le produit », qui ouvre « Nouvel aliment » pré-rempli (nom, marque, valeurs, portion d'Open Food Facts en « 1 portion »). Le formulaire affiche « Code-barres … ». Après l'enregistrement, le retour au scan montre l'aliment créé, « Dans tes aliments », prêt à ajouter. Le code lu est gardé dans la route du scan, pour le retrouver même si iOS libère l'écran.
+
+- **2026-11-04 · S5-4 vérifiée** : checklist de 8 points validée par Johan sur iPhone (mise à jour `eas update`). Après le merge de #39, vérifié en lecture seule sur la base du staging : migration `0005` appliquée, index `foods_source_ref_idx` partiel et `foods_owner_barcode_idx` en place.
+- **2026-11-04 · Scan hors ligne** : chaque produit trouvé par le serveur est copié sur le téléphone (table `foods`, sans propriétaire), même s'il n'est pas ajouté. Quand le serveur est injoignable ou qu'Open Food Facts ne répond pas (503), le scan utilise cette copie, avec la mention « Hors ligne : produit déjà scanné, valeurs gardées sur ton téléphone ». Un 404 du serveur l'emporte sur la copie. Ordre complet : aliment de l'utilisateur sur le téléphone, serveur, copie du téléphone. Les produits scannés sortent aussi dans la recherche locale (« déjà utilisés » s'entend désormais « déjà utilisés ou scannés »).
 
 ## Rétros
 

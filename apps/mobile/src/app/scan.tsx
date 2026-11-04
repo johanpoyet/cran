@@ -201,7 +201,15 @@ function ScanResult({
         </View>
       );
     case 'found':
-      return <ProductPanel detail={scan.detail} meal={meal} compact={typing} onRescan={onRescan} />;
+      return (
+        <ProductPanel
+          detail={scan.detail}
+          fromPhone={scan.fromPhone === true}
+          meal={meal}
+          compact={typing}
+          onRescan={onRescan}
+        />
+      );
     case 'not_found':
       return (
         <View style={styles.found}>
