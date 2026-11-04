@@ -33,6 +33,14 @@ export const colors = {
   onAccentSoft: '#4965F6',
   /** Unfilled part of the progress bar on the accent hero card. */
   onAccentTrack: '#6E86F8',
+  /** Behind the camera of the scan screen, and while it starts. */
+  scanBackdrop: '#1C1F29',
+  /** Text, frame and icons over the camera. */
+  onScan: '#FFFFFF',
+  /** Hint over the camera ("Vise le code-barres du produit"). */
+  onScanMuted: '#D5D8E0',
+  /** Round buttons over the camera (close, torch). */
+  scanControl: 'rgba(255, 255, 255, 0.16)',
 } as const;
 
 export type ColorToken = keyof typeof colors;
@@ -109,6 +117,8 @@ export const control = {
   /** Glass segments of the "Eau" card. */
   waterSegment: { width: 14, height: 28 },
   macroRing: 64,
+  /** Aiming frame of the scan screen, with its corners. */
+  scanFrame: { width: 280, height: 170, corner: 40, stroke: 4 },
 } as const;
 
 export const ruler = {

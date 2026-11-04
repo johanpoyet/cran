@@ -47,6 +47,15 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     'expo-secure-store',
     'expo-web-browser',
     'expo-apple-authentication',
+    [
+      'expo-camera',
+      {
+        cameraPermission:
+          'Cran utilise l’appareil photo pour scanner le code-barres des produits que tu manges.',
+        microphonePermission: false,
+        recordAudioAndroid: false,
+      },
+    ],
     ...googleSignIn,
     [
       'expo-splash-screen',

@@ -52,6 +52,7 @@ async function openSheet(url: Href = '/add') {
       'food/new': () => null,
       'food/[id]': () => null,
       'quick-add': () => null,
+      scan: () => null,
     },
     { initialUrl: '/' },
   );
@@ -137,6 +138,14 @@ describe('Ajouter un aliment', () => {
 
     expect(screen).toHavePathname('/quick-add');
     expect(screen).toHaveSearchParams({ meal: 'snack' });
+  });
+
+  it('opens the scan for the selected meal', async () => {
+    await openSheet({ pathname: '/add', params: { meal: 'dinner' } });
+    await fireEvent.press(screen.getByRole('button', { name: 'Scanner un code-barres' }));
+
+    expect(screen).toHavePathname('/scan');
+    expect(screen).toHaveSearchParams({ meal: 'dinner' });
   });
 
   it('preselects the meal touched on Today', async () => {

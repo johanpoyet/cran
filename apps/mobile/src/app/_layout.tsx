@@ -90,6 +90,10 @@ function RootLayout() {
             <Stack.Screen name="quick-add" options={SHEET} />
             <Stack.Screen name="water" options={SHEET} />
             <Stack.Screen name="food/new" />
+            <Stack.Screen
+              name="scan"
+              options={{ presentation: 'fullScreenModal', contentStyle: styles.scan }}
+            />
           </Stack.Protected>
           <Stack.Protected guard={authStatus === 'onboarding'} redirectTo={home}>
             <Stack.Screen name="(onboarding)" />
@@ -114,4 +118,5 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg,
   },
   content: { backgroundColor: colors.bg },
+  scan: { backgroundColor: colors.scanBackdrop },
 });

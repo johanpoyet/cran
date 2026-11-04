@@ -200,6 +200,12 @@ export default function AddSheet() {
           onClear={() => {
             setQuery('');
           }}
+          scan={{
+            label: t('add.scan'),
+            onPress: () => {
+              router.push({ pathname: '/scan', params: { meal } });
+            },
+          }}
         />
       </View>
 

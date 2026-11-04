@@ -52,6 +52,7 @@
     "search": "Rechercher un aliment",
     "searchPlaceholder": "Riz, poulet, skyr…",
     "clearSearch": "Effacer la recherche",
+    "scan": "Scanner un code-barres",
     "recent": "Récents",
     "favorites": "Favoris",
     "recentEmpty": "Les aliments que tu ajoutes apparaîtront ici, pour les retrouver en un geste.",
@@ -380,5 +381,20 @@
     "offlinePending_other": "Hors ligne, {{count}} changements partiront au retour du réseau",
     "error": "Synchronisation impossible pour l’instant",
     "hint": "Touche pour synchroniser maintenant"
+  },
+  "scan": {
+    "close": "Fermer le scan",
+    "torch": "Lampe",
+    "hint": "Vise le code-barres du produit",
+    "permissionTitle": "Cran n’a pas accès à l’appareil photo",
+    "permissionText": "Autorise l’appareil photo dans les réglages pour scanner les codes-barres. Tu peux aussi chercher l’aliment par son nom.",
+    "openSettings": "Ouvrir les réglages",
+    "searching": "Recherche du produit {{ean}}…",
+    "found": "Trouvé sur Open Food Facts",
+    "notFound": "Produit introuvable sur Open Food Facts ({{ean}}).",
+    "offline": "Pas de réseau : le produit ne peut pas être cherché pour l’instant.",
+    "unavailable": "Open Food Facts ne répond pas. Réessaie dans un instant.",
+    "retry": "Réessayer",
+    "again": "Scanner un autre produit"
   }
 }

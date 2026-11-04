@@ -36,3 +36,17 @@ export const galettes = food({
   protein100g: 8,
   carbs100g: 81,
 });
+
+/** The product of the scan mockup, as `GET /v1/foods/barcode/:ean` returns it. */
+export const skyr = food({
+  id: '0192f0c0-0000-7000-8000-00000005c1a1',
+  name: 'Skyr nature 0 %',
+  brand: 'Siggi’s',
+  source: 'off',
+  sourceRef: '3033490004743',
+  kcal100g: 63,
+  protein100g: 11,
+  carbs100g: 4,
+  fat100g: 0.2,
+  defaultPortionG: 150,
+});

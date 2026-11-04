@@ -1,4 +1,5 @@
 export { Badge } from './badge';
+export { CameraButton, type CameraButtonProps } from './camera-button';
 export { Card } from './card';
 export { Checkbox, type CheckboxProps } from './checkbox';
 export { Chip, type ChipProps } from './chip';
@@ -22,6 +23,7 @@ export { Overline } from './overline';
 export { PrimaryButton, type PrimaryButtonProps } from './primary-button';
 export { ProgressBar, type ProgressBarProps } from './progress-bar';
 export { RulerPicker, type RulerPickerProps, tickIndexAt } from './ruler-picker';
+export { ScanFrame } from './scan-frame';
 export { Screen, type ScreenProps } from './screen';
 export { SearchField, type SearchFieldProps } from './search-field';
 export { Segmented, type SegmentedProps } from './segmented';

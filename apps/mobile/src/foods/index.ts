@@ -1,3 +1,4 @@
+export { type BarcodeScan, lookupBarcode, useBarcodeScan } from './barcode';
 export { cacheGlobalFood } from './cache';
 export { createFood } from './create-food';
 export { isFavorite, setFavorite } from './favorite';
