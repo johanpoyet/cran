@@ -1,4 +1,5 @@
 import { ChevronLeft } from 'lucide-react-native';
+import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { colors, control, radius, space } from '../theme/tokens';
@@ -11,9 +12,20 @@ export interface StepHeaderProps {
   progress?: { step: number; total: number; label: string };
   /** Title next to the back button, for screens without progress ("Ta cible de départ"). */
   title?: string;
+  /** Line under the title ("Meal prep · 5 ingrédients"). */
+  subtitle?: string;
+  /** Element on the right (the pencil of a recipe). */
+  accessory?: ReactNode;
 }
 
-export function StepHeader({ onBack, backLabel, progress, title }: StepHeaderProps) {
+export function StepHeader({
+  onBack,
+  backLabel,
+  progress,
+  title,
+  subtitle,
+  accessory,
+}: StepHeaderProps) {
   return (
     <View style={styles.header}>
       <Pressable
@@ -46,10 +58,18 @@ export function StepHeader({ onBack, backLabel, progress, title }: StepHeaderPro
         </View>
       ) : null}
       {title ? (
-        <Text variant="title" accessibilityRole="header" style={styles.title}>
-          {title}
-        </Text>
+        <View style={styles.title}>
+          <Text variant="title" accessibilityRole="header">
+            {title}
+          </Text>
+          {subtitle ? (
+            <Text variant="body" weight={500} color="textMuted">
+              {subtitle}
+            </Text>
+          ) : null}
+        </View>
       ) : null}
+      {accessory}
     </View>
   );
 }

@@ -2,12 +2,12 @@
 
 ## Sprint en cours : S6 — Recettes et modèles
 
-| Story                               | État    | PR  |
-| ----------------------------------- | ------- | --- |
-| S6-1 Recettes                       | à faire |     |
-| S6-2 Ajouter une recette au journal | à faire |     |
-| S6-3 Modèles de repas               | à faire |     |
-| S6-4 Favoris                        | à faire |     |
+| Story                               | État     | PR                  |
+| ----------------------------------- | -------- | ------------------- |
+| S6-1 Recettes                       | en revue | `feat/S6-1-recipes` |
+| S6-2 Ajouter une recette au journal | à faire  |                     |
+| S6-3 Modèles de repas               | à faire  |                     |
+| S6-4 Favoris                        | à faire  |                     |
 
 ## Sprints terminés
 
@@ -279,6 +279,11 @@ Petites décisions prises sans changer le modèle de données, l'API ou l'UX. Le
 - **2026-11-04 · Scan hors ligne** : chaque produit trouvé par le serveur est copié sur le téléphone (table `foods`, sans propriétaire), même s'il n'est pas ajouté. Quand le serveur est injoignable ou qu'Open Food Facts ne répond pas (503), le scan utilise cette copie, avec la mention « Hors ligne : produit déjà scanné, valeurs gardées sur ton téléphone ». Un 404 du serveur l'emporte sur la copie. Ordre complet : aliment de l'utilisateur sur le téléphone, serveur, copie du téléphone. Les produits scannés sortent aussi dans la recherche locale (« déjà utilisés » s'entend désormais « déjà utilisés ou scannés »).
 
 - **2026-11-04 · S5-5 vérifiée sur iPhone** : checklist de 6 points validée par Johan (produit scanné reconnu et ajouté en mode avion, produit jamais scanné toujours « Pas de réseau », retour en ligne, recherche locale).
+
+- **2026-11-04 · Recettes : calcul** : `recipeNutrition` et `weighedPortion` dans `shared` (spec section 6) : totaux = somme des ingrédients, par part = totaux / parts, poids d'une part = poids cuit / parts, portion pesée = totaux × g / poids cuit. Le « Poulet riz curry » de la spec donne 614 kcal par part (2 456 kcal / 4).
+- **2026-11-04 · Recettes : choix de Johan** : catégories fixes `meal_prep`, `breakfast`, `snack`, `other` (« Meal prep », « Petit-déj », « Collation », « Autre »), stockées sous ces clés dans `category` ; accès par une ligne « Mes recettes » dans l'onglet Profil (elle restera sur l'écran Objectifs, S8) ; le « − 4 parts + » de la fiche change la recette, et le poids cuit s'enregistre depuis la fiche, à la sortie du champ (vide = sans poids cuit, valeur fausse = valeur précédente).
+- **2026-11-04 · Recettes : écrans** : « Mes recettes » (maquette 14 : recherche sans accents, filtre par catégorie, cartes avec l'initiale en couleur, à tour de rôle, kcal par part, bouton « Nouvelle recette ») ; « Fiche recette » (maquette 15 : valeurs par part, parts, ingrédients avec « CRU » et la macro principale si elle atteint 10 g, poids cuit et poids d'une part). Le lien « Mes aliments » de la maquette 14 n'est dans aucune story : pas affiché. Les boutons « Peser ma part » et « Ajouter 1 part » viennent avec S6-2. Un ingrédient en ml (lait de coco) est saisi en grammes, comme partout.
+- **2026-11-04 · Recettes : saisie** (non dessinée) : nom, catégorie (toucher la catégorie choisie la retire), nombre de parts (1 à 50, entier), ingrédients pesés pour toute la recette, poids cuit et notes facultatifs, « Supprimer la recette » avec confirmation. Un ingrédient s'ajoute ou se modifie dans une feuille : recherche (téléphone puis serveur) ou récents, puis grammes et « Pesé cru » (oui par défaut). Le brouillon est partagé entre le formulaire et la feuille par un store Zustand. Enregistrement local : les anciens ingrédients sont supprimés logiquement et la liste réécrite dans l'ordre ; les aliments globaux utilisés sont copiés sur le téléphone. Supprimer une recette supprime ses ingrédients ; les saisies déjà faites gardent leurs valeurs.
 
 ## Rétros
 

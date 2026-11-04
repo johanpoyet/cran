@@ -37,7 +37,8 @@
   },
   "profile": {
     "title": "Objectifs",
-    "empty": "Ton rythme, tes macros et tes rappels se régleront ici."
+    "empty": "Ton rythme, tes macros et tes rappels se régleront ici.",
+    "recipes": "Mes recettes"
   },
   "add": {
     "title": "Ajouter un aliment",
@@ -415,5 +416,97 @@
     "fix": "Corriger le produit",
     "fixHint": "Crée ton propre aliment avec les bonnes valeurs ; il remplacera ce produit à chaque scan",
     "fromPhone": "Hors ligne : produit déjà scanné, valeurs gardées sur ton téléphone"
+  },
+  "recipes": {
+    "title": "Mes recettes",
+    "back": "Retour",
+    "search": "Rechercher une recette",
+    "clearSearch": "Effacer la recherche",
+    "categories": {
+      "all": "Tout",
+      "meal_prep": "Meal prep",
+      "breakfast": "Petit-déj",
+      "snack": "Collation",
+      "other": "Autre"
+    },
+    "categoryFilter": "Catégorie",
+    "servings_one": "{{count}} part",
+    "servings_other": "{{count}} parts",
+    "cooked": "{{grams}} cuit",
+    "macros": "P {{protein}} · G {{carbs}} · L {{fat}}",
+    "kcalPerServing": "kcal / part",
+    "cardLabel": "{{name}}, {{details}}, {{kcal}} par part, {{macros}}",
+    "empty": "Tu n’as pas encore de recette. Crée ton meal prep de la semaine pour le saisir en une touche.",
+    "noResult": "Aucune recette pour « {{query}} ».",
+    "new": "Nouvelle recette",
+    "ingredients_one": "{{count}} ingrédient",
+    "ingredients_other": "{{count}} ingrédients",
+    "perServing": "Par portion",
+    "servingsLabel": "Nombre de parts",
+    "fewer": "Une part de moins",
+    "more": "Une part de plus",
+    "kcal": "kcal",
+    "protein": "protéines",
+    "carbs": "glucides",
+    "fat": "lipides",
+    "valueLabel": "{{value}} de {{name}} par part",
+    "kcalLabel": "{{value}} par part",
+    "raw": "CRU",
+    "rawSpoken": "pesé cru",
+    "ingredientDetails": "{{kcal}} · {{macro}} {{grams}}",
+    "macroLetters": {
+      "protein": "P",
+      "carbs": "G",
+      "fat": "L"
+    },
+    "ingredientLabel": "{{name}}, {{grams}}, {{details}}",
+    "cookedWeight": "Poids total une fois cuit",
+    "cookedWeightField": "Poids total une fois cuit, en grammes",
+    "servingWeight": "1 portion = <bold>{{grams}}</bold> dans ton tup — pèse ta part, l’app calcule le reste.",
+    "cookedEmpty": "Pèse le plat entier après cuisson : tu pourras peser ta part, l’app calculera le reste.",
+    "edit": "Modifier la recette",
+    "missing": "Cette recette n’existe plus.",
+    "form": {
+      "titleNew": "Nouvelle recette",
+      "titleEdit": "Modifier la recette",
+      "name": "Nom",
+      "namePlaceholder": "Ex. poulet riz curry",
+      "category": "Catégorie",
+      "servings": "Nombre de parts",
+      "ingredients": "Ingrédients",
+      "addIngredient": "+ Ajouter un ingrédient",
+      "noIngredient": "Ajoute les ingrédients pesés pour toute la recette.",
+      "cookedWeight": "Poids total une fois cuit (optionnel)",
+      "cookedPlaceholder": "Ex. 2100",
+      "notes": "Notes (optionnel)",
+      "notesPlaceholder": "Ex. cuisson 20 min",
+      "save": "Enregistrer la recette",
+      "saveHint": "Renseigne le nom et au moins un ingrédient",
+      "delete": "Supprimer la recette",
+      "deleteTitle": "Supprimer « {{name}} » ?",
+      "deleteText": "Les repas déjà saisis avec cette recette gardent leurs valeurs.",
+      "deleteConfirm": "Supprimer",
+      "cancel": "Annuler",
+      "errors": {
+        "name": "Donne un nom à cette recette (100 caractères au plus).",
+        "ingredients": "Ajoute au moins un ingrédient (50 au plus).",
+        "cookedWeight": "Le poids cuit doit être un nombre de grammes supérieur à 0 (20 000 au plus).",
+        "save": "La recette n’a pas pu être enregistrée. Réessaie."
+      }
+    },
+    "ingredient": {
+      "title": "Ajouter un ingrédient",
+      "titleEdit": "Ingrédient",
+      "close": "Fermer",
+      "grams": "Quantité en grammes, pour toute la recette",
+      "raw": "Pesé cru",
+      "rawHint": "Indique si tu as pesé l’aliment avant cuisson",
+      "add": "Ajouter à la recette",
+      "update": "Valider",
+      "remove": "Retirer de la recette",
+      "change": "Changer d’aliment",
+      "pick": "Choisir {{name}}",
+      "invalid": "La quantité doit être un nombre de grammes supérieur à 0 (5 000 au plus)."
+    }
   }
 }

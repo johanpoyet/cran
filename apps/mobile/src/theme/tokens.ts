@@ -117,6 +117,8 @@ export const control = {
   /** Glass segments of the "Eau" card. */
   waterSegment: { width: 14, height: 28 },
   macroRing: 64,
+  /** Letter tile of a recipe card ("Mes recettes"). */
+  recipeTile: 64,
   /** Aiming frame of the scan screen, with its corners. */
   scanFrame: { width: 280, height: 170, corner: 40, stroke: 4 },
 } as const;

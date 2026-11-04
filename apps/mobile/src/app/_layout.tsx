@@ -28,7 +28,7 @@ initSentry();
 
 const HOME = { signedOut: '/sign-in', onboarding: '/rate', ready: '/' } as const;
 
-/** Bottom sheets: add, meal, entry. */
+/** Bottom sheets: add, meal, entry, recipe ingredient. */
 const SHEET = {
   presentation: 'formSheet' as const,
   sheetAllowedDetents: [0.9],
@@ -90,6 +90,10 @@ function RootLayout() {
             <Stack.Screen name="quick-add" options={SHEET} />
             <Stack.Screen name="water" options={SHEET} />
             <Stack.Screen name="food/new" />
+            <Stack.Screen name="recipes/index" />
+            <Stack.Screen name="recipes/[id]" />
+            <Stack.Screen name="recipes/edit" />
+            <Stack.Screen name="recipes/ingredient" options={SHEET} />
             <Stack.Screen
               name="scan"
               options={{ presentation: 'fullScreenModal', contentStyle: styles.scan }}

@@ -1,3 +1,4 @@
+import type { LucideIcon } from 'lucide-react-native';
 import { ActivityIndicator, Pressable, StyleSheet } from 'react-native';
 
 import { colors, control, radius, space, touch } from '../theme/tokens';
@@ -12,6 +13,8 @@ export interface PrimaryButtonProps {
   /** Shows a spinner and ignores presses while an action runs. */
   loading?: boolean;
   accessibilityHint?: string;
+  /** Icon before the label ("+ Nouvelle recette"), not read by VoiceOver. */
+  icon?: LucideIcon;
 }
 
 export function PrimaryButton({
@@ -21,6 +24,7 @@ export function PrimaryButton({
   disabled = false,
   loading = false,
   accessibilityHint,
+  icon: Icon,
 }: PrimaryButtonProps) {
   const outline = variant === 'outline';
   const inactive = disabled || loading;
@@ -42,9 +46,14 @@ export function PrimaryButton({
       {loading ? (
         <ActivityIndicator color={outline ? colors.text : colors.onAccent} />
       ) : (
-        <Text variant="body" weight={700} color={outline ? 'text' : 'onAccent'} align="center">
-          {label}
-        </Text>
+        <>
+          {Icon ? (
+            <Icon color={outline ? colors.text : colors.onAccent} size={control.iconSize + 2} />
+          ) : null}
+          <Text variant="body" weight={700} color={outline ? 'text' : 'onAccent'} align="center">
+            {label}
+          </Text>
+        </>
       )}
     </Pressable>
   );
@@ -55,6 +64,8 @@ const styles = StyleSheet.create({
     minHeight: Math.max(touch.minSize, control.height),
     borderRadius: radius.pill,
     backgroundColor: colors.accent,
+    flexDirection: 'row',
+    gap: space[8],
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: space[24],
