@@ -125,7 +125,9 @@ export const syncRowSchemas = {
     templateId: z.uuid(),
     foodId: z.uuid().nullable(),
     recipeId: z.uuid().nullable(),
-    grams,
+    /** Null for servings of a recipe (S6-3, ADR 0006). */
+    grams: grams.nullable(),
+    servings: z.number().positive().max(999.99).nullable().default(null),
     position: z.number().int().min(0).max(1000),
   }),
   measurements: z.strictObject({

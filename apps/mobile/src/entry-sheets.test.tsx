@@ -12,9 +12,11 @@ import {
   readMealEntries,
   updateEntry,
 } from './journal/entries';
+import { saveTemplate } from './templates/templates';
 import { setSession, signedIn } from './test/fake-auth-client';
 
 jest.mock('./auth/client', () => jest.requireActual<object>('./test/fake-auth-client'));
+jest.mock('./templates/templates', () => ({ saveTemplate: jest.fn() }));
 jest.mock('./journal/entries', () => ({
   ...jest.requireActual<object>('./journal/entries'),
   readMealEntries: jest.fn(),
@@ -110,6 +112,48 @@ describe('meal sheet', () => {
 
     expect(await screen.findByText('2 parts (1 050 g) · P 110 · G 156 · L 18')).toBeOnTheScreen();
     expect(screen.getByText('1,5 part · P 110 · G 156 · L 18')).toBeOnTheScreen();
+  });
+
+  it('saves the meal as a template, named after the meal by default (S6-3)', async () => {
+    const quick: Entry = {
+      ...rice,
+      id: 'entry-quick',
+      foodId: null,
+      grams: null,
+      label: 'Ajout rapide',
+    };
+    jest.mocked(readMealEntries).mockReturnValue([rice, curry, quick]);
+    jest.mocked(saveTemplate).mockReturnValue({ id: 'template', count: 2 });
+    const prompt = jest
+      .spyOn(Alert, 'prompt')
+      .mockImplementation((_title, _message, buttons, _type, defaultValue) => {
+        expect(defaultValue).toBe('Dîner');
+        if (Array.isArray(buttons)) buttons[1]?.onPress?.(' Dîner prise de masse ');
+      });
+    await open({ pathname: '/meal/[type]', params: { type: 'dinner' } });
+
+    await fireEvent.press(await screen.findByRole('button', { name: 'Enregistrer comme modèle' }));
+
+    expect(prompt).toHaveBeenCalled();
+    expect(saveTemplate).toHaveBeenCalledWith(expect.anything(), userId, {
+      name: 'Dîner prise de masse',
+      mealType: 'dinner',
+      entries: [rice, curry, quick],
+    });
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'Modèle « Dîner prise de masse » enregistré, sans l’ajout rapide.',
+    );
+    prompt.mockRestore();
+  });
+
+  it('offers no template for a meal of quick adds only', async () => {
+    jest
+      .mocked(readMealEntries)
+      .mockReturnValue([{ ...rice, foodId: null, grams: null, label: 'Ajout rapide' }]);
+    await open({ pathname: '/meal/[type]', params: { type: 'dinner' } });
+
+    await screen.findByText('Ajout rapide');
+    expect(screen.queryByRole('button', { name: 'Enregistrer comme modèle' })).toBeNull();
   });
 
   it('says when the meal is empty', async () => {

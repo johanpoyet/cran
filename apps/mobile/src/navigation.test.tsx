@@ -53,6 +53,10 @@ jest.mock('./recipes/recipes', () => ({
   ...jest.requireActual<object>('./recipes/recipes'),
   readRecipes: jest.fn(() => []),
 }));
+jest.mock('./templates/templates', () => ({
+  ...jest.requireActual<object>('./templates/templates'),
+  readTemplates: jest.fn(() => []),
+}));
 jest.mock('./recipes/log', () => ({
   ...jest.requireActual<object>('./recipes/log'),
   readRecentRecipes: jest.fn(() => []),

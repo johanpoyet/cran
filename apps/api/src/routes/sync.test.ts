@@ -151,6 +151,38 @@ describe('POST /v1/sync/push', () => {
     expect((await entryRow(older.id))?.servings).toBeNull();
   });
 
+  it('keeps a template item in grams or in servings, never without a quantity', async () => {
+    const alice = await signUpUser(app);
+    const food = userFood(alice.id);
+    const owned = { userId: alice.id, createdAt: iso(), updatedAt: iso(), deletedAt: null };
+    const template = { ...owned, id: newId(), name: 'Dîner prise de masse', mealType: 'dinner' };
+    const item = (overrides: Record<string, unknown>) => ({
+      ...owned,
+      id: newId(),
+      templateId: template.id,
+      foodId: food.id,
+      recipeId: null,
+      grams: null,
+      servings: null,
+      position: 0,
+      ...overrides,
+    });
+    const inGrams = item({ grams: 250 });
+    const inServings = item({ servings: 2, position: 1 });
+    const empty = item({ position: 2 });
+
+    const result = await pushed(alice.cookie, [
+      { table: 'foods', row: food },
+      { table: 'meal_templates', row: template },
+      { table: 'meal_template_items', row: inGrams },
+      { table: 'meal_template_items', row: inServings },
+      { table: 'meal_template_items', row: empty },
+    ]);
+
+    expect(result.accepted).toEqual([food.id, template.id, inGrams.id, inServings.id]);
+    expect(result.rejected).toEqual([{ id: empty.id, reason: 'invalid' }]);
+  });
+
   it('is idempotent: the same batch again creates and changes nothing', async () => {
     const alice = await signUpUser(app);
     const lunch = entry(alice.id);

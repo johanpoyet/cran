@@ -1,6 +1,7 @@
 import { act, fireEvent, screen } from '@testing-library/react-native';
 import { type Href, router } from 'expo-router';
 import { renderRouter } from 'expo-router/testing-library';
+import { ActionSheetIOS, Alert } from 'react-native';
 
 import AddSheet from './app/add';
 import { readFavoriteFoods, readLastGrams, readRecentFoods } from './foods/recents';
@@ -10,6 +11,13 @@ import { copyEntries } from './journal/quick-entry';
 import { useAddSelection } from './journal/selection-store';
 import { readRecentRecipes } from './recipes/log';
 import { readRecipes, type RecipeDetail } from './recipes/recipes';
+import {
+  applyTemplate,
+  deleteTemplate,
+  type MealTemplate,
+  readTemplates,
+  renameTemplate,
+} from './templates/templates';
 import { setSession, signedIn } from './test/fake-auth-client';
 import { mockFetchResponse } from './test/fetch';
 import { basmati, complet, galettes } from './test/foods';
@@ -34,6 +42,13 @@ jest.mock('./foods/local-search', () => ({ searchLocalFoods: jest.fn(() => []) }
 jest.mock('./recipes/recipes', () => ({
   ...jest.requireActual<object>('./recipes/recipes'),
   readRecipes: jest.fn(() => []),
+}));
+jest.mock('./templates/templates', () => ({
+  ...jest.requireActual<object>('./templates/templates'),
+  readTemplates: jest.fn(() => []),
+  applyTemplate: jest.fn(),
+  renameTemplate: jest.fn(),
+  deleteTemplate: jest.fn(),
 }));
 jest.mock('./recipes/log', () => ({
   ...jest.requireActual<object>('./recipes/log'),
@@ -67,7 +82,32 @@ beforeEach(() => {
   jest.mocked(readLastGrams).mockReturnValue(new Map([[basmati.id, 250]]));
   jest.mocked(readRecentRecipes).mockReturnValue([]);
   jest.mocked(readRecipes).mockReturnValue([]);
+  jest.mocked(readTemplates).mockReturnValue([]);
 });
+
+// Templates of mockup 11.
+const dinnerTemplate: MealTemplate = {
+  id: 'template-dinner',
+  name: 'Dîner prise de masse',
+  mealType: 'dinner',
+  items: [
+    { food: basmati, grams: 250 },
+    { food: galettes, grams: 30 },
+    { recipe: rizAuLait, amount: { servings: 1 } },
+    { food: complet, grams: 100 },
+  ],
+  kcal: 780,
+};
+const shakerTemplate: MealTemplate = {
+  id: 'template-shaker',
+  name: 'Shaker post-séance',
+  mealType: 'snack',
+  items: [
+    { food: basmati, grams: 100 },
+    { food: complet, grams: 100 },
+  ],
+  kcal: 320,
+};
 
 /** Opens the sheet from Today, as the + of the tab bar does. */
 async function openSheet(url: Href = '/add') {
@@ -250,6 +290,69 @@ describe('Ajouter un aliment', () => {
 
     expect(await screen.findByText('Riz au lait maison')).toBeOnTheScreen();
     expect(screen.queryByText('Poulet curry')).not.toBeOnTheScreen();
+  });
+
+  it('adds a template in two touches: + and its card (S6-3)', async () => {
+    jest.mocked(readTemplates).mockReturnValue([dinnerTemplate, shakerTemplate]);
+    await openSheet({ pathname: '/add', params: { meal: 'lunch' } });
+
+    expect(screen.getByRole('header', { name: 'Modèles de repas' })).toBeOnTheScreen();
+    expect(screen.getByText('4 aliments · 780 kcal')).toBeOnTheScreen();
+    await fireEvent.press(
+      screen.getByRole('button', { name: 'Modèle Dîner prise de masse, 4 aliments · 780 kcal' }),
+    );
+
+    expect(applyTemplate).toHaveBeenCalledWith(expect.anything(), userId, dinnerTemplate, {
+      mealType: 'lunch',
+      at: expect.any(Date) as unknown,
+    });
+    expect(screen).toHavePathname('/');
+  });
+
+  it('shows the templates of the chosen meal first', async () => {
+    jest.mocked(readTemplates).mockReturnValue([dinnerTemplate, shakerTemplate]);
+    await openSheet({ pathname: '/add', params: { meal: 'snack' } });
+
+    const names = screen
+      .getAllByRole('button', { name: /^Modèle / })
+      .map((card) => String(card.props.accessibilityLabel));
+    expect(names[0]).toMatch(/Shaker post-séance/);
+  });
+
+  it('renames or deletes a template from its menu', async () => {
+    jest.mocked(readTemplates).mockReturnValue([dinnerTemplate]);
+    const menu = jest
+      .spyOn(ActionSheetIOS, 'showActionSheetWithOptions')
+      .mockImplementationOnce((options, callback) => {
+        expect(options.options).toEqual(['Renommer', 'Supprimer', 'Annuler']);
+        callback(0);
+      })
+      .mockImplementationOnce((_options, callback) => {
+        callback(1);
+      });
+    const prompt = jest.spyOn(Alert, 'prompt').mockImplementation((_title, _message, buttons) => {
+      if (Array.isArray(buttons)) buttons[1]?.onPress?.('Dîner du soir');
+    });
+    const confirm = jest.spyOn(Alert, 'alert').mockImplementation((_title, _message, buttons) => {
+      buttons?.[1]?.onPress?.();
+    });
+    await openSheet();
+    const card = screen.getByRole('button', { name: /^Modèle Dîner prise de masse/ });
+
+    await fireEvent(card, 'longPress');
+    expect(renameTemplate).toHaveBeenCalledWith(
+      expect.anything(),
+      userId,
+      dinnerTemplate.id,
+      'Dîner du soir',
+    );
+    await fireEvent(card, 'longPress');
+    expect(deleteTemplate).toHaveBeenCalledWith(expect.anything(), userId, dinnerTemplate.id);
+    expect(menu).toHaveBeenCalledTimes(2);
+    expect(applyTemplate).not.toHaveBeenCalled();
+    [menu, prompt, confirm].forEach((spy) => {
+      spy.mockRestore();
+    });
   });
 
   it('shows the values per 100 g of each food', async () => {

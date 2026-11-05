@@ -9,22 +9,26 @@ import {
 } from '@cran/shared';
 import { router, useLocalSearchParams } from 'expo-router';
 import { X } from 'lucide-react-native';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { useSessionUserId } from '../../auth';
 import { localDb, useLocalQuery } from '../../db';
 import { readMealEntries } from '../../journal';
+import { Sentry } from '../../lib/sentry';
 import { servingsLabel } from '../../recipes';
+import { saveTemplate } from '../../templates';
 import { colors, radius, space, touch } from '../../theme/tokens';
-import { Card, EmptyState, EntryRow, PrimaryButton, Text } from '../../ui';
+import { Card, EmptyState, EntryRow, LinkButton, PrimaryButton, Text } from '../../ui';
 
 function isMealType(value: string | undefined): value is MealType {
   return MEAL_TYPES.some((meal) => meal === value);
 }
 
-// A meal of the day (no mockup): its entries, each opening the entry sheet, and "Ajouter".
+// A meal of the day (no mockup): its entries, each opening the entry sheet, "Ajouter", and
+// "Enregistrer comme modèle" (S6-3): the foods and recipes of the meal become a template of the add
+// sheet. Quick adds are left out.
 export default function MealSheet() {
   const { t } = useTranslation();
   const params = useLocalSearchParams<{ type: string; date?: string }>();
@@ -35,6 +39,38 @@ export default function MealSheet() {
     useCallback(() => readMealEntries(localDb, userId, date, mealType), [userId, date, mealType]),
   );
   const totalKcal = entries.reduce((total, entry) => total + entry.kcal, 0);
+  const savable = entries.some((entry) => entry.foodId !== null || entry.recipeId !== null);
+  const [saved, setSaved] = useState<{ name: string; skipped: number } | 'error' | null>(null);
+
+  function save(name: string) {
+    const trimmed = name.trim();
+    if (trimmed === '') return;
+    try {
+      const result = saveTemplate(localDb, userId, { name: trimmed, mealType, entries });
+      if (result) setSaved({ name: trimmed, skipped: entries.length - result.count });
+    } catch (saveError) {
+      Sentry.captureException(saveError);
+      setSaved('error');
+    }
+  }
+
+  function askName() {
+    Alert.prompt(
+      t('meal.template.title'),
+      t('meal.template.message'),
+      [
+        { text: t('meal.template.cancel'), style: 'cancel' },
+        {
+          text: t('meal.template.save'),
+          onPress: (name?: string) => {
+            save(name ?? '');
+          },
+        },
+      ],
+      'plain-text',
+      t(`meals.${mealType}`),
+    );
+  }
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -117,6 +153,28 @@ export default function MealSheet() {
           router.push({ pathname: '/add', params: { meal: mealType } });
         }}
       />
+      {savable ? (
+        <LinkButton
+          label={t('meal.template.action')}
+          accessibilityHint={t('meal.template.hint')}
+          onPress={askName}
+        />
+      ) : null}
+      {saved ? (
+        <Text
+          variant="label"
+          weight={500}
+          color={saved === 'error' ? 'danger' : 'success'}
+          align="center"
+          accessibilityRole="alert"
+        >
+          {saved === 'error'
+            ? t('meal.template.error')
+            : saved.skipped > 0
+              ? t('meal.template.savedWithout', { name: saved.name, count: saved.skipped })
+              : t('meal.template.saved', { name: saved.name })}
+        </Text>
+      ) : null}
     </ScrollView>
   );
 }

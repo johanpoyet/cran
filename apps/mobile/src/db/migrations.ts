@@ -22,6 +22,13 @@ export default {
         tag: '0004_log_entry_servings',
         breakpoints: true,
       },
+      {
+        idx: 5,
+        version: '6',
+        when: 1793870700375,
+        tag: '0005_template_item_servings',
+        breakpoints: true,
+      },
     ],
   },
   migrations: {
@@ -34,5 +41,7 @@ export default {
     m0003:
       'DROP INDEX `foods_source_ref_idx`;--> statement-breakpoint\nCREATE UNIQUE INDEX `foods_owner_barcode_idx` ON `foods` (`owner_id`,`source_ref`) WHERE "foods"."source" = \'user\' and "foods"."source_ref" is not null and "foods"."deleted_at" is null;--> statement-breakpoint\nCREATE UNIQUE INDEX `foods_source_ref_idx` ON `foods` (`source`,`source_ref`) WHERE "foods"."source" <> \'user\';',
     m0004: 'ALTER TABLE `log_entries` ADD `servings` real;',
+    m0005:
+      '-- Edited by hand (S6-3): SQLite cannot drop NOT NULL, so the table is rebuilt. The copy leaves out\n-- `servings` (new column), and the sync triggers dropped with the old table are created again.\nCREATE TABLE `__new_meal_template_items` (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`user_id` text NOT NULL,\n\t`created_at` integer NOT NULL,\n\t`updated_at` integer NOT NULL,\n\t`deleted_at` integer,\n\t`template_id` text NOT NULL,\n\t`food_id` text,\n\t`recipe_id` text,\n\t`grams` real,\n\t`servings` real,\n\t`position` integer NOT NULL\n);\n--> statement-breakpoint\nINSERT INTO `__new_meal_template_items`("id", "user_id", "created_at", "updated_at", "deleted_at", "template_id", "food_id", "recipe_id", "grams", "position") SELECT "id", "user_id", "created_at", "updated_at", "deleted_at", "template_id", "food_id", "recipe_id", "grams", "position" FROM `meal_template_items`;--> statement-breakpoint\nDROP TABLE `meal_template_items`;--> statement-breakpoint\nALTER TABLE `__new_meal_template_items` RENAME TO `meal_template_items`;--> statement-breakpoint\nCREATE INDEX `meal_template_items_template_id_idx` ON `meal_template_items` (`template_id`);\n--> statement-breakpoint\nCREATE TRIGGER `meal_template_items_pending_insert` AFTER INSERT ON `meal_template_items`\nWHEN NOT EXISTS (SELECT 1 FROM local_meta WHERE key = \'applying_pull\')\nBEGIN\n  INSERT INTO `pending_changes` (`table_name`, `row_id`, `version`, `attempts`, `queued_at`)\n  VALUES (\'meal_template_items\', NEW.id, 1, 0, CAST((julianday(\'now\') - 2440587.5) * 86400000 AS INTEGER))\n  ON CONFLICT (`table_name`, `row_id`) DO UPDATE SET `version` = `version` + 1, `queued_at` = excluded.`queued_at`;\nEND;\n--> statement-breakpoint\nCREATE TRIGGER `meal_template_items_pending_update` AFTER UPDATE ON `meal_template_items`\nWHEN NOT EXISTS (SELECT 1 FROM local_meta WHERE key = \'applying_pull\')\nBEGIN\n  INSERT INTO `pending_changes` (`table_name`, `row_id`, `version`, `attempts`, `queued_at`)\n  VALUES (\'meal_template_items\', NEW.id, 1, 0, CAST((julianday(\'now\') - 2440587.5) * 86400000 AS INTEGER))\n  ON CONFLICT (`table_name`, `row_id`) DO UPDATE SET `version` = `version` + 1, `queued_at` = excluded.`queued_at`;\nEND;\n',
   },
 };

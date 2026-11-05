@@ -32,7 +32,7 @@ export const mealTemplates = sqliteTable('meal_templates', {
   mealType: text('meal_type', { enum: MEAL_TYPES }),
 });
 
-/** A food or a recipe of a template. */
+/** A food or a recipe of a template, in grams or (a recipe) in servings. */
 export const mealTemplateItems = sqliteTable(
   'meal_template_items',
   {
@@ -40,7 +40,9 @@ export const mealTemplateItems = sqliteTable(
     templateId: text('template_id').notNull(),
     foodId: text('food_id'),
     recipeId: text('recipe_id'),
-    grams: real('grams').notNull(),
+    /** Null for servings of a recipe (S6-3, ADR 0006). */
+    grams: real('grams'),
+    servings: real('servings'),
     position: integer('position').notNull(),
   },
   (table) => [index('meal_template_items_template_id_idx').on(table.templateId)],

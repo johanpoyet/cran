@@ -48,6 +48,7 @@ export {
   type TabRoute,
   useTabBarClearance,
 } from './tab-bar';
+export { TemplateCard, type TemplateCardProps } from './template-card';
 export { Text, type TextProps } from './text';
 export { TextField, type TextFieldProps } from './text-field';
 export { ValueTile, type ValueTileProps } from './value-tile';

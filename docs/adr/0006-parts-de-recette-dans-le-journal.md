@@ -1,7 +1,7 @@
 # ADR 0006 — Parts de recette gardées dans le journal
 
 - Statut : accepté (décision de Johan, 2026-11-05)
-- Date : 2026-11-05
+- Date : 2026-11-05 (complété pour S6-3 le même jour)
 
 ## Contexte
 
@@ -29,3 +29,12 @@ Option 1, choisie par Johan.
 - Une saisie de recette garde ce que l'utilisateur a choisi, en parts ou en grammes.
 - Une app plus ancienne refuse les lignes reçues qui portent `servings` (schéma strict) : la mise à jour de l'app suit celle de l'API.
 - Une API plus ancienne refuse toute saisie envoyée avec `servings`, même nul : l'API doit être déployée avant que l'app mise à jour ne synchronise.
+
+## Complément S6-3 : modèles de repas
+
+Choix de Johan : un modèle garde chaque recette comme elle a été saisie.
+
+- `meal_template_items.servings` (nullable, > 0) s'ajoute, et `grams` devient nullable. Il faut au moins l'un des deux (contrainte). Une recette saisie en parts est gardée en parts, sans grammes. Une portion pesée et un aliment sont gardés en grammes. Migrations `0007_template_item_servings` (Postgres) et `0005_template_item_servings` (SQLite).
+- SQLite ne sait pas retirer un `NOT NULL` : la table est reconstruite. La migration générée par Drizzle a été corrigée à la main : la copie ne lit pas la nouvelle colonne, et les déclencheurs de synchro, supprimés avec l'ancienne table, sont recréés.
+- Les valeurs d'un modèle ne sont pas copiées. Elles sont recalculées avec les aliments et recettes actuels, à l'affichage comme à l'ajout. Un élément dont l'aliment ou la recette a disparu est ignoré, de même qu'une portion pesée d'une recette qui n'a plus de poids cuit.
+- Même contrainte d'ordre de déploiement que pour `log_entries` : l'API d'abord.
