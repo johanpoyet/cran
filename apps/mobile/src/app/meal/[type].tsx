@@ -16,6 +16,7 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSessionUserId } from '../../auth';
 import { localDb, useLocalQuery } from '../../db';
 import { readMealEntries } from '../../journal';
+import { servingsLabel } from '../../recipes';
 import { colors, radius, space, touch } from '../../theme/tokens';
 import { Card, EmptyState, EntryRow, PrimaryButton, Text } from '../../ui';
 
@@ -74,9 +75,20 @@ export default function MealSheet() {
               fat: formatDecimal(entry.fatG),
             };
             const details =
-              entry.grams === null
-                ? t('meal.entryDetailsNoGrams', macros)
-                : t('meal.entryDetails', { grams: formatGrams(entry.grams), ...macros });
+              entry.servings !== null
+                ? entry.grams === null
+                  ? t('meal.entryDetailsServings', {
+                      portion: servingsLabel(t, entry.servings),
+                      ...macros,
+                    })
+                  : t('meal.entryDetailsPortion', {
+                      portion: servingsLabel(t, entry.servings),
+                      grams: formatGrams(Math.round(entry.grams)),
+                      ...macros,
+                    })
+                : entry.grams === null
+                  ? t('meal.entryDetailsNoGrams', macros)
+                  : t('meal.entryDetails', { grams: formatGrams(entry.grams), ...macros });
             return (
               <EntryRow
                 key={entry.id}

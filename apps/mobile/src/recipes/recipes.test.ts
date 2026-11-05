@@ -1,9 +1,7 @@
-import type { Food } from '@cran/shared';
-
 import * as schema from '../db/schema';
 import type { LocalDatabase } from '../db/types';
-import { food } from '../test/foods';
 import { createLocalDatabase } from '../test/local-database';
+import { curry, foods } from '../test/recipes';
 import {
   deleteRecipe,
   readRecipe,
@@ -20,64 +18,6 @@ jest.mock('expo-crypto', () => ({
 
 const userId = '0192f0c0-0000-7000-8000-00000000a11c';
 const otherId = '0192f0c0-0000-7000-8000-0000000b0b00';
-
-// "Poulet riz curry" of mockup 15: values per 100 g as on the mockup.
-const poulet = food({
-  id: '0192f0c0-0000-7000-8000-000000000001',
-  name: 'Blanc de poulet',
-  kcal100g: 120,
-  protein100g: 23,
-  carbs100g: 0,
-  fat100g: 1.5,
-});
-const riz = food({
-  id: '0192f0c0-0000-7000-8000-000000000002',
-  name: 'Riz basmati',
-  kcal100g: 350,
-  protein100g: 7.5,
-  carbs100g: 78,
-  fat100g: 0.9,
-});
-const brocolis = food({
-  id: '0192f0c0-0000-7000-8000-000000000003',
-  name: 'Brocolis',
-  kcal100g: 34,
-  protein100g: 2.8,
-  carbs100g: 7,
-  fat100g: 0.4,
-});
-const coco = food({
-  id: '0192f0c0-0000-7000-8000-000000000004',
-  name: 'Lait de coco léger',
-  kcal100g: 70,
-  protein100g: 0.7,
-  carbs100g: 2.5,
-  fat100g: 6,
-});
-const curryPaste = food({
-  id: '0192f0c0-0000-7000-8000-000000000005',
-  name: 'Pâte de curry',
-  kcal100g: 250,
-  protein100g: 5,
-  carbs100g: 20,
-  fat100g: 15,
-});
-const foods: Food[] = [poulet, riz, brocolis, coco, curryPaste];
-
-const curry = {
-  name: 'Poulet riz curry',
-  category: 'meal_prep' as const,
-  servings: 4,
-  cookedWeightG: null,
-  notes: null,
-  ingredients: [
-    { foodId: poulet.id, grams: 800, isRaw: true },
-    { foodId: riz.id, grams: 320, isRaw: true },
-    { foodId: brocolis.id, grams: 400, isRaw: false },
-    { foodId: coco.id, grams: 200, isRaw: false },
-    { foodId: curryPaste.id, grams: 40, isRaw: false },
-  ],
-};
 
 let db: LocalDatabase;
 

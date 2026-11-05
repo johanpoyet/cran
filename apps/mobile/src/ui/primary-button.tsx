@@ -7,8 +7,11 @@ import { Text } from './text';
 export interface PrimaryButtonProps {
   label: string;
   onPress: () => void;
-  /** "outline": white with a border, for secondary actions ("Continuer avec Google"). */
-  variant?: 'accent' | 'outline';
+  /**
+   * "outline": white with a border, for secondary actions ("Continuer avec Google"); "soft": grey,
+   * beside the main action ("Peser ma part").
+   */
+  variant?: 'accent' | 'outline' | 'soft';
   disabled?: boolean;
   /** Shows a spinner and ignores presses while an action runs. */
   loading?: boolean;
@@ -27,6 +30,8 @@ export function PrimaryButton({
   icon: Icon,
 }: PrimaryButtonProps) {
   const outline = variant === 'outline';
+  const soft = variant === 'soft';
+  const dark = outline || soft;
   const inactive = disabled || loading;
   return (
     <Pressable
@@ -39,18 +44,19 @@ export function PrimaryButton({
       style={({ pressed }) => [
         styles.button,
         outline && styles.outline,
+        soft && styles.soft,
         pressed && styles.pressed,
         disabled && styles.disabled,
       ]}
     >
       {loading ? (
-        <ActivityIndicator color={outline ? colors.text : colors.onAccent} />
+        <ActivityIndicator color={dark ? colors.text : colors.onAccent} />
       ) : (
         <>
           {Icon ? (
-            <Icon color={outline ? colors.text : colors.onAccent} size={control.iconSize + 2} />
+            <Icon color={dark ? colors.text : colors.onAccent} size={control.iconSize + 2} />
           ) : null}
-          <Text variant="body" weight={700} color={outline ? 'text' : 'onAccent'} align="center">
+          <Text variant="body" weight={700} color={dark ? 'text' : 'onAccent'} align="center">
             {label}
           </Text>
         </>
@@ -75,6 +81,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
+  soft: { backgroundColor: colors.bg },
   pressed: { opacity: 0.85 },
   disabled: { opacity: 0.4 },
 });

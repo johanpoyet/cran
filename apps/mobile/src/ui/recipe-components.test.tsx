@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 import { Plus } from 'lucide-react-native';
 import { useState } from 'react';
 
+import { colors } from '../theme/tokens';
 import { IngredientRow } from './ingredient-row';
 import { InlineNumberField } from './inline-number-field';
 import { ListRow } from './list-row';
@@ -140,5 +141,18 @@ describe('PrimaryButton with an icon', () => {
     await render(<PrimaryButton label="Nouvelle recette" icon={Plus} onPress={jest.fn()} />);
 
     expect(screen.getByRole('button', { name: 'Nouvelle recette' })).toBeOnTheScreen();
+  });
+});
+
+describe('PrimaryButton "soft"', () => {
+  it('is grey with dark text, beside the main action', async () => {
+    const onPress = jest.fn();
+    await render(<PrimaryButton variant="soft" label="Peser ma part" onPress={onPress} />);
+
+    const button = screen.getByRole('button', { name: 'Peser ma part' });
+    expect(button).toHaveStyle({ backgroundColor: colors.bg });
+    expect(screen.getByText('Peser ma part')).toHaveStyle({ color: colors.text });
+    await fireEvent.press(button);
+    expect(onPress).toHaveBeenCalled();
   });
 });

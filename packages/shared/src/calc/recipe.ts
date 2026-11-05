@@ -69,3 +69,35 @@ export function weighedPortion(
   if (cookedWeightG === null || cookedWeightG <= 0) return null;
   return scale(total, grams / cookedWeightG);
 }
+
+/** What is logged of a recipe: a number of servings, or a weighed portion of the cooked dish. */
+export type RecipeAmount = { servings: number } | { grams: number };
+
+export interface RecipePortion {
+  values: NutritionValues;
+  /** Weight of the portion; null for servings of a recipe without a cooked weight. */
+  grams: number | null;
+  /** Null for a weighed portion. */
+  servings: number | null;
+}
+
+/**
+ * A portion of a recipe as logged in the journal: n servings (n × the values per serving, n × the
+ * weight of a serving when the cooked weight is known) or a weighed portion. Null for a weighed
+ * portion of a recipe without a cooked weight.
+ */
+export function recipePortion(
+  recipe: RecipeNutrition & { cookedWeightG: number | null },
+  amount: RecipeAmount,
+): RecipePortion | null {
+  if ('servings' in amount) {
+    const { servings } = amount;
+    return {
+      values: scale(recipe.perServing, servings),
+      grams: recipe.servingWeightG === null ? null : recipe.servingWeightG * servings,
+      servings,
+    };
+  }
+  const values = weighedPortion(recipe.total, recipe.cookedWeightG, amount.grams);
+  return values ? { values, grams: amount.grams, servings: null } : null;
+}

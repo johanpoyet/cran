@@ -38,6 +38,7 @@ function entry(userId: string, overrides: Record<string, unknown> = {}) {
     label: 'Riz basmati cuit',
     grams: 250,
     portionLabel: null,
+    servings: null,
     kcal: 325,
     proteinG: 6.75,
     carbsG: 70,
@@ -129,6 +130,25 @@ describe('POST /v1/sync/push', () => {
     const { changes } = await pulled(alice.cookie);
     expect(changes.map(({ table }) => table)).toEqual(['foods', 'log_entries', 'water_logs']);
     expect(changes.find(({ table }) => table === 'log_entries')?.row).toEqual(lunch);
+  });
+
+  it('keeps the servings of a recipe entry, and accepts a row from an app without them', async () => {
+    const alice = await signUpUser(app);
+    const parts = entry(alice.id, { label: 'Poulet riz curry', grams: 1050, servings: 2 });
+    const older = entry(alice.id);
+    // A row pushed by an app released before S6-2 has no servings.
+    const withoutServings = Object.fromEntries(
+      Object.entries(older).filter(([key]) => key !== 'servings'),
+    );
+
+    expect(
+      await pushed(alice.cookie, [
+        { table: 'log_entries', row: parts },
+        { table: 'log_entries', row: withoutServings },
+      ]),
+    ).toEqual({ accepted: [parts.id, older.id], rejected: [] });
+    expect((await entryRow(parts.id))?.servings).toBe(2);
+    expect((await entryRow(older.id))?.servings).toBeNull();
   });
 
   it('is idempotent: the same batch again creates and changes nothing', async () => {

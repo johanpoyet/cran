@@ -49,6 +49,14 @@ jest.mock('./foods/recents', () => ({
   readFavoriteFoods: jest.fn(() => []),
   readLastGrams: jest.fn(() => new Map()),
 }));
+jest.mock('./recipes/recipes', () => ({
+  ...jest.requireActual<object>('./recipes/recipes'),
+  readRecipes: jest.fn(() => []),
+}));
+jest.mock('./recipes/log', () => ({
+  ...jest.requireActual<object>('./recipes/log'),
+  readRecentRecipes: jest.fn(() => []),
+}));
 jest.mock('./journal/today', () => ({
   readToday: jest.fn(() => ({ target: null, eaten: {}, meals: [] })),
 }));

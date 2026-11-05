@@ -41,15 +41,9 @@ export function readEntry(db: LocalDatabase, userId: string, id: string): Entry 
   return db.select().from(schema.logEntries).where(own(userId, id)).get() ?? null;
 }
 
-/**
- * Values of an entry for another quantity, scaled from the values copied when it was logged (the
- * food may have changed since, or no longer exist).
- */
-export function scaleEntry(
-  entry: Pick<Entry, 'grams' | 'kcal' | 'proteinG' | 'carbsG' | 'fatG'>,
-  grams: number,
-): { kcal: number; proteinG: number; carbsG: number; fatG: number } {
-  const ratio = entry.grams ? grams / entry.grams : 1;
+type Values = Pick<Entry, 'kcal' | 'proteinG' | 'carbsG' | 'fatG'>;
+
+function scaled(entry: Values, ratio: number): Values {
   return {
     kcal: entry.kcal * ratio,
     proteinG: entry.proteinG * ratio,
@@ -59,21 +53,52 @@ export function scaleEntry(
 }
 
 /**
- * Changes the quantity of an entry (its values follow) and/or moves it to another meal of the same
- * day. Returns false if the entry is not the user's or is deleted.
+ * Values of an entry for another quantity, scaled from the values copied when it was logged (the
+ * food may have changed since, or no longer exist).
+ */
+export function scaleEntry(entry: Values & Pick<Entry, 'grams'>, grams: number): Values {
+  return scaled(entry, entry.grams ? grams / entry.grams : 1);
+}
+
+/** Values of a recipe entry for another number of servings, as `scaleEntry`. */
+export function scaleEntryServings(
+  entry: Values & Pick<Entry, 'servings'>,
+  servings: number,
+): Values {
+  return scaled(entry, entry.servings ? servings / entry.servings : 1);
+}
+
+/** New quantity and values of an entry, or nothing if the change does not apply to it. */
+function quantityChange(entry: Entry, changes: { grams?: number; servings?: number }) {
+  // Servings of a recipe: the weight of the portion follows, when it is known.
+  if (changes.servings !== undefined && entry.servings !== null) {
+    const ratio = changes.servings / entry.servings;
+    return {
+      servings: changes.servings,
+      ...(entry.grams === null ? {} : { grams: entry.grams * ratio }),
+      ...scaled(entry, ratio),
+    };
+  }
+  if (changes.grams !== undefined && entry.grams !== null && entry.servings === null) {
+    return { grams: changes.grams, ...scaleEntry(entry, changes.grams) };
+  }
+  return {};
+}
+
+/**
+ * Changes the quantity of an entry (its values follow): grams, or servings for a recipe logged in
+ * servings. It may also move the entry to another meal of the same day. Returns false if the entry
+ * is not the user's or is deleted.
  */
 export function updateEntry(
   db: LocalDatabase,
   userId: string,
   id: string,
-  changes: { grams?: number; mealType?: MealType },
+  changes: { grams?: number; servings?: number; mealType?: MealType },
 ): boolean {
   const entry = readEntry(db, userId, id);
   if (!entry) return false;
-  const quantity =
-    changes.grams !== undefined && entry.grams !== null
-      ? { grams: changes.grams, ...scaleEntry(entry, changes.grams) }
-      : {};
+  const quantity = quantityChange(entry, changes);
   db.update(schema.logEntries)
     .set({
       ...quantity,

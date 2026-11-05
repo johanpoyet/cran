@@ -86,6 +86,8 @@ export const syncRowSchemas = {
     label: z.string().max(300),
     grams: grams.nullable(),
     portionLabel: z.string().max(100).nullable(),
+    /** Servings of a recipe (S6-2, ADR 0006); absent from the apps released before it. */
+    servings: z.number().positive().max(999.99).nullable().default(null),
     kcal: amount,
     proteinG: amount,
     carbsG: amount,

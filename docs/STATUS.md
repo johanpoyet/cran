@@ -2,12 +2,12 @@
 
 ## Sprint en cours : S6 — Recettes et modèles
 
-| Story                               | État     | PR                  |
-| ----------------------------------- | -------- | ------------------- |
-| S6-1 Recettes                       | en revue | `feat/S6-1-recipes` |
-| S6-2 Ajouter une recette au journal | à faire  |                     |
-| S6-3 Modèles de repas               | à faire  |                     |
-| S6-4 Favoris                        | à faire  |                     |
+| Story                               | État     | PR                     |
+| ----------------------------------- | -------- | ---------------------- |
+| S6-1 Recettes                       | terminée | #42                    |
+| S6-2 Ajouter une recette au journal | en revue | `feat/S6-2-log-recipe` |
+| S6-3 Modèles de repas               | à faire  |                        |
+| S6-4 Favoris                        | à faire  |                        |
 
 ## Sprints terminés
 
@@ -284,6 +284,11 @@ Petites décisions prises sans changer le modèle de données, l'API ou l'UX. Le
 - **2026-11-04 · Recettes : choix de Johan** : catégories fixes `meal_prep`, `breakfast`, `snack`, `other` (« Meal prep », « Petit-déj », « Collation », « Autre »), stockées sous ces clés dans `category` ; accès par une ligne « Mes recettes » dans l'onglet Profil (elle restera sur l'écran Objectifs, S8) ; le « − 4 parts + » de la fiche change la recette, et le poids cuit s'enregistre depuis la fiche, à la sortie du champ (vide = sans poids cuit, valeur fausse = valeur précédente).
 - **2026-11-04 · Recettes : écrans** : « Mes recettes » (maquette 14 : recherche sans accents, filtre par catégorie, cartes avec l'initiale en couleur, à tour de rôle, kcal par part, bouton « Nouvelle recette ») ; « Fiche recette » (maquette 15 : valeurs par part, parts, ingrédients avec « CRU » et la macro principale si elle atteint 10 g, poids cuit et poids d'une part). Le lien « Mes aliments » de la maquette 14 n'est dans aucune story : pas affiché. Les boutons « Peser ma part » et « Ajouter 1 part » viennent avec S6-2. Un ingrédient en ml (lait de coco) est saisi en grammes, comme partout.
 - **2026-11-04 · Recettes : saisie** (non dessinée) : nom, catégorie (toucher la catégorie choisie la retire), nombre de parts (1 à 50, entier), ingrédients pesés pour toute la recette, poids cuit et notes facultatifs, « Supprimer la recette » avec confirmation. Un ingrédient s'ajoute ou se modifie dans une feuille : recherche (téléphone puis serveur) ou récents, puis grammes et « Pesé cru » (oui par défaut). Le brouillon est partagé entre le formulaire et la feuille par un store Zustand. Enregistrement local : les anciens ingrédients sont supprimés logiquement et la liste réécrite dans l'ordre ; les aliments globaux utilisés sont copiés sur le téléphone. Supprimer une recette supprime ses ingrédients ; les saisies déjà faites gardent leurs valeurs.
+- **2026-11-05 · S6-1 vérifiée sur iPhone** : checklist de 11 points validée par Johan (mise à jour `eas update`), PR #42 mergée.
+- **2026-11-05 · Recette au journal : choix de Johan** : « Ajouter 1 part » et « Peser ma part » ouvrent la même feuille « Ajouter au journal » (1 part déjà choisie, ou le champ de poids) : 2 touches pour une part. Les recettes sont aussi dans la feuille d'ajout (maquette 11). Une saisie en parts garde ses parts et se modifie en parts : colonne `servings` dans `log_entries`, voir ADR 0006.
+- **2026-11-05 · Feuille « Ajouter au journal »** (non dessinée, sur le modèle de la feuille produit du scan) : puces « 1 part », « 2 parts », « Autre… » (parts tapées, décimales permises, 20 au plus) et « Peser » (si poids cuit, 5 000 g au plus) ; valeurs de la quantité ; repas de l'heure, modifiable ; « Ajouter · 614 kcal » ramène sur Aujourd'hui. Sans poids cuit, ni « Peser ma part » sur la fiche ni puce « Peser ».
+- **2026-11-05 · Recettes dans la feuille d'ajout** : « Ma recette · 173 kcal / portion », le + choisit 1 part, toucher le nom ouvre la feuille de la recette pour choisir les parts ou peser (sans repas : celui de la feuille d'ajout). Dans « Récents », les recettes saisies récemment passent avant les aliments : un meal prep revient tous les jours. Dans la recherche, elles suivent les aliments, comme sur la maquette. Les recettes favorites viendront avec S6-4.
+- **2026-11-05 · Saisie d'une recette dans le repas** : « 2 parts (1 050 g) · P … » avec poids cuit, « 1,5 part · P … » sans ; « 525 g · P … » pour une portion pesée. La saisie porte le nom de la recette : modifier ou supprimer la recette ne change pas le journal.
 
 ## Rétros
 

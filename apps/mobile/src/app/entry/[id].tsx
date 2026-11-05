@@ -6,6 +6,7 @@ import {
   type MealType,
   NEW_FOOD_LIMITS,
   parseDecimal,
+  RECIPE_LIMITS,
 } from '@cran/shared';
 import { router, useLocalSearchParams } from 'expo-router';
 import { X } from 'lucide-react-native';
@@ -15,20 +16,21 @@ import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { useSessionUserId } from '../../auth';
 import { localDb, useLocalQuery } from '../../db';
-import { deleteEntry, readEntry, scaleEntry, updateEntry } from '../../journal';
+import { deleteEntry, readEntry, scaleEntry, scaleEntryServings, updateEntry } from '../../journal';
 import { Sentry } from '../../lib/sentry';
 import { colors, radius, space, touch } from '../../theme/tokens';
 import { Chip, EmptyState, LinkButton, PrimaryButton, Text, TextField } from '../../ui';
 
-// An entry of the journal (no mockup): change its quantity, move it to another meal, delete it.
+// An entry of the journal (no mockup): change its quantity (in servings for a recipe logged in
+// servings, S6-2), move it to another meal, delete it.
 export default function EntrySheet() {
   const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const userId = useSessionUserId() ?? '';
   const entry = useLocalQuery(useCallback(() => readEntry(localDb, userId, id), [userId, id]));
-  const [gramsText, setGramsText] = useState<string | null>(null);
+  const [quantityText, setQuantityText] = useState<string | null>(null);
   const [mealType, setMealType] = useState<MealType | null>(null);
-  const [error, setError] = useState<'invalidQuantity' | 'error' | null>(null);
+  const [error, setError] = useState<'invalidQuantity' | 'invalidServings' | 'error' | null>(null);
 
   const close = (
     <Pressable
@@ -55,23 +57,35 @@ export default function EntrySheet() {
     );
   }
 
-  const typed = gramsText ?? (entry.grams === null ? '' : formatDecimal(entry.grams));
-  const grams = entry.grams === null ? null : parseDecimal(typed);
-  const validGrams = grams !== null && grams > 0 && grams <= NEW_FOOD_LIMITS.portionGramsMax;
+  // A recipe logged in servings changes in servings, anything else with a weight in grams.
+  const byServings = entry.servings !== null;
+  const current = entry.servings ?? entry.grams;
+  const typed = quantityText ?? (current === null ? '' : formatDecimal(current));
+  const quantity = current === null ? null : parseDecimal(typed);
+  const max = byServings ? RECIPE_LIMITS.loggedServingsMax : NEW_FOOD_LIMITS.portionGramsMax;
+  const valid = quantity !== null && quantity > 0 && quantity <= max;
   const meal = mealType ?? entry.mealType;
-  const values = grams !== null && validGrams ? scaleEntry(entry, grams) : entry;
-  const changed =
-    (entry.grams !== null && validGrams && grams !== entry.grams) || meal !== entry.mealType;
+  const values =
+    quantity !== null && valid
+      ? byServings
+        ? scaleEntryServings(entry, quantity)
+        : scaleEntry(entry, quantity)
+      : entry;
+  const changed = (current !== null && valid && quantity !== current) || meal !== entry.mealType;
 
   function save() {
     if (!entry) return;
-    if (entry.grams !== null && !validGrams) {
-      setError('invalidQuantity');
+    if (current !== null && !valid) {
+      setError(byServings ? 'invalidServings' : 'invalidQuantity');
       return;
     }
     try {
       updateEntry(localDb, userId, entry.id, {
-        ...(grams !== null && validGrams ? { grams } : {}),
+        ...(quantity !== null && valid
+          ? byServings
+            ? { servings: quantity }
+            : { grams: quantity }
+          : {}),
         mealType: meal,
       });
       router.back();
@@ -124,16 +138,16 @@ export default function EntrySheet() {
         {close}
       </View>
 
-      {entry.grams === null ? null : (
+      {current === null ? null : (
         <TextField
-          label={t('entry.quantity')}
+          label={t(byServings ? 'entry.servings' : 'entry.quantity')}
           value={typed}
           onChangeText={(text) => {
-            setGramsText(text);
+            setQuantityText(text);
             setError(null);
           }}
           keyboardType="decimal-pad"
-          placeholder={formatGrams(entry.grams)}
+          placeholder={byServings ? formatDecimal(current) : formatGrams(current)}
         />
       )}
 

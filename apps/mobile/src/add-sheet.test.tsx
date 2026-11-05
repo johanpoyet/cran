@@ -8,6 +8,8 @@ import { addEntries } from './journal/add-entries';
 import { type Entry, readMealEntries } from './journal/entries';
 import { copyEntries } from './journal/quick-entry';
 import { useAddSelection } from './journal/selection-store';
+import { readRecentRecipes } from './recipes/log';
+import { readRecipes, type RecipeDetail } from './recipes/recipes';
 import { setSession, signedIn } from './test/fake-auth-client';
 import { mockFetchResponse } from './test/fetch';
 import { basmati, complet, galettes } from './test/foods';
@@ -29,6 +31,29 @@ jest.mock('./foods/recents', () => ({
   readLastGrams: jest.fn(),
 }));
 jest.mock('./foods/local-search', () => ({ searchLocalFoods: jest.fn(() => []) }));
+jest.mock('./recipes/recipes', () => ({
+  ...jest.requireActual<object>('./recipes/recipes'),
+  readRecipes: jest.fn(() => []),
+}));
+jest.mock('./recipes/log', () => ({
+  ...jest.requireActual<object>('./recipes/log'),
+  readRecentRecipes: jest.fn(() => []),
+}));
+
+// "Riz au lait maison" of mockup 11: 173 kcal per serving.
+const rizAuLait: RecipeDetail = {
+  id: 'recipe-riz-au-lait',
+  name: 'Riz au lait maison',
+  category: 'snack',
+  servings: 4,
+  cookedWeightG: 800,
+  notes: null,
+  ingredientCount: 0,
+  ingredients: [],
+  total: { kcal: 692, proteinG: 24, carbsG: 120, fatG: 12 },
+  perServing: { kcal: 173, proteinG: 6, carbsG: 30, fatG: 3 },
+  servingWeightG: 200,
+};
 
 const userId = signedIn.data?.user.id;
 
@@ -40,6 +65,8 @@ beforeEach(() => {
   ]);
   jest.mocked(readFavoriteFoods).mockReturnValue([{ food: complet, lastGrams: null }]);
   jest.mocked(readLastGrams).mockReturnValue(new Map([[basmati.id, 250]]));
+  jest.mocked(readRecentRecipes).mockReturnValue([]);
+  jest.mocked(readRecipes).mockReturnValue([]);
 });
 
 /** Opens the sheet from Today, as the + of the tab bar does. */
@@ -51,6 +78,7 @@ async function openSheet(url: Href = '/add') {
       add: AddSheet,
       'food/new': () => null,
       'food/[id]': () => null,
+      'recipes/log': () => null,
       'quick-add': () => null,
       scan: () => null,
     },
@@ -171,6 +199,57 @@ describe('Ajouter un aliment', () => {
 
     await fireEvent.press(screen.getByRole('checkbox', { name: 'Ajouter Galettes de riz' }));
     expect(screen.getByText('1 aliment sélectionné')).toBeOnTheScreen();
+  });
+
+  it('adds a recent recipe, one serving by default, with the foods (S6-2, mockup 11)', async () => {
+    jest.mocked(readRecentRecipes).mockReturnValue([rizAuLait]);
+    await openSheet();
+
+    expect(screen.getByText('Ma recette · 173 kcal / portion')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('checkbox', { name: 'Ajouter Riz basmati cuit' }));
+    await fireEvent.press(screen.getByRole('checkbox', { name: 'Ajouter Riz au lait maison' }));
+    expect(screen.getByText('1 part')).toBeOnTheScreen();
+    expect(screen.getByText('2 aliments sélectionnés')).toBeOnTheScreen();
+    expect(screen.getByText('+ 498 kcal')).toBeOnTheScreen();
+
+    await fireEvent.press(screen.getByRole('button', { name: 'Ajouter' }));
+    expect(addEntries).toHaveBeenCalledWith(expect.anything(), userId, {
+      mealType: expect.any(String) as unknown,
+      items: [
+        { food: basmati, grams: 250, portionLabel: null },
+        { recipe: rizAuLait, amount: { servings: 1 } },
+      ],
+      at: expect.any(Date) as unknown,
+    });
+  });
+
+  it('shows the servings or the weight chosen in the recipe sheet', async () => {
+    jest.mocked(readRecentRecipes).mockReturnValue([rizAuLait]);
+    await openSheet();
+
+    await act(() => {
+      useAddSelection.getState().selectRecipe({ recipe: rizAuLait, amount: { grams: 300 } });
+    });
+    expect(screen.getByText('300 g')).toBeOnTheScreen();
+    expect(screen.getByText('+ 260 kcal')).toBeOnTheScreen();
+
+    await fireEvent.press(
+      screen.getByRole('button', { name: 'Choisir la quantité de Riz au lait maison' }),
+    );
+    expect(screen).toHavePathname('/recipes/log');
+    expect(screen).toHaveSearchParams({ id: rizAuLait.id, select: '1' });
+  });
+
+  it('finds the recipes matching the search', async () => {
+    jest
+      .mocked(readRecipes)
+      .mockReturnValue([rizAuLait, { ...rizAuLait, id: 'recipe-curry', name: 'Poulet curry' }]);
+    await openSheet();
+
+    await fireEvent.changeText(screen.getByLabelText('Rechercher un aliment'), 'riz');
+
+    expect(await screen.findByText('Riz au lait maison')).toBeOnTheScreen();
+    expect(screen.queryByText('Poulet curry')).not.toBeOnTheScreen();
   });
 
   it('shows the values per 100 g of each food', async () => {

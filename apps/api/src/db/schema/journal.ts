@@ -36,6 +36,8 @@ export const logEntries = pgTable(
     /** Null for a quick add. */
     grams: amount('grams'),
     portionLabel: text('portion_label'),
+    /** Servings of a recipe; null for a weighed portion, a food or a quick add (ADR 0006). */
+    servings: amount('servings'),
     kcal: amount('kcal').notNull(),
     proteinG: amount('protein_g').notNull(),
     carbsG: amount('carbs_g').notNull(),
@@ -48,7 +50,8 @@ export const logEntries = pgTable(
     check(
       'log_entries_values_check',
       sql`${table.kcal} >= 0 and ${table.proteinG} >= 0 and ${table.carbsG} >= 0 and ${table.fatG} >= 0
-        and (${table.grams} is null or ${table.grams} > 0)`,
+        and (${table.grams} is null or ${table.grams} > 0)
+        and (${table.servings} is null or ${table.servings} > 0)`,
     ),
   ],
 );

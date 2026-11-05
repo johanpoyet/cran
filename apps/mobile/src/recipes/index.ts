@@ -7,7 +7,8 @@ export {
   useRecipeDraft,
   validateDraft,
 } from './draft';
-export { ingredientDetails } from './labels';
+export { ingredientDetails, servingsLabel } from './labels';
+export { readRecentRecipes, searchRecipes } from './log';
 export {
   deleteRecipe,
   readRecipe,
