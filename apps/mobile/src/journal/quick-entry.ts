@@ -67,6 +67,7 @@ export function copyEntries(
           label: entry.label,
           grams: entry.grams,
           portionLabel: entry.portionLabel,
+          servings: entry.servings,
           kcal: entry.kcal,
           proteinG: entry.proteinG,
           carbsG: entry.carbsG,

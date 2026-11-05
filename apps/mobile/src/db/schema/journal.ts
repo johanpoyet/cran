@@ -16,6 +16,8 @@ export const logEntries = sqliteTable(
     label: text('label').notNull(),
     grams: real('grams'),
     portionLabel: text('portion_label'),
+    /** Servings of a recipe; null for a weighed portion, a food or a quick add (ADR 0006). */
+    servings: real('servings'),
     kcal: real('kcal').notNull(),
     proteinG: real('protein_g').notNull(),
     carbsG: real('carbs_g').notNull(),

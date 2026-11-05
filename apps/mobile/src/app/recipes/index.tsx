@@ -8,8 +8,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useSessionUserId } from '../../auth';
 import { localDb, useLocalQuery } from '../../db';
-import { searchable } from '../../foods';
-import { emptyDraft, readRecipes, type RecipeDetail, useRecipeDraft } from '../../recipes';
+import {
+  emptyDraft,
+  readRecipes,
+  type RecipeDetail,
+  searchRecipes,
+  useRecipeDraft,
+} from '../../recipes';
 import { type ColorToken, space } from '../../theme/tokens';
 import {
   Chip,
@@ -39,11 +44,8 @@ export default function RecipesScreen() {
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<Filter>('all');
 
-  const words = searchable(query).split(/\s+/).filter(Boolean);
-  const shown = recipes.filter(
-    (recipe) =>
-      (filter === 'all' || recipe.category === filter) &&
-      words.every((word) => searchable(recipe.name).includes(word)),
+  const shown = searchRecipes(recipes, query).filter(
+    (recipe) => filter === 'all' || recipe.category === filter,
   );
 
   function details(recipe: RecipeDetail): string {

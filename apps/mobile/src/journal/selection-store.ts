@@ -1,6 +1,8 @@
 import type { Food } from '@cran/shared';
 import { create } from 'zustand';
 
+import type { RecipeToAdd } from './add-entries';
+
 export interface SelectedFood {
   food: Food;
   grams: number;
@@ -10,11 +12,15 @@ export interface SelectedFood {
 
 interface AddSelectionState {
   selected: ReadonlyMap<string, SelectedFood>;
+  /** Recipes selected, by id, with their servings or weighed portion (S6-2). */
+  recipes: ReadonlyMap<string, RecipeToAdd>;
   /** Foods shown in the add sheet, for the quantity sheet opened from it (server results too). */
   shown: ReadonlyMap<string, Food>;
   show: (foods: readonly Food[]) => void;
   select: (item: SelectedFood) => void;
   unselect: (foodId: string) => void;
+  selectRecipe: (item: RecipeToAdd) => void;
+  unselectRecipe: (recipeId: string) => void;
   clear: () => void;
 }
 
@@ -24,6 +30,7 @@ interface AddSelectionState {
  */
 export const useAddSelection = create<AddSelectionState>()((set) => ({
   selected: new Map(),
+  recipes: new Map(),
   shown: new Map(),
   show: (foods) => {
     set((state) => {
@@ -43,7 +50,17 @@ export const useAddSelection = create<AddSelectionState>()((set) => ({
       return { selected };
     });
   },
+  selectRecipe: (item) => {
+    set((state) => ({ recipes: new Map(state.recipes).set(item.recipe.id, item) }));
+  },
+  unselectRecipe: (recipeId) => {
+    set((state) => {
+      const recipes = new Map(state.recipes);
+      recipes.delete(recipeId);
+      return { recipes };
+    });
+  },
   clear: () => {
-    set({ selected: new Map(), shown: new Map() });
+    set({ selected: new Map(), recipes: new Map(), shown: new Map() });
   },
 }));

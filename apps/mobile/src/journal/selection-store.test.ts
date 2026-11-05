@@ -33,6 +33,31 @@ describe('useAddSelection', () => {
     expect(shown.get(basmati.id)).toBe(basmati);
   });
 
+  it('selects, replaces and unselects recipes', () => {
+    const recipe = {
+      id: 'recipe-curry',
+      name: 'Poulet riz curry',
+      total: { kcal: 2456, proteinG: 220, carbsG: 312, fatG: 36 },
+      perServing: { kcal: 614, proteinG: 55, carbsG: 78, fatG: 9 },
+      servingWeightG: 525,
+      cookedWeightG: 2100,
+    };
+    const { selectRecipe, unselectRecipe } = useAddSelection.getState();
+
+    selectRecipe({ recipe, amount: { servings: 1 } });
+    selectRecipe({ recipe, amount: { grams: 300 } });
+    expect([...useAddSelection.getState().recipes.values()]).toEqual([
+      { recipe, amount: { grams: 300 } },
+    ]);
+
+    unselectRecipe(recipe.id);
+    expect(useAddSelection.getState().recipes.size).toBe(0);
+
+    selectRecipe({ recipe, amount: { servings: 2 } });
+    useAddSelection.getState().clear();
+    expect(useAddSelection.getState().recipes.size).toBe(0);
+  });
+
   it('forgets everything when the sheet closes', () => {
     useAddSelection.getState().show([basmati]);
     useAddSelection.getState().select({ food: basmati, grams: 250, portionLabel: null });

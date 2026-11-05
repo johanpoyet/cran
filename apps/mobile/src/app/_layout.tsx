@@ -94,6 +94,7 @@ function RootLayout() {
             <Stack.Screen name="recipes/[id]" />
             <Stack.Screen name="recipes/edit" />
             <Stack.Screen name="recipes/ingredient" options={SHEET} />
+            <Stack.Screen name="recipes/log" options={SHEET} />
             <Stack.Screen
               name="scan"
               options={{ presentation: 'fullScreenModal', contentStyle: styles.scan }}

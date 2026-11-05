@@ -17,6 +17,10 @@ export const RECIPE_LIMITS = {
   ingredientGramsMax: 5000,
   cookedWeightMax: 20_000,
   notesMax: 1000,
+  /** Servings logged at once in the journal (S6-2). */
+  loggedServingsMax: 20,
+  /** Weighed portion logged in the journal. */
+  portionGramsMax: 5000,
 } as const;
 
 export const recipeIngredientInputSchema = z.object({

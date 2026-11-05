@@ -1,4 +1,4 @@
-import { formatGrams, formatKcal, type NutritionValues } from '@cran/shared';
+import { formatDecimal, formatGrams, formatKcal, type NutritionValues } from '@cran/shared';
 import type { TFunction } from 'i18next';
 
 /** Below this, the main macro of an ingredient is not worth showing ("Pâte de curry · 100 kcal"). */
@@ -23,4 +23,9 @@ export function ingredientDetails(t: TFunction, values: NutritionValues): string
     macro: t(`recipes.macroLetters.${main[0]}`),
     grams: formatGrams(Math.round(values[main[1]])),
   });
+}
+
+/** "1 part", "1,5 part", "2 parts": servings logged in the journal. */
+export function servingsLabel(t: TFunction, servings: number): string {
+  return t('recipes.log.parts', { count: servings, value: formatDecimal(servings) });
 }

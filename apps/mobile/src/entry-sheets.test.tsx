@@ -38,11 +38,27 @@ const rice: Entry = {
   label: 'Riz basmati cuit',
   grams: 250,
   portionLabel: null,
+  servings: null,
   kcal: 325,
   proteinG: 6.75,
   carbsG: 70,
   fatG: 1,
   loggedAt: new Date(2026, 10, 2, 19),
+};
+
+// 2 servings of a recipe with a cooked weight (S6-2).
+const curry: Entry = {
+  ...rice,
+  id: 'entry-curry',
+  foodId: null,
+  recipeId: 'recipe-curry',
+  label: 'Poulet riz curry',
+  grams: 1050,
+  servings: 2,
+  kcal: 1228,
+  proteinG: 110,
+  carbsG: 156,
+  fatG: 18,
 };
 
 beforeEach(() => {
@@ -86,6 +102,16 @@ describe('meal sheet', () => {
     expect(screen).toHaveSearchParams({ meal: 'dinner' });
   });
 
+  it('shows the servings of a recipe, with their weight when known', async () => {
+    jest
+      .mocked(readMealEntries)
+      .mockReturnValue([curry, { ...curry, id: 'entry-oats', grams: null, servings: 1.5 }]);
+    await open({ pathname: '/meal/[type]', params: { type: 'dinner' } });
+
+    expect(await screen.findByText('2 parts (1 050 g) · P 110 · G 156 · L 18')).toBeOnTheScreen();
+    expect(screen.getByText('1,5 part · P 110 · G 156 · L 18')).toBeOnTheScreen();
+  });
+
   it('says when the meal is empty', async () => {
     jest.mocked(readMealEntries).mockReturnValue([]);
     await open({ pathname: '/meal/[type]', params: { type: 'lunch' } });
@@ -111,6 +137,32 @@ describe('entry sheet', () => {
       mealType: 'dinner',
     });
     expect(screen).toHavePathname('/');
+  });
+
+  it('changes a recipe logged in servings in servings', async () => {
+    jest.mocked(readEntry).mockReturnValue(curry);
+    await open({ pathname: '/entry/[id]', params: { id: 'entry-curry' } });
+
+    await fireEvent.changeText(await screen.findByLabelText('Nombre de parts'), '1');
+    expect(screen.getByText('614 kcal · P 55 · G 78 · L 9')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('button', { name: 'Enregistrer' }));
+
+    expect(updateEntry).toHaveBeenCalledWith(expect.anything(), userId, 'entry-curry', {
+      servings: 1,
+      mealType: 'dinner',
+    });
+  });
+
+  it('refuses 0 servings', async () => {
+    jest.mocked(readEntry).mockReturnValue(curry);
+    await open({ pathname: '/entry/[id]', params: { id: 'entry-curry' } });
+
+    await fireEvent.changeText(await screen.findByLabelText('Nombre de parts'), '0');
+    await fireEvent.press(screen.getByRole('button', { name: 'Collation' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Enregistrer' }));
+
+    expect(screen.getByRole('alert')).toHaveTextContent(/Le nombre de parts doit être/);
+    expect(updateEntry).not.toHaveBeenCalled();
   });
 
   it('moves the entry to another meal', async () => {

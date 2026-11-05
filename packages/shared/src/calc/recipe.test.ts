@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { recipeNutrition, weighedPortion } from './recipe';
+import { recipeNutrition, recipePortion, weighedPortion } from './recipe';
 
 // "Poulet riz curry" of the spec (S6-1) and of mockup 15, values per 100 g as on the mockup.
 const curry = [
@@ -59,5 +59,35 @@ describe('weighedPortion', () => {
 
     expect(weighedPortion(total, null, 300)).toBeNull();
     expect(weighedPortion(total, 0, 300)).toBeNull();
+  });
+});
+
+describe('recipePortion', () => {
+  const cooked = { ...recipeNutrition(curry, 4, 2100), cookedWeightG: 2100 };
+  const uncooked = { ...recipeNutrition(curry, 4, null), cookedWeightG: null };
+
+  it('logs n servings with their weight when the cooked weight is known', () => {
+    const portion = recipePortion(cooked, { servings: 2 });
+
+    expect(portion?.servings).toBe(2);
+    expect(portion?.grams).toBe(1050);
+    expect(Math.round(portion?.values.kcal ?? 0)).toBe(1228);
+  });
+
+  it('logs servings without a weight when the cooked weight is unknown', () => {
+    const portion = recipePortion(uncooked, { servings: 1.5 });
+
+    expect(portion?.grams).toBeNull();
+    expect(portion?.values.proteinG).toBeCloseTo(uncooked.perServing.proteinG * 1.5, 10);
+  });
+
+  it('logs a weighed portion of the cooked dish', () => {
+    const portion = recipePortion(cooked, { grams: 525 });
+
+    expect(portion).toEqual({ values: cooked.perServing, grams: 525, servings: null });
+  });
+
+  it('cannot weigh a portion without a cooked weight', () => {
+    expect(recipePortion(uncooked, { grams: 300 })).toBeNull();
   });
 });

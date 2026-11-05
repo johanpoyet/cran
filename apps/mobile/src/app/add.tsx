@@ -8,6 +8,7 @@ import {
   mealForTime,
   type MealType,
   nutritionFor,
+  recipePortion,
 } from '@cran/shared';
 import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -34,6 +35,13 @@ import {
   yesterdayKey,
 } from '../journal';
 import { Sentry } from '../lib/sentry';
+import {
+  readRecentRecipes,
+  readRecipes,
+  type RecipeDetail,
+  searchRecipes,
+  servingsLabel,
+} from '../recipes';
 import { colors, radius, space, touch } from '../theme/tokens';
 import {
   Chip,
@@ -54,8 +62,9 @@ function isMealType(value: string | undefined): value is MealType {
   return MEAL_TYPES.some((meal) => meal === value);
 }
 
-// "Ajouter un aliment": meal, search (phone then server), recent and favourite foods, multiple
-// selection and total. A recent food is added in three touches: +, its + and "Ajouter".
+// "Ajouter un aliment": meal, search (phone then server), recent and favourite foods, the user's
+// recipes (in the search and the recent ones, S6-2), multiple selection and total. A recent food is
+// added in three touches: +, its + and "Ajouter".
 export default function AddSheet() {
   const { t } = useTranslation();
   const params = useLocalSearchParams<{ meal?: string }>();
@@ -66,7 +75,9 @@ export default function AddSheet() {
   const [query, setQuery] = useState('');
   const [tab, setTab] = useState<Tab>('recent');
   const selection = useAddSelection((state) => state.selected);
-  const { show, select, unselect, clear } = useAddSelection.getState();
+  const recipeSelection = useAddSelection((state) => state.recipes);
+  const { show, select, unselect, selectRecipe, unselectRecipe, clear } =
+    useAddSelection.getState();
   const [error, setError] = useState(false);
 
   const recents = useLocalQuery(
@@ -82,6 +93,10 @@ export default function AddSheet() {
     ),
   );
   const search = useFoodSearch(localDb, userId, query);
+  const recipes = useLocalQuery(useCallback(() => readRecipes(localDb, userId), [userId]));
+  const recentRecipes = useLocalQuery(
+    useCallback(() => readRecentRecipes(localDb, userId, RECENT_LIMIT), [userId]),
+  );
 
   // The selection lives as long as the sheet.
   useEffect(() => clear, [clear]);
@@ -92,6 +107,12 @@ export default function AddSheet() {
     : tab === 'recent'
       ? recents
       : favorites;
+  // Recent recipes come first: a meal prep is logged day after day. Favourite recipes: S6-4.
+  const listedRecipes = searching
+    ? searchRecipes(recipes, query)
+    : tab === 'recent'
+      ? recentRecipes
+      : [];
 
   // The quantity sheet reads the foods shown here (server results included).
   useEffect(() => {
@@ -104,6 +125,16 @@ export default function AddSheet() {
     else select({ food, grams: defaultGrams(food, last), portionLabel: null });
   }
 
+  function toggleRecipe(recipe: RecipeDetail) {
+    setError(false);
+    if (recipeSelection.has(recipe.id)) unselectRecipe(recipe.id);
+    else selectRecipe({ recipe, amount: { servings: 1 } });
+  }
+
+  function openRecipe(recipe: RecipeDetail) {
+    router.push({ pathname: '/recipes/log', params: { id: recipe.id, select: '1' } });
+  }
+
   function openQuantity(food: Food) {
     router.push({ pathname: '/food/[id]', params: { id: food.id } });
   }
@@ -112,7 +143,7 @@ export default function AddSheet() {
     try {
       addEntries(localDb, userId, {
         mealType: meal,
-        items: [...selection.values()],
+        items: [...selection.values(), ...recipeSelection.values()],
         at: new Date(),
       });
     } catch (addError) {
@@ -149,10 +180,46 @@ export default function AddSheet() {
   }
 
   const yesterdayKcal = yesterday.reduce((total, entry) => total + entry.kcal, 0);
-  const totalKcal = [...selection.values()].reduce(
-    (total, { food, grams }) => total + nutritionFor(food, grams).kcal,
-    0,
-  );
+  const totalKcal =
+    [...selection.values()].reduce(
+      (total, { food, grams }) => total + nutritionFor(food, grams).kcal,
+      0,
+    ) +
+    [...recipeSelection.values()].reduce(
+      (total, { recipe, amount }) => total + (recipePortion(recipe, amount)?.values.kcal ?? 0),
+      0,
+    );
+  const selectedCount = selection.size + recipeSelection.size;
+
+  const recipeRows = listedRecipes.map((recipe) => {
+    const selected = recipeSelection.get(recipe.id);
+    const quantity = selected
+      ? 'servings' in selected.amount
+        ? servingsLabel(t, selected.amount.servings)
+        : formatGrams(selected.amount.grams)
+      : null;
+    return (
+      <FoodRow
+        key={recipe.id}
+        name={recipe.name}
+        details={t('add.recipeDetails', {
+          kcal: formatKcal(Math.round(recipe.perServing.kcal)),
+        })}
+        selected={selected !== undefined}
+        {...(quantity
+          ? { quantity, quantityLabel: t('add.quantity', { name: recipe.name, grams: quantity }) }
+          : {})}
+        toggleLabel={t('add.select', { name: recipe.name })}
+        onToggle={() => {
+          toggleRecipe(recipe);
+        }}
+        openLabel={t('add.open', { name: recipe.name })}
+        onOpen={() => {
+          openRecipe(recipe);
+        }}
+      />
+    );
+  });
 
   return (
     <SafeAreaView edges={['bottom']} style={styles.container}>
@@ -256,6 +323,7 @@ export default function AddSheet() {
           />
         )}
 
+        {searching ? null : recipeRows}
         {listed.map(({ food, lastGrams: last }) => {
           const selected = selection.get(food.id);
           const values = t('add.per100g', {
@@ -290,6 +358,8 @@ export default function AddSheet() {
           );
         })}
 
+        {searching ? recipeRows : null}
+
         {searching && search.status === 'loading' ? (
           <Text variant="caption" color="textMuted">
             {t('add.searching')}
@@ -300,10 +370,13 @@ export default function AddSheet() {
             {t('add.offline')}
           </Text>
         ) : null}
-        {searching && search.status === 'done' && listed.length === 0 ? (
+        {searching &&
+        search.status === 'done' &&
+        listed.length === 0 &&
+        listedRecipes.length === 0 ? (
           <EmptyState message={t('add.noResult', { query: query.trim() })} />
         ) : null}
-        {!searching && listed.length === 0 ? (
+        {!searching && listed.length === 0 && listedRecipes.length === 0 ? (
           <EmptyState message={tab === 'recent' ? t('add.recentEmpty') : t('add.favoritesEmpty')} />
         ) : null}
 
@@ -318,9 +391,9 @@ export default function AddSheet() {
           {t('add.error')}
         </Text>
       ) : null}
-      {selection.size > 0 ? (
+      {selectedCount > 0 ? (
         <SelectionBar
-          label={t('add.selected', { count: selection.size })}
+          label={t('add.selected', { count: selectedCount })}
           total={t('add.total', { kcal: formatKcal(Math.round(totalKcal)) })}
           action={t('add.action')}
           onAction={add}

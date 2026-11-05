@@ -64,6 +64,7 @@
     "noResult": "Aucun aliment trouvé pour « {{query}} ».",
     "per100g": "{{kcal}} · P {{protein}} · G {{carbs}} / 100 g",
     "withBrand": "{{brand}} · {{values}}",
+    "recipeDetails": "Ma recette · {{kcal}} / portion",
     "select": "Ajouter {{name}}",
     "quantity": "Quantité de {{name}} : {{grams}}, touche pour la changer",
     "createFood": "Créer un aliment",
@@ -304,6 +305,7 @@
     "summary_other": "{{count}} aliments · {{kcal}}",
     "entryDetails": "{{grams}} · P {{protein}} · G {{carbs}} · L {{fat}}",
     "entryDetailsNoGrams": "P {{protein}} · G {{carbs}} · L {{fat}}",
+    "entryDetailsServings": "{{portion}} · P {{protein}} · G {{carbs}} · L {{fat}}",
     "entryLabel": "{{name}}, {{details}}, {{kcal}}",
     "entryHint": "Ouvre l’aliment pour changer la quantité, le déplacer ou le supprimer",
     "empty": "Plus rien dans ce repas.",
@@ -314,6 +316,7 @@
   "entry": {
     "close": "Fermer",
     "quantity": "Quantité en grammes",
+    "servings": "Nombre de parts",
     "values": "{{kcal}} · P {{protein}} · G {{carbs}} · L {{fat}}",
     "move": "Repas",
     "save": "Enregistrer",
@@ -324,6 +327,7 @@
     "deleteConfirm": "Supprimer",
     "deleteCancel": "Annuler",
     "invalidQuantity": "La quantité doit être un nombre de grammes supérieur à 0 (5 000 au plus).",
+    "invalidServings": "Le nombre de parts doit être supérieur à 0 (20 au plus).",
     "missing": "Cet aliment n’est plus dans ton journal.",
     "error": "La modification n’a pas pu être enregistrée. Réessaie."
   },
@@ -507,6 +511,29 @@
       "change": "Changer d’aliment",
       "pick": "Choisir {{name}}",
       "invalid": "La quantité doit être un nombre de grammes supérieur à 0 (5 000 au plus)."
+    },
+    "log": {
+      "close": "Fermer",
+      "parts_one": "{{value}} part",
+      "parts_other": "{{value}} parts",
+      "perServing": "{{kcal}} par part",
+      "perServingWeight": "{{values}} · 1 part = {{grams}}",
+      "quantity": "Quantité",
+      "other": "Autre…",
+      "weigh": "Peser",
+      "servings": "Nombre de parts",
+      "grams": "Poids de ta part en grammes",
+      "invalidServings": "Le nombre de parts doit être supérieur à 0 (20 au plus).",
+      "invalidGrams": "Le poids doit être un nombre de grammes supérieur à 0 (5 000 au plus).",
+      "macro": "{{grams}} g de {{name}}",
+      "addTo": "Ajouter à",
+      "cancel": "Annuler",
+      "add": "Ajouter · {{kcal}}",
+      "confirm": "Valider",
+      "weighButton": "Peser ma part",
+      "addOne": "Ajouter 1 part · {{kcal}}",
+      "addOneHint": "Choisis le repas et le nombre de parts avant d’ajouter",
+      "weighHint": "Indique le poids de ta part, l’app calcule ses valeurs"
     }
   }
 }

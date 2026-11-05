@@ -43,6 +43,13 @@
       "when": 1793821554594,
       "tag": "0005_user_food_barcode",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793867756098,
+      "tag": "0006_log_entry_servings",
+      "breakpoints": true
     }
   ]
 }

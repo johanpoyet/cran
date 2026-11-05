@@ -24,6 +24,7 @@ import {
   HeroCard,
   IngredientRow,
   InlineNumberField,
+  PrimaryButton,
   ServingsStepper,
   StepHeader,
   Text,
@@ -31,8 +32,8 @@ import {
 } from '../../ui';
 
 // "Fiche recette" (mockup 15): values per serving, servings, ingredients, cooked weight. The number
-// of servings and the cooked weight are saved from here (decision of Johan, S6-1); logging a
-// serving comes with S6-2.
+// of servings and the cooked weight are saved from here (decision of Johan, S6-1). "Peser ma part"
+// and "Ajouter 1 part" open the sheet that logs the recipe (S6-2).
 export default function RecipeScreen() {
   const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -62,7 +63,7 @@ export default function RecipeScreen() {
     .join(' · ');
 
   return (
-    <SafeAreaView edges={['top']} style={styles.container}>
+    <SafeAreaView edges={['top', 'bottom']} style={styles.container}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <StepHeader
           backLabel={t('recipes.back')}
@@ -87,6 +88,7 @@ export default function RecipeScreen() {
         <Ingredients recipe={recipe} />
         <CookedWeight key={String(recipe.cookedWeightG)} recipe={recipe} userId={userId} />
       </ScrollView>
+      <LogBar recipe={recipe} />
     </SafeAreaView>
   );
 }
@@ -170,6 +172,42 @@ function Ingredients({ recipe }: { recipe: RecipeDetail }) {
   );
 }
 
+/** "Peser ma part" (with a cooked weight) and "Ajouter 1 part": the sheet `recipes/log`. */
+function LogBar({ recipe }: { recipe: RecipeDetail }) {
+  const { t } = useTranslation();
+  const open = (weigh: boolean) => {
+    router.push({
+      pathname: '/recipes/log',
+      params: { id: recipe.id, ...(weigh ? { weigh: '1' } : {}) },
+    });
+  };
+  return (
+    <View style={styles.bar}>
+      {recipe.servingWeightG === null ? null : (
+        <View style={styles.weigh}>
+          <PrimaryButton
+            variant="soft"
+            label={t('recipes.log.weighButton')}
+            accessibilityHint={t('recipes.log.weighHint')}
+            onPress={() => {
+              open(true);
+            }}
+          />
+        </View>
+      )}
+      <View style={styles.addOne}>
+        <PrimaryButton
+          label={t('recipes.log.addOne', { kcal: formatKcal(Math.round(recipe.perServing.kcal)) })}
+          accessibilityHint={t('recipes.log.addOneHint')}
+          onPress={() => {
+            open(false);
+          }}
+        />
+      </View>
+    </View>
+  );
+}
+
 /** Saved when the field is left: empty clears it, a wrong value goes back to the saved one. */
 function CookedWeight({ recipe, userId }: { recipe: RecipeDetail; userId: string }) {
   const { t } = useTranslation();
@@ -240,4 +278,15 @@ const styles = StyleSheet.create({
   cooked: { gap: space[12] },
   cookedRow: { flexDirection: 'row', alignItems: 'center', gap: space[12] },
   cookedLabel: { flex: 1 },
+  bar: {
+    flexDirection: 'row',
+    gap: space[12],
+    paddingHorizontal: space.screen,
+    paddingVertical: space[16],
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+  weigh: { flex: 1 },
+  addOne: { flex: 1.4 },
 });
