@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert } from 'react-native';
@@ -5,7 +6,7 @@ import { Alert } from 'react-native';
 import { signOut } from '../../auth';
 import { localDb } from '../../db';
 import { pendingCount, requestSync } from '../../sync';
-import { EmptyState, PrimaryButton, Screen } from '../../ui';
+import { Card, EmptyState, ListRow, PrimaryButton, Screen } from '../../ui';
 
 export default function ProfileScreen() {
   const { t } = useTranslation();
@@ -13,6 +14,15 @@ export default function ProfileScreen() {
   return (
     <Screen title={t('profile.title')}>
       <EmptyState message={t('profile.empty')} />
+      {/* Stays here when the "Objectifs" screen is built (S8): links to the recipes and export. */}
+      <Card>
+        <ListRow
+          title={t('profile.recipes')}
+          onPress={() => {
+            router.push('/recipes');
+          }}
+        />
+      </Card>
       {/* Moves to the account settings screen (spec: settings/account) once it is designed. */}
       <PrimaryButton
         variant="outline"

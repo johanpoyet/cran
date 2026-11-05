@@ -8,21 +8,28 @@ export interface LetterTileProps {
   letter: string;
   color?: ColorToken;
   background?: ColorToken;
+  /** "large": recipe cards of "Mes recettes". */
+  size?: 'default' | 'large';
 }
 
-// Rounded tile with a letter, in front of a product name (scan sheet). Decorative.
+// Rounded tile with a letter, in front of a product or recipe name. Decorative.
 export function LetterTile({
   letter,
   color = 'accent',
   background = 'accentSoft',
+  size = 'default',
 }: LetterTileProps) {
   return (
     <View
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
-      style={[styles.tile, { backgroundColor: colors[background] }]}
+      style={[
+        styles.tile,
+        size === 'large' && styles.large,
+        { backgroundColor: colors[background] },
+      ]}
     >
-      <Text variant="heading" weight={800} color={color}>
+      <Text variant={size === 'large' ? 'title' : 'heading'} weight={800} color={color}>
         {letter}
       </Text>
     </View>
@@ -37,4 +44,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  large: { width: control.recipeTile, height: control.recipeTile, borderRadius: radius.card },
 });
