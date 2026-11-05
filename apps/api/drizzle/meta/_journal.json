@@ -50,6 +50,13 @@
       "when": 1793867756098,
       "tag": "0006_log_entry_servings",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793870700009,
+      "tag": "0007_template_item_servings",
+      "breakpoints": true
     }
   ]
 }

@@ -2,12 +2,12 @@
 
 ## Sprint en cours : S6 — Recettes et modèles
 
-| Story                               | État     | PR                     |
-| ----------------------------------- | -------- | ---------------------- |
-| S6-1 Recettes                       | terminée | #42                    |
-| S6-2 Ajouter une recette au journal | en revue | `feat/S6-2-log-recipe` |
-| S6-3 Modèles de repas               | à faire  |                        |
-| S6-4 Favoris                        | à faire  |                        |
+| Story                               | État     | PR                         |
+| ----------------------------------- | -------- | -------------------------- |
+| S6-1 Recettes                       | terminée | #42                        |
+| S6-2 Ajouter une recette au journal | terminée | #43                        |
+| S6-3 Modèles de repas               | en revue | `feat/S6-3-meal-templates` |
+| S6-4 Favoris                        | à faire  |                            |
 
 ## Sprints terminés
 
@@ -289,6 +289,21 @@ Petites décisions prises sans changer le modèle de données, l'API ou l'UX. Le
 - **2026-11-05 · Feuille « Ajouter au journal »** (non dessinée, sur le modèle de la feuille produit du scan) : puces « 1 part », « 2 parts », « Autre… » (parts tapées, décimales permises, 20 au plus) et « Peser » (si poids cuit, 5 000 g au plus) ; valeurs de la quantité ; repas de l'heure, modifiable ; « Ajouter · 614 kcal » ramène sur Aujourd'hui. Sans poids cuit, ni « Peser ma part » sur la fiche ni puce « Peser ».
 - **2026-11-05 · Recettes dans la feuille d'ajout** : « Ma recette · 173 kcal / portion », le + choisit 1 part, toucher le nom ouvre la feuille de la recette pour choisir les parts ou peser (sans repas : celui de la feuille d'ajout). Dans « Récents », les recettes saisies récemment passent avant les aliments : un meal prep revient tous les jours. Dans la recherche, elles suivent les aliments, comme sur la maquette. Les recettes favorites viendront avec S6-4.
 - **2026-11-05 · Saisie d'une recette dans le repas** : « 2 parts (1 050 g) · P … » avec poids cuit, « 1,5 part · P … » sans ; « 525 g · P … » pour une portion pesée. La saisie porte le nom de la recette : modifier ou supprimer la recette ne change pas le journal.
+- **2026-11-05 · S6-2 vérifiée sur iPhone** : checklist de 13 points validée par Johan. Avant le test, le staging a été déployé depuis la branche (workflow « Deploy staging » lancé à la main, avec l'accord de Johan), puis redéployé depuis `main` au merge de #43 (version `82299c2`).
+- **2026-11-05 · Modèles de repas : choix de Johan** :
+  - un modèle garde une recette en parts ou en grammes, comme elle a été saisie (ADR 0006, complément S6-3) ;
+  - toucher une carte de la feuille d'ajout ajoute tout le modèle au repas choisi et ferme la feuille : 2 touches, + puis la carte ;
+  - on enregistre un repas comme modèle depuis sa feuille, lien « Enregistrer comme modèle » ;
+  - un appui long sur une carte propose « Renommer » et « Supprimer ».
+- **2026-11-05 · Modèles de repas : détails** :
+  - le nom est demandé par une fenêtre iOS, prérempli avec le nom du repas (« Dîner »), et limité à 100 caractères ;
+  - les ajouts rapides ne sont pas repris, et le message le dit ;
+  - les cartes (maquette 11) alternent bleu clair et orange clair, et montrent « 4 aliments · 780 kcal », une recette comptant comme un aliment ;
+  - les modèles du repas choisi passent en premier, puis du plus récent au plus ancien ;
+  - les cartes restent visibles pendant une recherche, comme sur la maquette ;
+  - VoiceOver propose « Renommer » et « Supprimer » comme actions de la carte ;
+  - sans menu iOS (Android), l'appui long propose seulement la suppression ;
+  - le libellé de portion d'un aliment (« 1 galette ») n'est pas gardé dans le modèle, seulement ses grammes.
 
 ## Rétros
 

@@ -62,7 +62,10 @@ export const mealTemplates = pgTable(
   ],
 );
 
-/** A food or a recipe of a template, exactly one of the two. */
+/**
+ * A food or a recipe of a template, exactly one of the two, with its quantity: grams, or servings
+ * of a recipe (S6-3, ADR 0006), at least one of the two.
+ */
 export const mealTemplateItems = pgTable(
   'meal_template_items',
   {
@@ -72,7 +75,8 @@ export const mealTemplateItems = pgTable(
       .references(() => mealTemplates.id, { onDelete: 'cascade' }),
     foodId: uuid('food_id').references(() => foods.id),
     recipeId: uuid('recipe_id').references(() => recipes.id),
-    grams: grams('grams').notNull(),
+    grams: grams('grams'),
+    servings: grams('servings'),
     position: smallint('position').notNull(),
   },
   (table) => [
@@ -82,6 +86,11 @@ export const mealTemplateItems = pgTable(
       'meal_template_items_target_check',
       sql`num_nonnulls(${table.foodId}, ${table.recipeId}) = 1`,
     ),
-    check('meal_template_items_grams_check', sql`${table.grams} > 0`),
+    check(
+      'meal_template_items_grams_check',
+      sql`(${table.grams} is null or ${table.grams} > 0)
+        and (${table.servings} is null or ${table.servings} > 0)
+        and num_nonnulls(${table.grams}, ${table.servings}) >= 1`,
+    ),
   ],
 );

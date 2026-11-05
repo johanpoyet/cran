@@ -119,6 +119,8 @@ export const control = {
   macroRing: 64,
   /** Letter tile of a recipe card ("Mes recettes"). */
   recipeTile: 64,
+  /** Narrowest meal template card of the add sheet. */
+  templateCard: 160,
   /** Aiming frame of the scan screen, with its corners. */
   scanFrame: { width: 280, height: 170, corner: 40, stroke: 4 },
 } as const;

@@ -65,6 +65,20 @@
     "per100g": "{{kcal}} · P {{protein}} · G {{carbs}} / 100 g",
     "withBrand": "{{brand}} · {{values}}",
     "recipeDetails": "Ma recette · {{kcal}} / portion",
+    "templates": {
+      "title": "Modèles de repas",
+      "summary_one": "{{count}} aliment · {{kcal}}",
+      "summary_other": "{{count}} aliments · {{kcal}}",
+      "label": "Modèle {{name}}, {{summary}}",
+      "hint": "Ajoute tout le modèle au repas choisi. Appui long pour le renommer ou le supprimer",
+      "rename": "Renommer",
+      "renameTitle": "Renommer le modèle",
+      "renameConfirm": "Renommer",
+      "delete": "Supprimer",
+      "deleteTitle": "Supprimer « {{name}} » ?",
+      "deleteText": "Les repas déjà saisis avec ce modèle ne changent pas.",
+      "cancel": "Annuler"
+    },
     "select": "Ajouter {{name}}",
     "quantity": "Quantité de {{name}} : {{grams}}, touche pour la changer",
     "createFood": "Créer un aliment",
@@ -311,7 +325,19 @@
     "empty": "Plus rien dans ce repas.",
     "add": "Ajouter un aliment",
     "close": "Fermer",
-    "entryDetailsPortion": "{{portion}} ({{grams}}) · P {{protein}} · G {{carbs}} · L {{fat}}"
+    "entryDetailsPortion": "{{portion}} ({{grams}}) · P {{protein}} · G {{carbs}} · L {{fat}}",
+    "template": {
+      "action": "Enregistrer comme modèle",
+      "hint": "Garde les aliments et recettes de ce repas pour les rajouter en une touche",
+      "title": "Enregistrer comme modèle",
+      "message": "Nom du modèle, affiché dans la feuille d’ajout",
+      "cancel": "Annuler",
+      "save": "Enregistrer",
+      "saved": "Modèle « {{name}} » enregistré : il t’attend dans la feuille d’ajout.",
+      "savedWithout_one": "Modèle « {{name}} » enregistré, sans l’ajout rapide.",
+      "savedWithout_other": "Modèle « {{name}} » enregistré, sans les {{count}} ajouts rapides.",
+      "error": "Le modèle n’a pas pu être enregistré. Réessaie."
+    }
   },
   "entry": {
     "close": "Fermer",

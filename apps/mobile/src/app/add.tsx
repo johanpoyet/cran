@@ -15,7 +15,15 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { X, Zap } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import {
+  ActionSheetIOS,
+  Alert,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useSessionUserId } from '../auth';
@@ -42,7 +50,14 @@ import {
   searchRecipes,
   servingsLabel,
 } from '../recipes';
-import { colors, radius, space, touch } from '../theme/tokens';
+import {
+  applyTemplate,
+  deleteTemplate,
+  type MealTemplate,
+  readTemplates,
+  renameTemplate,
+} from '../templates';
+import { colors, type ColorToken, radius, space, touch } from '../theme/tokens';
 import {
   Chip,
   EmptyState,
@@ -52,10 +67,13 @@ import {
   SearchField,
   Segmented,
   SelectionBar,
+  TemplateCard,
   Text,
 } from '../ui';
 
 type Tab = 'recent' | 'favorites';
+/** Backgrounds of the template cards, in turn (mockup 11). */
+const TEMPLATE_BACKGROUNDS: readonly ColorToken[] = ['accentSoft', 'proteinSoft'];
 const RECENT_LIMIT = 20;
 
 function isMealType(value: string | undefined): value is MealType {
@@ -63,8 +81,9 @@ function isMealType(value: string | undefined): value is MealType {
 }
 
 // "Ajouter un aliment": meal, search (phone then server), recent and favourite foods, the user's
-// recipes (in the search and the recent ones, S6-2), multiple selection and total. A recent food is
-// added in three touches: +, its + and "Ajouter".
+// recipes (in the search and the recent ones, S6-2), meal templates (S6-3), multiple selection and
+// total. A recent food is added in three touches: +, its + and "Ajouter"; a template in two: + and
+// its card. A long press on a card renames or deletes it.
 export default function AddSheet() {
   const { t } = useTranslation();
   const params = useLocalSearchParams<{ meal?: string }>();
@@ -94,6 +113,12 @@ export default function AddSheet() {
   );
   const search = useFoodSearch(localDb, userId, query);
   const recipes = useLocalQuery(useCallback(() => readRecipes(localDb, userId), [userId]));
+  const allTemplates = useLocalQuery(useCallback(() => readTemplates(localDb, userId), [userId]));
+  // The templates of the chosen meal come first.
+  const templates = [
+    ...allTemplates.filter((template) => template.mealType === meal),
+    ...allTemplates.filter((template) => template.mealType !== meal),
+  ];
   const recentRecipes = useLocalQuery(
     useCallback(() => readRecentRecipes(localDb, userId, RECENT_LIMIT), [userId]),
   );
@@ -153,6 +178,73 @@ export default function AddSheet() {
     }
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     router.back();
+  }
+
+  function addTemplate(template: MealTemplate) {
+    try {
+      applyTemplate(localDb, userId, template, { mealType: meal, at: new Date() });
+    } catch (addError) {
+      Sentry.captureException(addError);
+      setError(true);
+      return;
+    }
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    router.back();
+  }
+
+  function renameAsked(template: MealTemplate) {
+    Alert.prompt(
+      t('add.templates.renameTitle'),
+      undefined,
+      [
+        { text: t('add.templates.cancel'), style: 'cancel' },
+        {
+          text: t('add.templates.renameConfirm'),
+          onPress: (name?: string) => {
+            renameTemplate(localDb, userId, template.id, name ?? '');
+          },
+        },
+      ],
+      'plain-text',
+      template.name,
+    );
+  }
+
+  function deleteAsked(template: MealTemplate) {
+    Alert.alert(
+      t('add.templates.deleteTitle', { name: template.name }),
+      t('add.templates.deleteText'),
+      [
+        { text: t('add.templates.cancel'), style: 'cancel' },
+        {
+          text: t('add.templates.delete'),
+          style: 'destructive',
+          onPress: () => {
+            deleteTemplate(localDb, userId, template.id);
+          },
+        },
+      ],
+    );
+  }
+
+  function templateMenu(template: MealTemplate) {
+    // Android has no action sheet (nor text prompt): deleting is offered.
+    if (Platform.OS !== 'ios') {
+      deleteAsked(template);
+      return;
+    }
+    ActionSheetIOS.showActionSheetWithOptions(
+      {
+        title: template.name,
+        options: [t('add.templates.rename'), t('add.templates.delete'), t('add.templates.cancel')],
+        destructiveButtonIndex: 1,
+        cancelButtonIndex: 2,
+      },
+      (index) => {
+        if (index === 0) renameAsked(template);
+        if (index === 1) deleteAsked(template);
+      },
+    );
   }
 
   function copyYesterday() {
@@ -282,6 +374,60 @@ export default function AddSheet() {
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
       >
+        {templates.length > 0 ? (
+          <View style={styles.templates}>
+            <Text variant="label" color="textMuted" accessibilityRole="header">
+              {t('add.templates.title')}
+            </Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.templateCards}
+            >
+              {templates.map((template, index) => {
+                const summary = t('add.templates.summary', {
+                  count: template.items.length,
+                  kcal: formatKcal(Math.round(template.kcal)),
+                });
+                return (
+                  <TemplateCard
+                    key={template.id}
+                    name={template.name}
+                    details={summary}
+                    background={
+                      TEMPLATE_BACKGROUNDS[index % TEMPLATE_BACKGROUNDS.length] ?? 'accentSoft'
+                    }
+                    onPress={() => {
+                      addTemplate(template);
+                    }}
+                    onLongPress={() => {
+                      templateMenu(template);
+                    }}
+                    accessibilityLabel={t('add.templates.label', { name: template.name, summary })}
+                    accessibilityHint={t('add.templates.hint')}
+                    actions={[
+                      {
+                        name: 'rename',
+                        label: t('add.templates.rename'),
+                        onAction: () => {
+                          renameAsked(template);
+                        },
+                      },
+                      {
+                        name: 'delete',
+                        label: t('add.templates.delete'),
+                        onAction: () => {
+                          deleteAsked(template);
+                        },
+                      },
+                    ]}
+                  />
+                );
+              })}
+            </ScrollView>
+          </View>
+        ) : null}
+
         {searching ? (
           <Text variant="label" color="textMuted" accessibilityRole="header">
             {t('add.results', { query: query.trim() })}
@@ -420,4 +566,6 @@ const styles = StyleSheet.create({
   listContent: { padding: space.screen, gap: space[4] },
   shortcuts: { gap: space[8], marginBottom: space[8] },
   quickAdd: { flexDirection: 'row' },
+  templates: { gap: space[8], marginBottom: space[8] },
+  templateCards: { gap: space[12] },
 });
